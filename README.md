@@ -1,4 +1,4 @@
-# agro-weather-chat
+# agro-agent
 
 A learning project: a Next.js chat built on the Vercel AI SDK that checks the weather
 (Open-Meteo) and tells you whether it is safe to spray a field.

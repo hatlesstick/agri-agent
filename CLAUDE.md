@@ -1,4 +1,4 @@
-# CLAUDE.md — agro-weather-chat
+# CLAUDE.md — agro-agent
 
 ## Про мене і мету
 - Я Full-Stack / React Native розробник (5+ років, TypeScript), зараз вчуся будувати AI-агентів.
