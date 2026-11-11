@@ -42,7 +42,7 @@ export default function ChatPage() {
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
-          <span>Something went wrong.</span>
+          <span>{error.message || "Something went wrong."}</span>
           <button type="button" onClick={() => regenerate()} className="underline">
             Retry
           </button>

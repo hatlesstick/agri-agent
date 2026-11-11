@@ -2,6 +2,7 @@ import { createAgentUIStreamResponse } from "ai";
 import { AGENT_TIMEOUT_MS, createAgroAgent, SCREEN_REFUSAL, screenInput } from "@/agent";
 import { latestUserText, parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
 import { checkRateLimit, rateLimitedResponse } from "@/server/guardrails/rate-limit";
+import { chatErrorMessage } from "@/server/chat-errors";
 import { refusalStreamResponse } from "@/server/screened-response";
 
 export async function handleChatRequest(req: Request): Promise<Response> {
@@ -30,5 +31,6 @@ export async function handleChatRequest(req: Request): Promise<Response> {
     options: { now: new Date() },
     abortSignal: req.signal,
     timeout: AGENT_TIMEOUT_MS,
+    onError: chatErrorMessage,
   });
 }

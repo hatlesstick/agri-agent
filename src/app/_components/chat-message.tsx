@@ -1,5 +1,6 @@
 import type { AgroAgentUIMessage } from "@/agent";
 import { summarizeSteps } from "@/app/_components/agent-activity";
+import { AssistantMarkdown } from "@/app/_components/assistant-markdown";
 import { isToolPart, ToolCallCard } from "@/app/_components/tool-call-card";
 
 const EMPTY_ANSWER_NOTICE = "The assistant returned no explanation. The tool result above is the answer.";
@@ -51,11 +52,7 @@ export function ChatMessage({ message, isComplete }: { message: AgroAgentUIMessa
       {message.parts.map((part, index) => {
         const key = `${message.id}-${index}`;
         if (part.type === "text") {
-          return part.text.trim() ? (
-            <p key={key} className="whitespace-pre-wrap">
-              {part.text}
-            </p>
-          ) : null;
+          return part.text.trim() ? <AssistantMarkdown key={key} text={part.text} /> : null;
         }
         if (isToolPart(part)) return <ToolCallCard key={key} part={part} />;
         return null;
