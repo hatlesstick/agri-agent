@@ -1,8 +1,10 @@
 import { isStepCount, streamText } from "ai";
+import { propagateAttributes, startActiveObservation } from "@langfuse/tracing";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { agentTools, agentToolsContext, buildInstructions, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
 import { EVAL_NOW, EVAL_TOMORROW, stubWeatherScenario, type WeatherScenario } from "@/agent/evals/scenarios";
 import { printEvalReport, recordEval } from "@/agent/evals/report";
+import { recordRunScores } from "@/agent/evals/scores";
 import { CHAT_MODEL, isMockMode } from "@/agent/model";
 import { clearForecastCache } from "@/domain/weather/forecast";
 
@@ -100,18 +102,32 @@ const AGENT_CASES: AgentCase[] = [
 
 type ToolCall = { toolName: string; input: unknown };
 
-function callFailures(calls: ToolCall[], expected: AgentCase["expectedCalls"]): string[] {
-  if (expected === "none") return calls.length ? [`unexpected ${calls.map((call) => call.toolName).join(", ")}`] : [];
+type CaseResult = { failures: string[]; selectionOk: boolean; argumentsOk: boolean | null };
 
-  return expected.flatMap((expectedCall) => {
+function evaluateCalls(calls: ToolCall[], expected: AgentCase["expectedCalls"]): CaseResult {
+  if (expected === "none") {
+    const failures = calls.length ? [`unexpected ${calls.map((call) => call.toolName).join(", ")}`] : [];
+    return { failures, selectionOk: failures.length === 0, argumentsOk: null };
+  }
+
+  const selectionFailures: string[] = [];
+  const argumentFailures: string[] = [];
+  for (const expectedCall of expected) {
     const match = calls.find((call) => call.toolName === expectedCall.toolName);
-    if (!match) return [`missing ${expectedCall.toolName}`];
+    if (!match) {
+      selectionFailures.push(`missing ${expectedCall.toolName}`);
+      continue;
+    }
     const input = match.input as Record<string, unknown>;
-    const failures: string[] = [];
-    if (expectedCall.city && input.city !== expectedCall.city) failures.push(`city=${String(input.city)}`);
-    if (expectedCall.date && !TOMORROW_VALUES.includes(String(input.date))) failures.push(`date=${String(input.date)}`);
-    return failures;
-  });
+    if (expectedCall.city && input.city !== expectedCall.city) argumentFailures.push(`city=${String(input.city)}`);
+    if (expectedCall.date && !TOMORROW_VALUES.includes(String(input.date))) argumentFailures.push(`date=${String(input.date)}`);
+  }
+
+  return {
+    failures: [...selectionFailures, ...argumentFailures],
+    selectionOk: selectionFailures.length === 0,
+    argumentsOk: selectionFailures.length === 0 ? argumentFailures.length === 0 : null,
+  };
 }
 
 type RunOutcome = { kind: "passed" } | { kind: "failed"; failures: string[] } | { kind: "infra"; reason: string };
@@ -123,41 +139,52 @@ const MAX_ATTEMPTS = RUNS * 3;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function runCase(testCase: AgentCase): Promise<string[]> {
-  clearForecastCache();
-  stubWeatherScenario(testCase.scenario);
-  const streamErrors: string[] = [];
-  const result = streamText({
-    onError: ({ error }) => {
-      streamErrors.push(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
-    },
-    model: chatModel(),
-    system: buildInstructions(EVAL_NOW),
-    prompt: testCase.prompt,
-    tools: agentTools,
-    toolsContext: agentToolsContext(EVAL_NOW),
-    stopWhen: isStepCount(MAX_AGENT_STEPS),
-    maxOutputTokens: MAX_OUTPUT_TOKENS,
-    maxRetries: MOCK ? 0 : 4,
-    runtimeContext: { evalRunId: EVAL_RUN_ID, evalCase: testCase.id, model: MODEL_LABEL },
-    telemetry: {
-      functionId: `eval:${testCase.id}`,
-      includeRuntimeContext: { evalRunId: true, evalCase: true, model: true },
-    },
-  });
-  const steps = await Promise.resolve(result.steps).catch(() => null);
-  await Promise.resolve(result.text).catch(() => null);
-  if (streamErrors.length > 0 || !steps) {
-    return [`stream error: ${(streamErrors[0] ?? "unknown").slice(0, 160)}`];
-  }
-  return callFailures(steps.flatMap((step) => step.toolCalls), testCase.expectedCalls);
-}
+async function runCase(testCase: AgentCase, run: number): Promise<RunOutcome> {
+  return startActiveObservation(`eval:${testCase.id}`, (observation) =>
+    propagateAttributes(
+      {
+        traceName: `eval:${testCase.id}`,
+        sessionId: EVAL_RUN_ID,
+        tags: ["eval", MODEL_LABEL],
+        metadata: { evalCase: testCase.id, run, model: MODEL_LABEL, scenario: testCase.scenario },
+      },
+      async (): Promise<RunOutcome> => {
+        clearForecastCache();
+        stubWeatherScenario(testCase.scenario);
+        const streamErrors: string[] = [];
+        const result = streamText({
+          onError: ({ error }) => {
+            streamErrors.push(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
+          },
+          model: chatModel(),
+          system: buildInstructions(EVAL_NOW),
+          prompt: testCase.prompt,
+          tools: agentTools,
+          toolsContext: agentToolsContext(EVAL_NOW),
+          stopWhen: isStepCount(MAX_AGENT_STEPS),
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          maxRetries: MOCK ? 0 : 4,
+          telemetry: { functionId: `eval:${testCase.id}` },
+        });
+        const steps = await Promise.resolve(result.steps).catch(() => null);
+        await Promise.resolve(result.text).catch(() => null);
 
-async function classify(testCase: AgentCase): Promise<RunOutcome> {
-  const failures = await runCase(testCase).catch((error: unknown) => [`error: ${String(error).slice(0, 160)}`]);
-  const infra = failures.find((failure) => INFRA_ERROR.test(failure));
-  if (infra) return { kind: "infra", reason: infra };
-  return failures.length === 0 ? { kind: "passed" } : { kind: "failed", failures };
+        const streamError = streamErrors[0] ?? (steps ? null : "unknown stream error");
+        if (streamError && INFRA_ERROR.test(streamError)) return { kind: "infra", reason: streamError };
+        if (streamError || !steps) return { kind: "failed", failures: [`stream error: ${String(streamError).slice(0, 160)}`] };
+
+        const evaluation = evaluateCalls(steps.flatMap((step) => step.toolCalls), testCase.expectedCalls);
+        recordRunScores(observation.traceId, {
+          passed: evaluation.failures.length === 0,
+          toolSelection: evaluation.selectionOk,
+          toolArguments: evaluation.argumentsOk,
+          steps: steps.length,
+          comment: evaluation.failures.join("; "),
+        });
+        return evaluation.failures.length === 0 ? { kind: "passed" } : { kind: "failed", failures: evaluation.failures };
+      },
+    ),
+  );
 }
 
 describe(SUITE, () => {
@@ -176,7 +203,9 @@ describe(SUITE, () => {
     let infraErrors = 0;
     for (let attempt = 0; attempt < MAX_ATTEMPTS && completed < RUNS; attempt += 1) {
       if (attempt > 0) await sleep(DELAY_BETWEEN_RUNS_MS);
-      const outcome = await classify(testCase);
+      const outcome = await runCase(testCase, attempt).catch(
+        (error: unknown): RunOutcome => ({ kind: "failed", failures: [`error: ${String(error).slice(0, 160)}`] }),
+      );
       if (outcome.kind === "infra") {
         infraErrors += 1;
         await sleep(INFRA_BACKOFF_MS);
