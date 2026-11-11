@@ -1,5 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { CHAT_LIMITS, parseChatRequest } from "@/lib/guardrails/chat-request";
+import { CHAT_LIMITS, parseChatRequest, readJsonBody } from "@/lib/guardrails/chat-request";
+
+function postRequest(body: string, headers: Record<string, string> = {}) {
+  return new Request("http://localhost/api/chat", { method: "POST", body, headers });
+}
+
+describe("readJsonBody", () => {
+  it("parses a JSON body", async () => {
+    expect(await readJsonBody(postRequest('{"a":1}'))).toEqual({ ok: true, body: { a: 1 } });
+  });
+
+  it("rejects invalid JSON", async () => {
+    expect(await readJsonBody(postRequest("{oops"))).toEqual({ ok: false, status: 400, error: "invalid_request" });
+  });
+
+  it("rejects a body over the byte limit", async () => {
+    const body = JSON.stringify({ text: "а".repeat(CHAT_LIMITS.maxBodyBytes) });
+    expect(await readJsonBody(postRequest(body))).toEqual({ ok: false, status: 413, error: "payload_too_large" });
+  });
+
+  it("rejects early when content-length is over the limit", async () => {
+    const request = postRequest("{}", { "content-length": String(CHAT_LIMITS.maxBodyBytes + 1) });
+    expect(await readJsonBody(request)).toEqual({ ok: false, status: 413, error: "payload_too_large" });
+  });
+});
 
 function textMessage(id: string, role: string, text: string) {
   return { id, role, parts: [{ type: "text", text }] };
@@ -56,6 +80,12 @@ describe("parseChatRequest", () => {
     const messages = conversation(5, "а".repeat(CHAT_LIMITS.maxMessageChars)).concat(textMessage("x", "user", "а"));
     const result = await parseChatRequest({ messages });
     expect(result).toEqual({ ok: false, status: 413, error: "conversation_too_long" });
+  });
+
+  it("rejects non-text parts in user messages", async () => {
+    const filePart = { type: "file", mediaType: "text/plain", url: `data:text/plain;base64,${"QQ".repeat(50_000)}` };
+    const result = await parseChatRequest({ messages: [{ id: "1", role: "user", parts: [filePart] }] });
+    expect(result).toMatchObject({ ok: false, status: 400 });
   });
 
   it("keeps only the most recent messages", async () => {

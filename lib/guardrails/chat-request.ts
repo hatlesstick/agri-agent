@@ -6,23 +6,54 @@ export const CHAT_LIMITS = {
   maxMessageChars: 2000,
   maxTotalChars: 8000,
   keepLastMessages: 12,
+  maxBodyBytes: 256 * 1024,
 } as const;
 
-const chatMessageSchema = z.looseObject({
+const userMessageSchema = z.looseObject({
   id: z.string().min(1),
-  role: z.enum(["user", "assistant"]),
+  role: z.literal("user"),
+  parts: z.array(z.looseObject({ type: z.literal("text") })).min(1),
+});
+
+const assistantMessageSchema = z.looseObject({
+  id: z.string().min(1),
+  role: z.literal("assistant"),
   parts: z.array(z.looseObject({ type: z.string() })).min(1),
 });
+
+const chatMessageSchema = z.discriminatedUnion("role", [userMessageSchema, assistantMessageSchema]);
 
 export const chatRequestSchema = z.looseObject({
   messages: z.array(chatMessageSchema).min(1).max(CHAT_LIMITS.maxMessages),
 });
 
-export type ChatRequestError = "invalid_request" | "message_too_long" | "conversation_too_long";
+export type ChatRequestError = "invalid_request" | "payload_too_large" | "message_too_long" | "conversation_too_long";
 
 export type ChatRequestResult =
   | { ok: true; messages: UIMessage[] }
   | { ok: false; status: 400 | 413; error: ChatRequestError };
+
+export type JsonBodyResult =
+  | { ok: true; body: unknown }
+  | { ok: false; status: 400 | 413; error: ChatRequestError };
+
+export async function readJsonBody(request: Request): Promise<JsonBodyResult> {
+  const declaredLength = Number(request.headers.get("content-length") ?? 0);
+  if (declaredLength > CHAT_LIMITS.maxBodyBytes) {
+    return { ok: false, status: 413, error: "payload_too_large" };
+  }
+
+  const raw = await request.text();
+  if (new TextEncoder().encode(raw).byteLength > CHAT_LIMITS.maxBodyBytes) {
+    return { ok: false, status: 413, error: "payload_too_large" };
+  }
+
+  try {
+    return { ok: true, body: JSON.parse(raw) };
+  } catch {
+    return { ok: false, status: 400, error: "invalid_request" };
+  }
+}
 
 function textLength(message: UIMessage): number {
   return message.parts.reduce((total, part) => total + (part.type === "text" ? part.text.length : 0), 0);
