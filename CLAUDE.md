@@ -149,6 +149,13 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 - **Service URLs come from env** (`OPEN_METEO_GEOCODING_URL`, `OPEN_METEO_FORECAST_URL`), validated by `src/config/env.ts` (https only, fail fast).
 - Small commits, conventional commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
 
+## Testing strategy
+- During development, behaviour is checked with **evals** in `src/agent/evals/` (`*.eval.ts`, separate Vitest config `vitest.eval.config.mts`):
+  - **tool evals**: tools run on synthetic weather scenarios (calm, windy, rainy morning, cold) with stubbed Open-Meteo; deterministic, no model;
+  - **agent evals**: prompts → expected tool calls and arguments; mock model by default, real model via `npm run eval:real`, each case run several times and reported as a pass rate.
+- Every new tool or behaviour adds eval cases.
+- **Unit tests are deferred to stage 9.** The last full unit suite (104 tests) lives in commit `cbe7e9f`; restore with `git checkout cbe7e9f -- $(git ls-tree -r --name-only cbe7e9f | grep '\.test\.ts$')`.
+
 ## Code style
 - **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does".
 - Clarity comes from names of variables, functions and types, and from small functions.
@@ -158,8 +165,9 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 ## Commands
 - `npm run dev`: local dev server
 - `npm run lint`: lint
-- `npm test`: unit tests (Vitest)
-- `npm run eval`: evals against the real model (from stage 7, costs tokens)
+- `npm run eval`: tool and agent evals with the mock model (free)
+- `npm run eval:real`: agent evals against the real model (costs tokens; report shows pass rate per case)
+- `npm test`: unit tests (deferred to stage 9; currently none)
 - `npm run index`: build the RAG index (from stage 8)
 
 ## Structure
