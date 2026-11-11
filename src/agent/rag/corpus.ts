@@ -6,9 +6,9 @@ import type { Chunk } from "@/domain/rag/types";
 export const DOCS_DIR = join(process.cwd(), "data", "docs");
 export const INDEX_FILE = join(process.cwd(), "data", "index.json");
 
-export function readCorpusChunks(dir: string = DOCS_DIR): Chunk[] {
-  return readdirSync(dir)
+export function readCorpusChunks(): Chunk[] {
+  return readdirSync(join(process.cwd(), "data", "docs"))
     .filter((file) => file.endsWith(".md"))
     .sort()
-    .flatMap((file) => chunkMarkdown(file, readFileSync(join(dir, file), "utf8")));
+    .flatMap((file) => chunkMarkdown(file, readFileSync(join(process.cwd(), "data", "docs", file), "utf8")));
 }
