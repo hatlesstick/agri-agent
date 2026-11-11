@@ -14,8 +14,9 @@ export const BASE_INSTRUCTIONS = [
 ].join("\n");
 
 const SPRAYING_INSTRUCTIONS = [
-  "For any question about whether or when to spray, call sprayWindow. Never decide this yourself.",
-  "Report canSpray and bestWindow exactly as sprayWindow returns them, then explain the main reasons from rejectedReasons in plain words.",
+  "For a question about one specific day, call sprayWindow. For 'when can I spray', 'which day', 'this week' or when no day is given, call sprayOutlook once. Never decide this yourself.",
+  "Always use real function calls. Never write tool calls as text or code, and never call the same tool several times for different days.",
+  "Report canSpray and bestWindow exactly as the tool returns them, then explain the main reasons from rejectedReasons in plain words.",
   "Pass relative days to tools as today, tomorrow or day_after_tomorrow; pass any other day as YYYY-MM-DD. The tool resolves them in the city's time zone.",
   "Times in tool results are local to the city. Never convert them to UTC.",
   "If the user names no city, ask which city before calling a tool. Never invent a city.",

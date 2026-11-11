@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, it, vi } from "vitest";
 import { runSprayCheck, type SprayCheck } from "@/agent";
-import { evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@/agent/evals/harness";
+import { EVAL_TIMEOUT_MS, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@/agent/evals/harness";
 import { printEvalReport } from "@/agent/evals/report";
 import { EVAL_NOW, stubWeatherScenario, UNKNOWN_CITY, type WeatherScenario } from "@/agent/evals/scenarios";
 import { recordScores } from "@/agent/evals/scores";
@@ -88,6 +88,7 @@ function runOnce(testCase: SprayCheckCase, attempt: number): Promise<RunOutcome>
       question: testCase.question,
       now: EVAL_NOW,
       maxRetries: RETRIES_PER_CALL,
+      timeoutMs: EVAL_TIMEOUT_MS,
       telemetryFunctionId: `eval:spray-check:${testCase.id}`,
     });
 

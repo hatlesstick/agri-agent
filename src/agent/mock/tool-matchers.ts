@@ -6,6 +6,7 @@ const NON_CITY_WORDS = new Set([
   "a", "an", "the", "is", "are", "be", "it", "i", "we", "my", "me", "can", "could", "should", "will", "would",
   "what", "whats", "how", "when", "where", "which", "do", "does", "to", "of", "and", "or", "please",
   "weather", "forecast", "spray", "spraying", "field", "fields", "today", "tomorrow", "now", "good", "ok", "okay",
+  "day", "week", "this", "next",
 ]);
 
 function capitalize(word: string): string {
@@ -22,6 +23,15 @@ export function cityFrom(text: string): string | null {
 }
 
 export const MOCK_TOOL_MATCHERS: MockToolMatcher[] = [
+  {
+    toolName: "sprayOutlook",
+    matches: (text) =>
+      /\bspray/i.test(text) && /\b(when|which day|this week)\b/i.test(text) && !/\b(today|tomorrow)\b/i.test(text),
+    input: (text) => {
+      const city = cityFrom(text);
+      return city ? { city } : null;
+    },
+  },
   {
     toolName: "sprayWindow",
     matches: (text) => /\bspray/i.test(text),

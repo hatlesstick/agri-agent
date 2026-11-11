@@ -13,6 +13,7 @@ export type SprayCheckInput = {
   maxRetries?: number;
   telemetryFunctionId?: string;
   abortSignal?: AbortSignal;
+  timeoutMs?: number;
 };
 
 type Collected = SprayCheckTrace & { toolResults: ToolResult[] };
@@ -32,6 +33,7 @@ export async function runSprayCheck({
   maxRetries,
   telemetryFunctionId = "spray-check",
   abortSignal,
+  timeoutMs = AGENT_TIMEOUT_MS,
 }: SprayCheckInput): Promise<SprayCheckOutcome> {
   let collected = emptyCollected();
 
@@ -47,7 +49,7 @@ export async function runSprayCheck({
         prompt: question,
         options: { now },
         abortSignal,
-        timeout: AGENT_TIMEOUT_MS,
+        timeout: timeoutMs,
         onStepEnd: (step) => {
           current.steps += 1;
           current.toolCalls.push(...step.toolCalls.map(({ toolName, input }) => ({ toolName, input })));

@@ -1,5 +1,6 @@
 import { gateway, wrapLanguageModel, type LanguageModel } from "ai";
 import { labelReminderMiddleware } from "@/agent/guardrails/label-reminder";
+import { toolCodeLeakMiddleware } from "@/agent/guardrails/tool-code-leak";
 import { serverEnv } from "@/config/env";
 import { createMockChatModel } from "@/agent/mock/model";
 import { MOCK_TOOL_MATCHERS } from "@/agent/mock/tool-matchers";
@@ -18,5 +19,5 @@ export function isMockMode(): boolean {
 
 export function chatModel(): LanguageModel {
   const model = isMockMode() ? createMockChatModel({ toolMatchers: MOCK_TOOL_MATCHERS }) : gateway(CHAT_MODEL);
-  return wrapLanguageModel({ model, middleware: labelReminderMiddleware });
+  return wrapLanguageModel({ model, middleware: [toolCodeLeakMiddleware, labelReminderMiddleware] });
 }

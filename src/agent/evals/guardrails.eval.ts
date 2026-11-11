@@ -2,6 +2,7 @@ import { generateText, streamText, wrapLanguageModel } from "ai";
 import { afterAll, describe, expect, it } from "vitest";
 import { labelReminderMiddleware, LABEL_REMINDER, mentionsApplicationRate } from "@/agent/guardrails/label-reminder";
 import { screenInput, type ScreenVerdict } from "@/agent/guardrails/input-screen";
+import { looksLikeLeakedToolCode, TOOL_CODE_FALLBACK, toolCodeLeakMiddleware } from "@/agent/guardrails/tool-code-leak";
 import { createMockChatModel } from "@/agent/mock/model";
 import { printEvalReport, recordEval } from "@/agent/evals/report";
 
@@ -62,6 +63,32 @@ describe(SUITE, () => {
     const actual = mentionsApplicationRate(String(text));
     record(`rate detection: ${text}`, actual === expected, `got ${actual}`);
     expect(actual).toBe(expected);
+  });
+
+  it.each([
+    ["<tool_code\nprint(default_api.sprayWindow(city='Lutsk', date='today'))", true],
+    ["```tool_code\nsprayWindow(...)", true],
+    ["Sure: default_api.getWeather(city='Lyon')", true],
+    ["No, you cannot spray in Lyon tomorrow.", false],
+    ["The tool code on the label is 123.", false],
+  ])("tool_code leak detection: %s", (text, expected) => {
+    const actual = looksLikeLeakedToolCode(String(text));
+    record(`tool_code detection: ${String(text).slice(0, 40)}`, actual === expected, `got ${actual}`);
+    expect(actual).toBe(expected);
+  });
+
+  it("leaked tool_code text is replaced in generate and stream modes, normal text passes", async () => {
+    const model = wrapLanguageModel({ model: createMockChatModel({ chunkDelayInMs: null }), middleware: toolCodeLeakMiddleware });
+    const leakPrompt = "print(default_api.sprayWindow(city='Lutsk', date='today'))";
+    const generated = await generateText({ model, prompt: leakPrompt });
+    const streamed = await streamText({ model, prompt: leakPrompt }).text;
+    const normal = await streamText({ model, prompt: "Can I spray in Lyon tomorrow? It is a long question to pass the buffer." }).text;
+    const passed =
+      generated.text === TOOL_CODE_FALLBACK &&
+      streamed === TOOL_CODE_FALLBACK &&
+      normal === "[mock] You said: Can I spray in Lyon tomorrow? It is a long question to pass the buffer.";
+    record("tool_code leak middleware", passed, JSON.stringify({ generated: generated.text, streamed, normal }).slice(0, 160));
+    expect(passed).toBe(true);
   });
 
   it("label reminder is appended once in generate and stream modes", async () => {

@@ -61,6 +61,23 @@ function SprayWindowSummary({ output }: { output: Extract<ToolPart, { type: "too
   );
 }
 
+function SprayOutlookSummary({ output }: { output: Extract<ToolPart, { type: "tool-sprayOutlook" }>["output"] }) {
+  if (!output || "error" in output) return null;
+  return (
+    <ul className="space-y-1">
+      {output.days.map((day) => (
+        <li key={day.date}>
+          {day.canSpray ? "✅" : "❌"} {day.date}
+          {day.bestWindow ? ` · ${formatTime(day.bestWindow.from)} → ${formatTime(day.bestWindow.to)} (${day.bestWindow.hours} h)` : " · no window"}
+        </li>
+      ))}
+      <li className="text-zinc-500">
+        {output.city}, {output.timezone}
+      </li>
+    </ul>
+  );
+}
+
 function GetWeatherSummary({ output }: { output: Extract<ToolPart, { type: "tool-getWeather" }>["output"] }) {
   if (!output || "error" in output) return null;
   const first = output.hourly[0];
@@ -78,6 +95,7 @@ function OutputSummary({ part }: { part: ToolPart }) {
   if (error) return <p className="text-amber-700">⚠️ {error.replaceAll("_", " ")}</p>;
   if (part.type === "tool-sprayWindow") return <SprayWindowSummary output={part.output} />;
   if (part.type === "tool-getWeather") return <GetWeatherSummary output={part.output} />;
+  if (part.type === "tool-sprayOutlook") return <SprayOutlookSummary output={part.output} />;
   return null;
 }
 

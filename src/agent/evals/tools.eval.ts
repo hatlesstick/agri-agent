@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vites
 import { getWeather } from "@/agent/tools/get-weather/tool";
 import { sprayWindowOutputSchema, type SprayWindowInput } from "@/agent/tools/spray-window/schemas";
 import { sprayWindow } from "@/agent/tools/spray-window/tool";
+import { sprayOutlook } from "@/agent/tools/spray-outlook/tool";
 import { EVAL_NOW, UNKNOWN_CITY, stubWeatherScenario, type WeatherScenario } from "@/agent/evals/scenarios";
 import { printEvalReport, recordEval } from "@/agent/evals/report";
 import { clearForecastCache } from "@/domain/weather/forecast";
@@ -80,6 +81,20 @@ describe(SUITE, () => {
       if (JSON.stringify((output as Record<string, unknown>)[key]) !== JSON.stringify(value)) failures.push(key);
     }
     recordEval({ suite: SUITE, case: `sprayWindow: ${id}`, model: "none", passed: failures.length ? 0 : 1, runs: 1, failures: failures.join(", ") });
+    expect(failures).toEqual([]);
+  });
+
+  it("sprayOutlook: one call covers every remaining forecast day", async () => {
+    stubWeatherScenario("windy");
+    const output = await sprayOutlook({ city: "Lyon" }, EVAL_NOW);
+    const failures: string[] = [];
+    if ("error" in output) failures.push(output.error);
+    else {
+      const verdicts = output.days.map((day) => `${day.date}:${day.canSpray}`);
+      const expected = ["2026-11-11:true", "2026-11-12:false", "2026-11-13:true"];
+      if (JSON.stringify(verdicts) !== JSON.stringify(expected)) failures.push(verdicts.join(","));
+    }
+    recordEval({ suite: SUITE, case: "sprayOutlook: windy tomorrow only", model: "none", passed: failures.length ? 0 : 1, runs: 1, failures: failures.join(", ") });
     expect(failures).toEqual([]);
   });
 

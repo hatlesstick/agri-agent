@@ -50,6 +50,7 @@ export function createSprayCheckAgent({
       instructions: `${buildInstructions(options.now)}\n\n${STRUCTURED_OUTPUT_INSTRUCTIONS}`,
       toolsContext: agentToolsContext(options.now),
     }),
+    activeTools: ["getWeather", "sprayWindow"],
     output: Output.object({ schema: sprayCheckSchema }),
     stopWhen: isStepCount(MAX_AGENT_STEPS),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
