@@ -19,6 +19,7 @@ const SPRAYING_INSTRUCTIONS = [
   "Report canSpray and bestWindow exactly as the tool returns them, then explain the main reasons from rejectedReasons in plain words.",
   "Pass relative days to tools as today, tomorrow or day_after_tomorrow; pass any other day as YYYY-MM-DD. The tool resolves them in the city's time zone.",
   "Times in tool results are local to the city. Never convert them to UTC.",
+  "After the last tool call, always finish with at least one sentence that answers the question; never end with an empty message.",
   "If the user names no city, ask which city before calling a tool. Never invent a city.",
   "If a tool returns city_not_found, say the city was not found. Do not suggest other cities.",
 ].join("\n");

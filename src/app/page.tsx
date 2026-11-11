@@ -3,17 +3,23 @@
 import { useChat } from "@ai-sdk/react";
 import { useState, type FormEvent } from "react";
 import type { AgroAgentUIMessage } from "@/agent";
+import { currentActivity } from "@/app/_components/agent-activity";
+import { AgentStatus } from "@/app/_components/agent-status";
 import { ChatMessage } from "@/app/_components/chat-message";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
   const { messages, sendMessage, status, stop, error, regenerate } = useChat<AgroAgentUIMessage>();
   const isBusy = status === "submitted" || status === "streaming";
+  const [startedAt, setStartedAt] = useState(0);
+  const lastMessage = messages.at(-1);
+  const activity = currentActivity(status === "submitted" ? undefined : lastMessage);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = input.trim();
     if (!text || isBusy) return;
+    setStartedAt(Date.now());
     sendMessage({ text });
     setInput("");
   }
@@ -32,7 +38,7 @@ export default function ChatPage() {
         ))}
       </ul>
 
-      {status === "submitted" && <p className="text-sm text-zinc-500">Thinking…</p>}
+      {isBusy && <AgentStatus activity={activity} startedAt={startedAt} />}
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
