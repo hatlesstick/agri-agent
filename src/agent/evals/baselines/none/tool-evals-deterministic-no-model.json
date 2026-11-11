@@ -1,0 +1,72 @@
+{
+  "runId": "eval-2026-11-11T21-16-21-471Z",
+  "suite": "tool evals (deterministic, no model)",
+  "model": "none",
+  "createdAt": "2026-11-11T21:16:24.728Z",
+  "rows": [
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayWindow: calm day: whole day is suitable",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayWindow: windy day: no window, wind is the reason",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayWindow: rain 08:00-10:00: best window after the rain buffer",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayWindow: cold day: no window, temperature is the reason",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayWindow: unknown city",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayWindow: date outside the forecast",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "sprayOutlook: windy tomorrow only",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "tool evals (deterministic, no model)",
+      "case": "getWeather: 48 local hours",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    }
+  ]
+}

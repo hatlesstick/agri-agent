@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, it, vi } from "vitest";
 import { runSprayCheck, type SprayCheck } from "@/agent";
-import { EVAL_TIMEOUT_MS, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@/agent/evals/harness";
+import { EVAL_TIMEOUT_MS, evalModel, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@/agent/evals/harness";
 import { printEvalReport } from "@/agent/evals/report";
 import { EVAL_NOW, stubWeatherScenario, UNKNOWN_CITY, type WeatherScenario } from "@/agent/evals/scenarios";
 import { recordScores } from "@/agent/evals/scores";
@@ -86,6 +86,7 @@ function runOnce(testCase: SprayCheckCase, attempt: number): Promise<RunOutcome>
     stubWeatherScenario(testCase.scenario);
     const outcome = await runSprayCheck({
       question: testCase.question,
+      model: evalModel(),
       now: EVAL_NOW,
       maxRetries: RETRIES_PER_CALL,
       timeoutMs: EVAL_TIMEOUT_MS,
@@ -113,7 +114,8 @@ function runOnce(testCase: SprayCheckCase, attempt: number): Promise<RunOutcome>
       },
       failures.join("; "),
     );
-    return failures.length === 0 ? { kind: "passed" } : { kind: "failed", failures };
+    const metrics = { steps: outcome.trace.steps, inputTokens: outcome.trace.inputTokens, outputTokens: outcome.trace.outputTokens };
+    return failures.length === 0 ? { kind: "passed", metrics } : { kind: "failed", failures, metrics };
   });
 }
 

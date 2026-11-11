@@ -23,6 +23,8 @@ export type SprayCheckError = "spray_window_not_called" | "invalid_model_output"
 
 export type SprayCheckTrace = {
   steps: number;
+  inputTokens: number;
+  outputTokens: number;
   toolCalls: Array<{ toolName: string; input: unknown }>;
 };
 

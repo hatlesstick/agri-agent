@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run --passWithNoTests",
     "eval": "AI_MOCK=1 vitest run --config vitest.eval.config.mts",
-    "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts"
+    "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts",
+    "eval:baseline": "node scripts/promote-eval-baseline.mjs",
+    "eval:compare": "EVAL_COMPARE=1 AI_MOCK=1 vitest run --config vitest.eval.config.mts src/agent/evals/compare.eval.ts"
   },
   "dependencies": {
     "@ai-sdk/otel": "^1.0.170",
@@ -22,6 +24,7 @@
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-markdown": "^10.1.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

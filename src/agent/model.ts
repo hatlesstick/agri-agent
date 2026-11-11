@@ -17,7 +17,7 @@ export function isMockMode(): boolean {
   return serverEnv().AI_MOCK;
 }
 
-export function chatModel(): LanguageModel {
-  const model = isMockMode() ? createMockChatModel({ toolMatchers: MOCK_TOOL_MATCHERS }) : gateway(CHAT_MODEL);
+export function chatModel(modelId: string = CHAT_MODEL): LanguageModel {
+  const model = isMockMode() ? createMockChatModel({ toolMatchers: MOCK_TOOL_MATCHERS }) : gateway(modelId);
   return wrapLanguageModel({ model, middleware: [toolCodeLeakMiddleware, labelReminderMiddleware] });
 }

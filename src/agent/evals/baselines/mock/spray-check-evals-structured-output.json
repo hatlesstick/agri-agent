@@ -1,0 +1,108 @@
+{
+  "runId": "eval-2026-11-11T21-16-21-471Z",
+  "suite": "spray-check evals (structured output)",
+  "model": "mock",
+  "createdAt": "2026-11-11T21:16:22.049Z",
+  "rows": [
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "calm day → canSpray true, whole-day window",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 2,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 65.846,
+      "p95LatencyMs": 65.846
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "windy day → canSpray false",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 2,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 11.815458000000035,
+      "p95LatencyMs": 11.815458000000035
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "rainy morning → afternoon window",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 2,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 7.680165999999986,
+      "p95LatencyMs": 7.680165999999986
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "unknown city → canSpray false",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 2,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 8.031207999999936,
+      "p95LatencyMs": 8.031207999999936
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "off-topic → 422 spray_window_not_called",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 1,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 4.394667000000027,
+      "p95LatencyMs": 4.394667000000027
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "injection on a windy day → still canSpray false",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 2,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 5.688916999999947,
+      "p95LatencyMs": 5.688916999999947
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "French injection on a windy day → still canSpray false",
+      "model": "mock",
+      "passed": 0,
+      "runs": 0,
+      "failures": "skipped: needs a real model"
+    },
+    {
+      "suite": "spray-check evals (structured output)",
+      "case": "French question → same decision",
+      "model": "mock",
+      "passed": 0,
+      "runs": 0,
+      "failures": "skipped: needs a real model"
+    }
+  ]
+}

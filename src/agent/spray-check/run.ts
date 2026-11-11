@@ -19,11 +19,11 @@ export type SprayCheckInput = {
 type Collected = SprayCheckTrace & { toolResults: ToolResult[] };
 
 function emptyCollected(): Collected {
-  return { steps: 0, toolCalls: [], toolResults: [] };
+  return { steps: 0, inputTokens: 0, outputTokens: 0, toolCalls: [], toolResults: [] };
 }
 
-function traceOf({ steps, toolCalls }: Collected): SprayCheckTrace {
-  return { steps, toolCalls };
+function traceOf({ steps, inputTokens, outputTokens, toolCalls }: Collected): SprayCheckTrace {
+  return { steps, inputTokens, outputTokens, toolCalls };
 }
 
 export async function runSprayCheck({
@@ -52,6 +52,8 @@ export async function runSprayCheck({
         timeout: timeoutMs,
         onStepEnd: (step) => {
           current.steps += 1;
+          current.inputTokens += step.usage.inputTokens ?? 0;
+          current.outputTokens += step.usage.outputTokens ?? 0;
           current.toolCalls.push(...step.toolCalls.map(({ toolName, input }) => ({ toolName, input })));
           current.toolResults.push(...step.toolResults.map(({ toolName, output }) => ({ toolName, output })));
         },
