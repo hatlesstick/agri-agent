@@ -2,6 +2,7 @@ import type { UIMessage } from "ai";
 import { describe, expect, it } from "vitest";
 import { latestUserText, parseChatRequest } from "@/server/guardrails/chat-request";
 import { checkLimits, clientKey, createRateLimiter } from "@/server/guardrails/rate-limit";
+import { refusalStreamResponse } from "@/server/screened-response";
 
 describe("http guardrail evals (deterministic)", () => {
   it("strips client-supplied tool results from assistant history", async () => {
@@ -64,6 +65,12 @@ describe("http guardrail evals (deterministic)", () => {
     expect(noisy.filter(Boolean)).toHaveLength(2);
     expect([attempt("quiet-1"), attempt("quiet-2"), attempt("quiet-3")]).toEqual([true, true, true]);
     expect(attempt("quiet-4")).toBe(false);
+  });
+
+  it("refusal stream is a complete UI message that useChat can render", async () => {
+    const body = await refusalStreamResponse("no").text();
+    const types = [...body.matchAll(/"type":"([a-z-]+)"/g)].map((match) => match[1]);
+    expect(types).toEqual(["start", "start-step", "text-start", "text-delta", "text-end", "finish-step", "finish"]);
   });
 
   it("rate limiter keeps memory bounded", () => {
