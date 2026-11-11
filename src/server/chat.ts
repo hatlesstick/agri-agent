@@ -1,12 +1,6 @@
-import {
-  convertToModelMessages,
-  createUIMessageStreamResponse,
-  isStepCount,
-  streamText,
-  toUIMessageStream,
-} from "ai";
+import { createAgentUIStreamResponse } from "ai";
+import { createAgroAgent } from "@/agent";
 import { parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
-import { agentTools, agentToolsContext, buildInstructions, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
 
 export async function handleChatRequest(req: Request): Promise<Response> {
   const body = await readJsonBody(req);
@@ -19,18 +13,9 @@ export async function handleChatRequest(req: Request): Promise<Response> {
     return Response.json({ error: request.error }, { status: request.status });
   }
 
-  const result = streamText({
-    model: chatModel(),
-    system: buildInstructions(),
-    messages: await convertToModelMessages(request.messages),
-    maxOutputTokens: MAX_OUTPUT_TOKENS,
-    tools: agentTools,
-    toolsContext: agentToolsContext(),
-    stopWhen: isStepCount(MAX_AGENT_STEPS),
-    telemetry: { functionId: "chat" },
-  });
-
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
+  return createAgentUIStreamResponse({
+    agent: createAgroAgent(),
+    uiMessages: request.messages,
+    options: { now: new Date() },
   });
 }

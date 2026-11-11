@@ -21,6 +21,13 @@ const SPRAYING_INSTRUCTIONS = [
   "If a tool returns city_not_found, say the city was not found. Do not suggest other cities.",
 ].join("\n");
 
+export const STRUCTURED_OUTPUT_INSTRUCTIONS = [
+  "This request comes from an API that needs a structured answer.",
+  "If the question is about spraying and names a city, call sprayWindow first, then copy city, canSpray and bestWindow from its result.",
+  "If the question is not about spraying or names no city, do not call any tool: answer with city \"\", canSpray false, bestWindow null and explain why in reason.",
+  "If sprayWindow returns an error, set canSpray to false, bestWindow to null and explain the error in reason.",
+].join("\n");
+
 export function buildInstructions(now: Date = new Date()): string {
   return [BASE_INSTRUCTIONS, SPRAYING_INSTRUCTIONS, `Today's date (UTC) is ${todayIn("UTC", now)}.`].join("\n\n");
 }

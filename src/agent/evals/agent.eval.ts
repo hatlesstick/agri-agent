@@ -1,7 +1,6 @@
-import { isStepCount, streamText } from "ai";
 import { afterAll, afterEach, describe, it, vi } from "vitest";
-import { agentTools, agentToolsContext, buildInstructions, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
-import { evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, streamErrorOutcome, tracedRun, type RunOutcome } from "@/agent/evals/harness";
+import { agentTools, createAgroAgent } from "@/agent";
+import { evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@/agent/evals/harness";
 import { printEvalReport } from "@/agent/evals/report";
 import { EVAL_NOW, EVAL_TOMORROW, stubWeatherScenario, type WeatherScenario } from "@/agent/evals/scenarios";
 import { recordScores } from "@/agent/evals/scores";
@@ -128,35 +127,19 @@ function runOnce(testCase: AgentCase, attempt: number): Promise<RunOutcome> {
   return tracedRun(`eval:${testCase.id}`, { evalCase: testCase.id, run: attempt, scenario: testCase.scenario }, async (traceId) => {
     clearForecastCache();
     stubWeatherScenario(testCase.scenario);
-    const streamErrors: string[] = [];
-    const result = streamText({
-      onError: ({ error }) => {
-        streamErrors.push(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
-      },
-      model: chatModel(),
-      system: buildInstructions(EVAL_NOW),
-      prompt: testCase.prompt,
-      tools: agentTools,
-      toolsContext: agentToolsContext(EVAL_NOW),
-      stopWhen: isStepCount(MAX_AGENT_STEPS),
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      maxRetries: RETRIES_PER_CALL,
-      telemetry: { functionId: `eval:${testCase.id}` },
-    });
-    const steps = await Promise.resolve(result.steps).catch(() => null);
-    await Promise.resolve(result.text).catch(() => null);
+    const agent = createAgroAgent({ maxRetries: RETRIES_PER_CALL, telemetryFunctionId: `eval:${testCase.id}` });
+    const result = await agent.generate({ prompt: testCase.prompt, options: { now: EVAL_NOW } });
 
-    const streamError = streamErrors[0] ?? (steps ? null : "unknown stream error");
-    if (streamError || !steps) return streamErrorOutcome(String(streamError));
-
-    const evaluation = evaluateCalls(steps.flatMap((step) => step.toolCalls), testCase.expectedCalls);
+    const evaluation = evaluateCalls(result.steps.flatMap((step) => step.toolCalls), testCase.expectedCalls);
+    const emptyAnswer = result.text.trim().length === 0;
     recordScores(
       traceId,
       {
         eval_passed: evaluation.failures.length === 0,
         tool_selection: evaluation.selectionOk,
         tool_arguments: evaluation.argumentsOk,
-        steps: steps.length,
+        empty_final_answer: emptyAnswer,
+        steps: result.steps.length,
       },
       evaluation.failures.join("; "),
     );

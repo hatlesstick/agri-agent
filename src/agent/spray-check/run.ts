@@ -1,16 +1,7 @@
-import { generateText, isStepCount, NoObjectGeneratedError, Output, type LanguageModel } from "ai";
-import { buildInstructions } from "@/agent/instructions";
-import { chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent/model";
+import { NoObjectGeneratedError, type LanguageModel } from "ai";
+import { createSprayCheckAgent } from "@/agent/agent";
 import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/agent/spray-check/reconcile";
-import { sprayCheckSchema, type SprayCheckOutcome, type SprayCheckTrace } from "@/agent/spray-check/schemas";
-import { agentTools, agentToolsContext } from "@/agent/tools";
-
-const STRUCTURED_OUTPUT_INSTRUCTIONS = [
-  "This request comes from an API that needs a structured answer.",
-  "If the question is about spraying and names a city, call sprayWindow first, then copy city, canSpray and bestWindow from its result.",
-  "If the question is not about spraying or names no city, do not call any tool: answer with city \"\", canSpray false, bestWindow null and explain why in reason.",
-  "If sprayWindow returns an error, set canSpray to false, bestWindow to null and explain the error in reason.",
-].join("\n");
+import type { SprayCheckOutcome, SprayCheckTrace } from "@/agent/spray-check/schemas";
 
 const MAX_ATTEMPTS = 2;
 
@@ -34,7 +25,7 @@ function traceOf({ steps, toolCalls }: Collected): SprayCheckTrace {
 
 export async function runSprayCheck({
   question,
-  model = chatModel(),
+  model,
   now = new Date(),
   maxRetries,
   telemetryFunctionId = "spray-check",
@@ -44,17 +35,14 @@ export async function runSprayCheck({
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     const current = emptyCollected();
     try {
-      const result = await generateText({
+      const agent = createSprayCheckAgent({
         model,
-        system: `${buildInstructions(now)}\n\n${STRUCTURED_OUTPUT_INSTRUCTIONS}`,
-        prompt: question,
-        tools: agentTools,
-        toolsContext: agentToolsContext(now),
-        output: Output.object({ schema: sprayCheckSchema }),
-        stopWhen: isStepCount(MAX_AGENT_STEPS),
-        maxOutputTokens: MAX_OUTPUT_TOKENS,
         maxRetries,
-        telemetry: { functionId: `${telemetryFunctionId}${attempt > 1 ? `:retry${attempt - 1}` : ""}` },
+        telemetryFunctionId: `${telemetryFunctionId}${attempt > 1 ? `:retry${attempt - 1}` : ""}`,
+      });
+      const result = await agent.generate({
+        prompt: question,
+        options: { now },
         onStepEnd: (step) => {
           current.steps += 1;
           current.toolCalls.push(...step.toolCalls.map(({ toolName, input }) => ({ toolName, input })));
