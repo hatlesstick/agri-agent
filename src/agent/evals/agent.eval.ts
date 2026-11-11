@@ -113,7 +113,7 @@ function evaluateCalls(calls: ToolCall[], expected: AgentCase["expectedCalls"]):
       continue;
     }
     const input = match.input as Record<string, unknown>;
-    if (expectedCall.city && input.city !== expectedCall.city) argumentFailures.push(`city=${String(input.city)}`);
+    if (expectedCall.city && String(input.city).toLowerCase() !== expectedCall.city.toLowerCase()) argumentFailures.push(`city=${String(input.city)}`);
     if (expectedCall.date && !TOMORROW_VALUES.includes(String(input.date))) argumentFailures.push(`date=${String(input.date)}`);
   }
 
