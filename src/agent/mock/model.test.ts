@@ -1,6 +1,6 @@
 import { streamText } from "ai";
 import { describe, expect, it } from "vitest";
-import { createMockChatModel } from "@/ai/mock/model";
+import { createMockChatModel } from "@/agent/mock/model";
 
 describe("createMockChatModel", () => {
   it("echoes user text as streamed chunks", async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MOCK_TOOL_MATCHERS } from "@/ai/mock/tool-matchers";
+import { MOCK_TOOL_MATCHERS } from "@/agent/mock/tool-matchers";
 
 const weatherMatcher = MOCK_TOOL_MATCHERS.find((matcher) => matcher.toolName === "getWeather");
 

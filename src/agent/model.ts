@@ -1,7 +1,7 @@
 import type { LanguageModel } from "ai";
 import { serverEnv } from "@/config/env";
-import { createMockChatModel } from "@/ai/mock/model";
-import { MOCK_TOOL_MATCHERS } from "@/ai/mock/tool-matchers";
+import { createMockChatModel } from "@/agent/mock/model";
+import { MOCK_TOOL_MATCHERS } from "@/agent/mock/tool-matchers";
 
 export const CHAT_MODEL = "google/gemini-2.5-flash-lite";
 export const FALLBACK_CHAT_MODEL = "openai/gpt-5.4-nano";

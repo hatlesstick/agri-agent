@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import forecastLyon from "@/features/weather/__fixtures__/forecast-lyon.json";
-import geocodingEmpty from "@/features/weather/__fixtures__/geocoding-empty.json";
-import geocodingLyon from "@/features/weather/__fixtures__/geocoding-lyon.json";
+import forecastLyon from "@/domain/weather/__fixtures__/forecast-lyon.json";
+import geocodingEmpty from "@/domain/weather/__fixtures__/geocoding-empty.json";
+import geocodingLyon from "@/domain/weather/__fixtures__/geocoding-lyon.json";
 import {
   clearForecastCache,
   FORECAST_CACHE_MAX_ENTRIES,
   forecastCacheSize,
   getForecast,
-} from "@/features/weather/forecast";
-import { isWeatherError, type Forecast } from "@/features/weather/types";
+} from "@/domain/weather/forecast";
+import { isWeatherError, type Forecast } from "@/domain/weather/types";
 
 type FetchHandler = (url: URL) => Response | Promise<Response>;
 

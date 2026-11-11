@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAT_LIMITS, parseChatRequest, readJsonBody } from "@/guardrails/chat-request";
+import { CHAT_LIMITS, parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
 
 function postRequest(body: string, headers: Record<string, string> = {}) {
   return new Request("http://localhost/api/chat", { method: "POST", body, headers });

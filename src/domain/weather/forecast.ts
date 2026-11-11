@@ -1,5 +1,5 @@
-import { fetchHourlyForecast, geocodeCity } from "@/features/weather/open-meteo";
-import type { Forecast, WeatherResult } from "@/features/weather/types";
+import { fetchHourlyForecast, geocodeCity } from "@/domain/weather/open-meteo";
+import type { Forecast, WeatherResult } from "@/domain/weather/types";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 export const FORECAST_CACHE_MAX_ENTRIES = 200;

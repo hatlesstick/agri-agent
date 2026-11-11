@@ -3,8 +3,8 @@ import {
   forecastResponseSchema,
   geocodingResponseSchema,
   HOURLY_VARIABLES,
-} from "@/features/weather/schemas";
-import type { Forecast, GeoLocation, HourlyPoint } from "@/features/weather/types";
+} from "@/domain/weather/schemas";
+import type { Forecast, GeoLocation, HourlyPoint } from "@/domain/weather/types";
 
 const REQUEST_TIMEOUT_MS = 8000;
 const FORECAST_DAYS = 3;

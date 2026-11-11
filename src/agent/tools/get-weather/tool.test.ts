@@ -1,13 +1,13 @@
 import { isStepCount, streamText } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMockChatModel } from "@/ai/mock/model";
-import { MOCK_TOOL_MATCHERS } from "@/ai/mock/tool-matchers";
-import { getWeatherInputSchema, getWeatherOutputSchema } from "@/features/weather/schemas";
-import { getWeather, getWeatherTool, WEATHER_HOURS_FOR_MODEL } from "@/features/weather/tool";
-import forecastLyon from "@/features/weather/__fixtures__/forecast-lyon.json";
-import geocodingEmpty from "@/features/weather/__fixtures__/geocoding-empty.json";
-import geocodingLyon from "@/features/weather/__fixtures__/geocoding-lyon.json";
-import { clearForecastCache } from "@/features/weather/forecast";
+import { createMockChatModel } from "@/agent/mock/model";
+import { MOCK_TOOL_MATCHERS } from "@/agent/mock/tool-matchers";
+import { getWeatherInputSchema, getWeatherOutputSchema } from "@/agent/tools/get-weather/schemas";
+import { getWeather, getWeatherTool, WEATHER_HOURS_FOR_MODEL } from "@/agent/tools/get-weather/tool";
+import forecastLyon from "@/domain/weather/__fixtures__/forecast-lyon.json";
+import geocodingEmpty from "@/domain/weather/__fixtures__/geocoding-empty.json";
+import geocodingLyon from "@/domain/weather/__fixtures__/geocoding-lyon.json";
+import { clearForecastCache } from "@/domain/weather/forecast";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 

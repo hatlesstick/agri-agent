@@ -4,9 +4,9 @@ import {
   getWeatherOutputSchema,
   type GetWeatherInput,
   type GetWeatherOutput,
-} from "@/features/weather/schemas";
-import { getForecast } from "@/features/weather/forecast";
-import { isWeatherError, type HourlyPoint } from "@/features/weather/types";
+} from "@/agent/tools/get-weather/schemas";
+import { getForecast } from "@/domain/weather/forecast";
+import { isWeatherError, type HourlyPoint } from "@/domain/weather/types";
 
 export const WEATHER_HOURS_FOR_MODEL = 48;
 
