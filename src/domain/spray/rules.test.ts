@@ -39,16 +39,16 @@ describe("assessSprayWindows", () => {
     expect(assessment.rejectedReasons).toEqual({});
   });
 
-  it("first forecast day starts its window at T03:00 because earlier hours lack look-back", () => {
+  it("first forecast day starts its window at T02:00 because earlier hours lack 3 h of look-back", () => {
     const assessment = assessSprayWindows(makeHours(), DAYS[0]);
-    expect(windowsOf(assessment)).toEqual(["2026-11-11T03:00–2026-11-12T00:00"]);
-    expect(assessment.rejectedReasons).toEqual({ insufficient_data: 3 });
+    expect(windowsOf(assessment)).toEqual(["2026-11-11T02:00–2026-11-12T00:00"]);
+    expect(assessment.rejectedReasons).toEqual({ insufficient_data: 2 });
   });
 
-  it("last 3 hours of the forecast are insufficient_data", () => {
+  it("last 4 hours of the forecast are insufficient_data (spraying hour plus 3 h after)", () => {
     const assessment = assessSprayWindows(makeHours(), DAYS[2]);
-    expect(windowsOf(assessment)).toEqual(["2026-11-13T00:00–2026-11-13T21:00"]);
-    expect(assessment.rejectedReasons).toEqual({ insufficient_data: 3 });
+    expect(windowsOf(assessment)).toEqual(["2026-11-13T00:00–2026-11-13T20:00"]);
+    expect(assessment.rejectedReasons).toEqual({ insufficient_data: 4 });
   });
 
   it("wind exactly 4 is suitable, 4.1 is wind_too_high", () => {
@@ -85,13 +85,30 @@ describe("assessSprayWindows", () => {
     expect(assessment.rejectedReasons).toEqual({ too_cold: 1, too_hot: 1 });
   });
 
-  it("rain 0.1 mm at 12:00 rejects 09:00–15:00 as precipitation_nearby", () => {
+  it("rain 0.1 mm in the hour ending 12:00 rejects spraying hours 08:00–14:00", () => {
     const assessment = assessSprayWindows(makeHours({ "2026-11-12T12:00": { precipitation: 0.1 } }), MIDDLE_DAY);
     expect(windowsOf(assessment)).toEqual([
-      "2026-11-12T00:00–2026-11-12T09:00",
-      "2026-11-12T16:00–2026-11-13T00:00",
+      "2026-11-12T00:00–2026-11-12T08:00",
+      "2026-11-12T15:00–2026-11-13T00:00",
     ]);
     expect(assessment.rejectedReasons).toEqual({ precipitation_nearby: 7 });
+  });
+
+  it("rain ending 3 h after the spraying hour ends still rejects it", () => {
+    const assessment = assessSprayWindows(makeHours({ "2026-11-12T14:00": { precipitation: 1 } }), MIDDLE_DAY);
+    expect(isSuitable(assessment, "2026-11-12T10:00")).toBe(false);
+    expect(isSuitable(assessment, "2026-11-12T09:00")).toBe(true);
+  });
+
+  it("skips hours before notBefore without counting them as rejected", () => {
+    const assessment = assessSprayWindows(makeHours({ "2026-11-12T03:00": { windSpeed: 9 } }), MIDDLE_DAY, {}, { notBefore: "2026-11-12T19:00" });
+    expect(windowsOf(assessment)).toEqual(["2026-11-12T19:00–2026-11-13T00:00"]);
+    expect(assessment.rejectedReasons).toEqual({});
+  });
+
+  it("has no window for a day whose remaining hours are all past", () => {
+    const assessment = assessSprayWindows(makeHours(), MIDDLE_DAY, {}, { notBefore: "2026-11-13T00:00" });
+    expect(assessment).toEqual({ canSpray: false, bestWindow: null, windows: [], rejectedReasons: {} });
   });
 
   it("rain below the threshold does not count", () => {
@@ -99,10 +116,10 @@ describe("assessSprayWindows", () => {
     expect(assessment.windows).toHaveLength(1);
   });
 
-  it("rain exactly 4 h away does not reject the hour", () => {
+  it("rain just outside the 3 h buffers does not reject the hour", () => {
     const assessment = assessSprayWindows(makeHours({ "2026-11-12T12:00": { precipitation: 2 } }), MIDDLE_DAY);
-    expect(isSuitable(assessment, "2026-11-12T08:00")).toBe(true);
-    expect(isSuitable(assessment, "2026-11-12T16:00")).toBe(true);
+    expect(isSuitable(assessment, "2026-11-12T07:00")).toBe(true);
+    expect(isSuitable(assessment, "2026-11-12T15:00")).toBe(true);
   });
 
   it("null wind at 10:00 makes 10:00 insufficient_data", () => {

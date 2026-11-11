@@ -43,7 +43,7 @@ const SPRAY_CASES: SprayCase[] = [
     input: LYON_TOMORROW,
     expected: {
       canSpray: true,
-      bestWindow: { from: "2026-11-12T14:00", to: "2026-11-13T00:00", hours: 10 },
+      bestWindow: { from: "2026-11-12T13:00", to: "2026-11-13T00:00", hours: 11 },
       rejectedReasons: { precipitation_nearby: 9 },
     },
   },

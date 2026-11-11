@@ -1,5 +1,6 @@
 import { vi } from "vitest";
 import forecastLyon from "@/domain/weather/__fixtures__/forecast-lyon.json";
+import { currentLocalHour } from "@/domain/time";
 
 export const EVAL_NOW = new Date("2026-11-11T08:30:00Z");
 export const EVAL_TOMORROW = "2026-11-12";
@@ -48,7 +49,7 @@ function valuesAt(scenario: WeatherScenario, time: string): HourlyValues {
 
 export function scenarioForecast(scenario: WeatherScenario, timezone = "Europe/Paris") {
   const times = forecastLyon.hourly.time;
-  const values = times.map((time) => valuesAt(scenario, time));
+  const values = times.map((unixSeconds) => valuesAt(scenario, currentLocalHour(timezone, new Date(unixSeconds * 1000))));
   return {
     ...forecastLyon,
     timezone,

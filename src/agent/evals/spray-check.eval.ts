@@ -37,7 +37,7 @@ const CASES: SprayCheckCase[] = [
     question: "When can I spray in Lyon tomorrow?",
     scenario: "rainy_morning",
     runsOnMock: true,
-    expected: { ok: true, canSpray: true, bestWindow: { from: "2026-11-12T14:00", to: "2026-11-13T00:00" } },
+    expected: { ok: true, canSpray: true, bestWindow: { from: "2026-11-12T13:00", to: "2026-11-13T00:00" } },
   },
   {
     id: "unknown city → canSpray false",

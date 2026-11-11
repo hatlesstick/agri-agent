@@ -1,10 +1,11 @@
 import { fetchHourlyForecast, geocodeCity } from "@/domain/weather/open-meteo";
+import { todayIn } from "@/domain/time";
 import type { Forecast, WeatherResult } from "@/domain/weather/types";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 export const FORECAST_CACHE_MAX_ENTRIES = 200;
 
-type CacheEntry = { expiresAt: number; forecast: Forecast };
+type CacheEntry = { expiresAt: number; localDate: string; forecast: Forecast };
 
 const cache = new Map<string, CacheEntry>();
 
@@ -17,7 +18,7 @@ function readCache(key: string): Forecast | null {
   if (!entry) return null;
 
   cache.delete(key);
-  if (entry.expiresAt <= Date.now()) return null;
+  if (entry.expiresAt <= Date.now() || entry.localDate !== todayIn(entry.forecast.timezone)) return null;
 
   cache.set(key, entry);
   return entry.forecast;
@@ -30,7 +31,7 @@ function writeCache(key: string, forecast: Forecast): void {
     if (oldestKey === undefined) break;
     cache.delete(oldestKey);
   }
-  cache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, forecast });
+  cache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, localDate: todayIn(forecast.timezone), forecast });
 }
 
 export function clearForecastCache(): void {

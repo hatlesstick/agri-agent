@@ -1,8 +1,8 @@
 {
-  "runId": "eval-2026-11-11T21-42-48-976Z",
+  "runId": "eval-2026-11-11T21-47-41-147Z",
   "suite": "tool evals (deterministic, no model)",
   "model": "none",
-  "createdAt": "2026-11-11T21:42:52.443Z",
+  "createdAt": "2026-11-11T21:47:42.483Z",
   "rows": [
     {
       "suite": "tool evals (deterministic, no model)",

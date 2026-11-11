@@ -6,7 +6,7 @@ import {
   type SprayOutlookInput,
   type SprayOutlookOutput,
 } from "@/agent/tools/spray-outlook/schemas";
-import { todayIn } from "@/domain/spray/dates";
+import { currentLocalHour, todayIn } from "@/domain/time";
 import { assessSprayWindows } from "@/domain/spray/rules";
 import { getForecast } from "@/domain/weather/forecast";
 import { isWeatherError } from "@/domain/weather/types";
@@ -22,7 +22,9 @@ export async function sprayOutlook(input: SprayOutlookInput, now: Date = new Dat
     city: forecast.city,
     timezone: forecast.timezone,
     days: dates.map((date) => {
-      const { canSpray, bestWindow, rejectedReasons } = assessSprayWindows(forecast.hourly, date);
+      const { canSpray, bestWindow, rejectedReasons } = assessSprayWindows(forecast.hourly, date, {}, {
+        notBefore: currentLocalHour(forecast.timezone, now),
+      });
       return { date, canSpray, bestWindow, rejectedReasons };
     }),
   });

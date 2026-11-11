@@ -47,8 +47,8 @@ function oneHourAfter(time: string): string {
 }
 
 function precipitationReasons(hourly: HourlyPoint[], index: number, thresholds: SprayThresholds): RejectionReason[] {
-  const first = index - thresholds.dryHoursBefore;
-  const last = index + thresholds.dryHoursAfter;
+  const first = index - thresholds.dryHoursBefore + 1;
+  const last = index + 1 + thresholds.dryHoursAfter;
   if (first < 0 || last >= hourly.length) return ["insufficient_data"];
 
   const nearby = hourly.slice(first, last + 1).map((point) => point.precipitation);
@@ -85,10 +85,13 @@ function toWindow(hourly: HourlyPoint[], firstIndex: number, lastIndex: number):
   };
 }
 
+export type AssessmentOptions = { notBefore?: string };
+
 export function assessSprayWindows(
   hourly: HourlyPoint[],
   date: string,
   thresholds: Partial<SprayThresholds> = {},
+  { notBefore }: AssessmentOptions = {},
 ): SprayAssessment {
   const rules = { ...DEFAULT_SPRAY_THRESHOLDS, ...thresholds };
   const rejectedReasons: Partial<Record<RejectionReason, number>> = {};
@@ -101,7 +104,7 @@ export function assessSprayWindows(
   };
 
   hourly.forEach((point, index) => {
-    if (!point.time.startsWith(date)) {
+    if (!point.time.startsWith(date) || (notBefore !== undefined && point.time < notBefore)) {
       closeRun(index - 1);
       return;
     }

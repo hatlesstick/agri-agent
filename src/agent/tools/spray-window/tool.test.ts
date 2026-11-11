@@ -48,6 +48,14 @@ describe("sprayWindow", () => {
     expect(result).not.toHaveProperty("hourly");
   });
 
+  it("never offers a window that has already started or passed today", async () => {
+    stubOpenMeteo();
+    const evening = new Date("2026-11-11T18:30:00Z");
+    const result = await sprayWindow({ city: "Lyon", date: "today" }, evening);
+    if ("error" in result) throw new Error(result.error);
+    for (const window of result.windows) expect(window.from >= "2026-11-11T19:00").toBe(true);
+  });
+
   it("accepts an explicit date", async () => {
     stubOpenMeteo();
     const result = await sprayWindow({ city: "Lyon", date: "2026-11-13" }, MORNING_IN_PARIS);

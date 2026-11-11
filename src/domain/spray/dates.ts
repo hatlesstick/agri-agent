@@ -1,3 +1,7 @@
+import { todayIn } from "@/domain/time";
+
+export { todayIn };
+
 export const RELATIVE_DAYS = ["today", "tomorrow", "day_after_tomorrow"] as const;
 
 export type RelativeDay = (typeof RELATIVE_DAYS)[number];
@@ -16,15 +20,6 @@ function addDays(isoDate: string, days: number): string {
   const date = new Date(`${isoDate}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
-}
-
-export function todayIn(timeZone: string, now: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
 }
 
 export function resolveDay(day: string, timeZone: string, now: Date = new Date()): string {

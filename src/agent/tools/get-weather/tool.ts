@@ -6,6 +6,7 @@ import {
   type GetWeatherOutput,
 } from "@/agent/tools/get-weather/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
+import { currentLocalHour } from "@/domain/time";
 import { getForecast } from "@/domain/weather/forecast";
 import { isWeatherError, type HourlyPoint } from "@/domain/weather/types";
 
@@ -24,19 +25,6 @@ function roundPoint(point: HourlyPoint): HourlyPoint {
     precipitationProbability: roundToTenth(point.precipitationProbability),
     humidity: roundToTenth(point.humidity),
   };
-}
-
-export function currentLocalHour(timeZone: string, now: Date): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(now);
-  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value;
-  return `${value("year")}-${value("month")}-${value("day")}T${value("hour")}:00`;
 }
 
 export async function getWeather(input: GetWeatherInput, now: Date = new Date()): Promise<GetWeatherOutput> {

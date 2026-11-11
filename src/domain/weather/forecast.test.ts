@@ -217,6 +217,48 @@ describe("getForecast", () => {
     expect(forecastCacheSize()).toBe(0);
   });
 
+  it("labels hours in real local time across a daylight-saving switch", async () => {
+    const switchNight = [0, 1, 2, 3].map((hour) => Date.UTC(2025, 2, 30, hour) / 1000);
+    const series = [1, 1, 1, 1];
+    stubFetch({
+      forecast: () =>
+        json({
+          timezone: "Europe/Paris",
+          hourly: {
+            time: switchNight,
+            temperature_2m: series,
+            wind_speed_10m: series,
+            precipitation: series,
+            precipitation_probability: series,
+            relative_humidity_2m: series,
+          },
+        }),
+    });
+    const forecast = asForecast(await getForecast("Lyon"));
+    expect(forecast.hourly.map((point) => point.time)).toEqual([
+      "2025-03-30T01:00",
+      "2025-03-30T03:00",
+      "2025-03-30T04:00",
+      "2025-03-30T05:00",
+    ]);
+  });
+
+  it("asks Open-Meteo for unix timestamps", async () => {
+    const fetchMock = stubFetch();
+    await getForecast("Lyon");
+    expect(requestedUrl(fetchMock, "api").searchParams.get("timeformat")).toBe("unixtime");
+  });
+
+  it("refetches after local midnight even within the cache TTL", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    const fetchMock = stubFetch();
+    vi.setSystemTime(new Date("2026-11-11T22:55:00Z"));
+    await getForecast("Lyon");
+    vi.setSystemTime(new Date("2026-11-11T23:05:00Z"));
+    await getForecast("Lyon");
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
   it("does not cache failures", async () => {
     const fetchMock = stubFetch({ forecast: () => json({}, 503) });
     await getForecast("Lyon");

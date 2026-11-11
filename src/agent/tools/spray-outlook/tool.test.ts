@@ -32,6 +32,16 @@ describe("sprayOutlook", () => {
     expect(output.days.map((day) => day.date)).toEqual(["2026-11-12", "2026-11-13"]);
   });
 
+  it("ignores hours that have already passed on the first day", async () => {
+    stubOpenMeteo();
+    const output = await sprayOutlook({ city: "Lyon" }, new Date("2026-11-11T18:30:00Z"));
+    if ("error" in output) throw new Error(output.error);
+    const today = output.days[0];
+    expect(today.date).toBe("2026-11-11");
+    if (today.bestWindow) expect(today.bestWindow.from >= "2026-11-11T19:00").toBe(true);
+    expect(Object.values(today.rejectedReasons).reduce((total, hours) => total + (hours ?? 0), 0)).toBeLessThanOrEqual(5);
+  });
+
   it("propagates city_not_found", async () => {
     stubOpenMeteo(geocodingEmpty);
     expect(await sprayOutlook({ city: "Xyzzyqwv" }, new Date("2026-11-11T08:30:00Z"))).toEqual({ error: "city_not_found" });

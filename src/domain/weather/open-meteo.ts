@@ -1,4 +1,5 @@
 import { serverEnv } from "@/config/env";
+import { currentLocalHour } from "@/domain/time";
 import {
   forecastResponseSchema,
   geocodingResponseSchema,
@@ -44,14 +45,15 @@ export async function fetchHourlyForecast(location: GeoLocation): Promise<Foreca
     hourly: Object.values(HOURLY_VARIABLES).join(","),
     wind_speed_unit: "ms",
     timezone: "auto",
+    timeformat: "unixtime",
     forecast_days: String(FORECAST_DAYS),
   }).toString();
 
   const { timezone, hourly } = forecastResponseSchema.parse(await getJson(url));
   const valueAt = (series: Array<number | null>, index: number) => series[index] ?? null;
 
-  const points: HourlyPoint[] = hourly.time.map((time, index) => ({
-    time,
+  const points: HourlyPoint[] = hourly.time.map((unixSeconds, index) => ({
+    time: currentLocalHour(timezone, new Date(unixSeconds * 1000)),
     temperature: valueAt(hourly[HOURLY_VARIABLES.temperature], index),
     windSpeed: valueAt(hourly[HOURLY_VARIABLES.windSpeed], index),
     precipitation: valueAt(hourly[HOURLY_VARIABLES.precipitation], index),

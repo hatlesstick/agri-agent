@@ -6,7 +6,8 @@ import {
   type SprayWindowOutput,
 } from "@/agent/tools/spray-window/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
-import { resolveDay, todayIn } from "@/domain/spray/dates";
+import { resolveDay } from "@/domain/spray/dates";
+import { currentLocalHour, todayIn } from "@/domain/time";
 import { assessSprayWindows } from "@/domain/spray/rules";
 import { getForecast } from "@/domain/weather/forecast";
 import { isWeatherError } from "@/domain/weather/types";
@@ -27,7 +28,7 @@ export async function sprayWindow(input: SprayWindowInput, now: Date = new Date(
     city: forecast.city,
     date,
     timezone: forecast.timezone,
-    ...assessSprayWindows(forecast.hourly, date),
+    ...assessSprayWindows(forecast.hourly, date, {}, { notBefore: currentLocalHour(forecast.timezone, now) }),
   });
 }
 
