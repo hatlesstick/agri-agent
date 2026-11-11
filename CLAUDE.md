@@ -63,7 +63,7 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - Not available to the `/api/spray-check` agent (`activeTools`), whose schema describes a single day.
 
 ### `searchDocs`
-- Input: `{ query }` (short English query). Searches `data/index.json` (embeddings of `data/docs/*.md`, built by `npm run index`) and returns top-3 passages with `source` above a similarity threshold (`REAL_MIN_SCORE`, to be calibrated with the real retrieval eval). Mock mode builds an in-memory bag-of-words index.
+- Input: `{ query }` (short English query). Searches `data/index.json` (embeddings of `data/docs/*.md`, built by `npm run index`) and returns top-3 passages with `source` above a similarity threshold (`REAL_MIN_SCORE` = 0.64, calibrated 2026-11-11: on-corpus top scores 0.725–0.868, off-corpus 0.477–0.551; recalibrate after changing the corpus). Mock mode builds an in-memory bag-of-words index.
 - The agent answers practice questions only from returned passages, cites sources, and says it has no reliable information when there are no hits.
 
 ## Stack

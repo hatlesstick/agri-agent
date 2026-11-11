@@ -6,7 +6,7 @@ import { INDEX_FILE, readCorpusChunks } from "@/agent/rag/corpus";
 import { rankChunks } from "@/domain/rag/search";
 import type { RagIndex, SearchHit } from "@/domain/rag/types";
 
-export const REAL_MIN_SCORE = 0.55;
+export const REAL_MIN_SCORE = 0.64;
 export const MOCK_MIN_SCORE = 0.15;
 
 let cachedIndex: RagIndex | null = null;
