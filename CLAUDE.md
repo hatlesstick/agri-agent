@@ -1,163 +1,164 @@
 # CLAUDE.md — agro-agent
 
-## Про мене і мету
-- Я Full-Stack / React Native розробник (5+ років, TypeScript), зараз вчуся будувати AI-агентів.
-- Цей проєкт **навчальний**: мені важливо **розуміти** кожне рішення, а не просто отримати робочий код.
-- Пізніше він стане основою Telegram агро-бота (погода → вікно обприскування → RAG → пам'ять полів → фото-діагностика → multi-agent).
+## About me and the goal
+- I'm a Full-Stack / React Native developer (5+ years, TypeScript), currently learning to build AI agents.
+- This is a **learning project**: I want to **understand** every decision, not just get working code.
+- Later it becomes the foundation of a Telegram agro bot (weather → spray window → RAG → field memory → photo diagnostics → multi-agent).
 
-## Що будуємо
-**Агро-агента** на Vercel AI SDK з веб-чатом як першим каналом. Агент:
-1. стрімить відповіді в UI;
-2. сам вирішує, які tools викликати, і будує ланцюжок кроків (погода → вікно обприскування → відповідь);
-3. визначає, чи можна обприскувати поле, і пояснює чому;
-4. через окремий ендпоінт повертає structured output `{ city, canSpray, bestWindow, reason }`.
+## What we're building
+An **agro agent** on the Vercel AI SDK, with a web chat as its first channel. The agent:
+1. streams responses to the UI;
+2. decides on its own which tools to call and chains the steps (weather → spray window → answer);
+3. determines whether a field can be sprayed and explains why;
+4. returns structured output `{ city, canSpray, bestWindow, reason }` via a separate endpoint.
 
-**Готово, коли:** на запит «Чи можна завтра обприскувати в Луцьку?» модель сама викликає tools і повертає типізовану відповідь з поясненням.
+**Done when:** for the prompt "Чи можна завтра обприскувати в Луцьку?" ("Can I spray in Lutsk tomorrow?") the model calls the tools by itself and returns a typed answer with an explanation.
 
-## Ключовий принцип: код вирішує, модель пояснює
-- `canSpray` і `bestWindow` обчислює **детермінована функція** за правилами нижче.
-- Модель **не перераховує і не змінює** це рішення: вона обирає, які tools викликати, і формулює `reason` людською мовою.
-- **Великі дані не йдуть через модель.** Модель передає в tools лише короткі параметри (`city`, `date`), а погодинні дані tools беруть самі з `lib/weather`.
-- Якщо модель і правила розходяться — правий код.
+## Core principle: code decides, the model explains
+- `canSpray` and `bestWindow` are computed by a **deterministic function** using the rules below.
+- The model **never recomputes or overrides** that decision: it picks which tools to call and phrases `reason` in human language.
+- **Large data never flows through the model.** The model passes only short parameters (`city`, `date`) to tools; tools fetch hourly data themselves from `lib/weather`.
+- If the model and the rules disagree, the code wins.
 
-## Архітектура
+## Architecture
 ```
               ┌─────────── lib/agent.ts ───────────┐
- /api/chat ──▶│  модель, системний промпт,         │
- (стрім у UI) │  tools, stopWhen                   │
+ /api/chat ──▶│  model, system prompt,             │
+ (UI stream)  │  tools, stopWhen                   │
 /api/spray- ─▶│                                    │
  check (JSON) └────────────────────────────────────┘
- (пізніше Telegram)          │
+ (later Telegram)            │
                              ▼
-                 lib/weather/ — Open-Meteo + кеш у пам'яті
-                 lib/spray/   — чисті правила
+                 lib/weather/ — Open-Meteo + in-memory cache
+                 lib/spray/   — pure rules
 ```
-- **Агент** — один модуль `lib/agent.ts`: модель, промпт, tools, межі циклу. З етапу 5 — `ToolLoopAgent`.
-- **Канали** (`app/api/*`, пізніше Telegram) лише передають повідомлення агенту й форматують відповідь. Логіки агента в них немає.
-- **Доменна логіка** (`lib/weather`, `lib/spray`) не залежить від AI SDK і тестується окремо.
+- **Agent**: a single module `lib/agent.ts` holding the model, prompt, tools and loop limits. A `ToolLoopAgent` from stage 5.
+- **Channels** (`app/api/*`, later Telegram) only pass messages to the agent and format the response. No agent logic lives in them.
+- **Domain logic** (`lib/weather`, `lib/spray`) does not depend on the AI SDK and is tested separately.
 
 ## Tools
 ### `getWeather`
-- Вхід: `{ city: string }` (модель може передати «Луцьк» або «Lutsk» — обидва мають працювати).
-- Geocoding → forecast на 3 дні → компактний результат: місто, координати, `timezone`, погодинні `temperature`, `windSpeed`, `precipitation`, `precipitationProbability`, `humidity`.
-- Помилки повертає **даними**, а не exception: `{ error: "city_not_found" }`, `{ error: "weather_unavailable" }` — щоб модель могла пояснити користувачу.
-- Навіщо агенту: загальні питання про погоду і пояснення, на чому ґрунтується висновок.
+- Input: `{ city: string }` (the model may pass "Луцьк" or "Lutsk"; both must work).
+- Geocoding → 3-day forecast → compact result: city, coordinates, `timezone`, hourly `temperature`, `windSpeed`, `precipitation`, `precipitationProbability`, `humidity`.
+- Returns errors **as data**, not exceptions: `{ error: "city_not_found" }`, `{ error: "weather_unavailable" }`, so the model can explain them to the user.
+- Why the agent needs it: general weather questions and showing what the verdict is based on.
 
 ### `sprayWindow`
-- Вхід: `{ city: string, date: string }` (`date` — `"YYYY-MM-DD"`, локальна дата міста).
-- Сам бере погоду через `lib/weather` (кеш → без повторного запиту до Open-Meteo).
-- Вихід: `{ canSpray, bestWindow: { from, to } | null, windows: [...], rejectedReasons }`.
-- Правила — чиста функція в `lib/spray`, пороги — **параметри з дефолтами**:
-  - вітер 1–4 м/с (нижня межа: у штиль ризик температурної інверсії та знесення);
-  - без опадів за 3 год до і 3 год після;
-  - температура 10–25 °C;
-  - відносна вологість ≥ 50 % (опційно, можна увімкнути пізніше; далі — Delta T).
+- Input: `{ city: string, date: string }` (`date` is `"YYYY-MM-DD"`, the city's local date).
+- Fetches weather itself via `lib/weather` (cached → no repeated Open-Meteo request).
+- Output: `{ canSpray, bestWindow: { from, to } | null, windows: [...], rejectedReasons }`.
+- Rules are a pure function in `lib/spray`; thresholds are **parameters with defaults**:
+  - wind 1–4 m/s (lower bound: dead calm risks temperature inversion and drift);
+  - no precipitation 3 h before and 3 h after;
+  - temperature 10–25 °C;
+  - relative humidity ≥ 50 % (optional, can be enabled later; Delta T next).
 
-## Стек
-- Node.js 22+ (AI SDK 7 вимагає Node 22+ і ESM)
+## Stack
+- Node.js 22+ (AI SDK 7 requires Node 22+ and ESM)
 - Next.js 16 (App Router), TypeScript (strict), Tailwind 4
 - Vercel AI SDK 7: `ai`, `@ai-sdk/react`
-- Моделі через **Vercel AI Gateway** (входить у `ai`): env `AI_GATEWAY_API_KEY`, модель задається рядком `"provider/model"` (без окремих provider-пакетів).
-  - Модель для розробки: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 за 1M токенів, tool-use + structured-output; доступна на Free Tier, tool calling перевірено 2026-11-11). Запасна: `openai/gpt-5.4-nano`.
-  - `anthropic/claude-haiku-5.5` на Free Tier **недоступна** (потрібні платні кредити).
-  - Назва моделі — одна константа в `lib/model.ts`.
-- `zod` для схем tools і structured output
-- `vitest` для тестів (додати на етапі 2)
-- Open-Meteo API (без ключа):
+- Models via **Vercel AI Gateway** (bundled in `ai`): env `AI_GATEWAY_API_KEY`, model set as a `"provider/model"` string (no separate provider packages).
+  - Development model: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 per 1M tokens, tool-use + structured-output; available on the Free Tier, tool calling verified 2026-11-11). Fallback: `openai/gpt-5.4-nano`.
+  - `anthropic/claude-haiku-5.5` is **not available** on the Free Tier (requires paid credits).
+  - The model name is a single constant in `lib/model.ts`.
+- `zod` for tool schemas and structured output
+- `vitest` for tests (added in stage 2)
+- Open-Meteo API (no key):
   - geocoding: `https://geocoding-api.open-meteo.com/v1/search?name=<city>&count=1&language=uk`
   - forecast: `https://api.open-meteo.com/v1/forecast` (hourly: `temperature_2m`, `precipitation`, `precipitation_probability`, `wind_speed_10m`, `relative_humidity_2m`; `wind_speed_unit=ms`; `timezone=auto`; `forecast_days=3`)
-  - `forecast_days=3`, бо для «завтра» правилу «без опадів 3 год після» потрібні години післязавтра.
+  - `forecast_days=3` because for "tomorrow" the "no rain 3 h after" rule needs hours from the day after.
 
-## Формат часу
-- Усі часи — **локальний час міста** у форматі ISO без зміщення, як віддає Open-Meteo з `timezone=auto`: `"2026-11-12T08:00"`.
-- У результат tool додаємо поле `timezone` (напр. `"Europe/Kyiv"`).
-- Ніякого UTC у відповідях моделі.
+## Time format
+- All times are the **city's local time** as ISO without offset, as Open-Meteo returns with `timezone=auto`: `"2026-11-12T08:00"`.
+- Tool results include a `timezone` field (e.g. `"Europe/Kyiv"`).
+- No UTC in model responses.
 
-## AI SDK 7 — перевірені API (ai@7.0.170)
-Перевірено в `node_modules/ai/docs` і `dist/index.d.ts`. Якщо версія зміниться — перевір знову.
-- Відповідь зі стрімом: `createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) })`. `result.toUIMessageStreamResponse()` — **deprecated**.
-- UI → модель: `await convertToModelMessages(messages)` (`UIMessage[]` → `ModelMessage[]`).
+## AI SDK 7 — verified APIs (ai@7.0.170)
+Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the version changes.
+- Streaming response: `createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) })`. `result.toUIMessageStreamResponse()` is **deprecated**.
+- UI → model: `await convertToModelMessages(messages)` (`UIMessage[]` → `ModelMessage[]`).
 - Tools: `tool({ description, inputSchema, execute })`.
-- Ліміт кроків: `stopWhen: isStepCount(n)` (**не** `stepCountIs`).
-- Structured output: `generateText({ output: Output.object({ schema }) })`, можна разом з `tools`. `generateObject` — **deprecated**.
-- Агент: `ToolLoopAgent` (дефолтний ліміт `isStepCount(20)`) — див. `docs/03-agents`.
-- Tool у UI: частини повідомлення `tool-<name>` зі станами `input-streaming` / `input-available` / `output-available` / `output-error`.
+- Step limit: `stopWhen: isStepCount(n)` (**not** `stepCountIs`).
+- Structured output: `generateText({ output: Output.object({ schema }) })`, can be combined with `tools`. `generateObject` is **deprecated**.
+- Agent: `ToolLoopAgent` (default limit `isStepCount(20)`), see `docs/03-agents`.
+- Embeddings: `embed`, `embedMany`, `cosineSimilarity`.
+- Tools in the UI: message parts `tool-<name>` with states `input-streaming` / `input-available` / `output-available` / `output-error`.
 
-## Етапи (по одному, після кожного зупиняйся)
-1. **Чат без tools:** `lib/model.ts`, `app/api/chat/route.ts` зі `streamText`, `app/page.tsx` з `useChat`. Поясни, як стрім іде від сервера до UI.
-2. **Tool `getWeather`:** `lib/weather` (Open-Meteo + кеш) і обгортка tool. Тести з мокнутим `fetch`: успіх, місто не знайдено, 5xx, «Lutsk»/«Луцьк».
-3. **Tool `sprayWindow`:** чиста функція в `lib/spray` + обгортка tool. Unit-тести на кожне правило і межові значення (рівно 4 м/с, рівно 10 °C, дощ рівно за 3 год).
-4. **Structured output:** `/api/spray-check`, `generateText` з `tools` + `Output.object` + `stopWhen`; схема `{ city, canSpray, bestWindow: { from, to } | null, reason }` у `lib/schemas.ts`.
-   - **Варіант A:** модель повертає весь об'єкт, а код **перезаписує** `canSpray` і `bestWindow` значеннями з результату `sprayWindow` (з `result.steps`). Якщо модель написала інше — `console.warn` з обома значеннями (вчимося помічати, коли модель «бреше»).
-   - Якщо `sprayWindow` не викликався — помилка, а не відповідь моделі навмання.
-5. **Агентна поведінка:** перенести логіку в `lib/agent.ts` (`ToolLoopAgent`), системний промпт (агроном, українською, не вигадує погоду), `stopWhen: isStepCount(5)`, картки викликів tools в UI (назва, аргументи, стан), README.
-6. **Evals:** вимірюємо якість агента набором кейсів, а не «на око».
-   - Кейси в `evals/cases.ts`: запит користувача + **фікстура погоди** (щоб правильна відповідь була відома наперед) + очікування.
-   - Погода в evals — з фікстур через підміну `fetch`, модель — **справжня** через AI Gateway.
-   - Перевірки кодом (детерміновані, спершу вони):
-     - викликано потрібні tools (`sprayWindow` для питань про обприскування; `getWeather` не обов'язково);
-     - аргументи tools правильні (`city`, `date` — «завтра» перетворено на правильну дату);
-     - вихід `/spray-check` проходить zod-схему, `canSpray`/`bestWindow` збігаються з очікуваними;
-     - модель не «перерішила» (немає `console.warn` з варіанту A);
-     - `reason` українською і згадує причину відмови (вітер / опади / температура);
-     - кількість кроків ≤ ліміту.
-   - Набір кейсів: «можна» / «не можна через вітер / дощ / температуру», неіснуюче місто, «Lutsk» латиницею, питання не про обприскування (tools не потрібні), неоднозначна дата.
-   - Кожен кейс запускається N разів (за замовчуванням 3) → **pass rate**, бо модель недетермінована.
-   - LLM-as-judge — опційно, лише для якості `reason` (чи не вигадує цифр, яких немає в даних tool).
-   - Звіт: таблиця кейсів з pass rate + порівняння двох моделей (основна vs запасна).
-   - Запуск окремою командою `npm run eval` (окремий конфіг Vitest), **не** в `npx vitest`: evals повільні, коштують токени і недетерміновані.
-7. **Маленький власний RAG (без векторної БД):** tool `searchDocs`.
-   - Корпус: 5–10 коротких markdown-документів у `data/docs/` (правила обприскування, вплив погоди, загальні вимоги етикеток препаратів). Навчальний корпус, з джерелом у кожному файлі.
-   - Індексація скриптом `npm run index`: чанкінг по заголовках → `embedMany` → `data/index.json` (текст чанка, `source`, вектор).
-   - Embeddings: `google/gemini-embedding-001` (доступна на Free Tier, перевірено 2026-11-11; `openai/text-embedding-3-small` на Free Tier недоступна). Назва моделі — константа в `lib/model.ts`.
-   - Пошук: `embed(query)` → `cosineSimilarity` по всіх чанках у пам'яті → top-k (k=3) з порогом схожості.
-   - Tool `searchDocs({ query })` → `[{ text, source, score }]`; агент **цитує джерела** і каже «не знаю», якщо нічого релевантного не знайшлося.
-   - Evals: retrieval recall@k на парах «питання → очікуване джерело» + кейси відповіді з цитуванням у наборі з етапу 6.
-   - Чому без векторної БД: на десятках чанків повний перебір миттєвий, а так видно всю механіку RAG. Векторну БД додамо, коли корпус виросте.
+## Stages (one at a time, stop after each)
+1. **Chat without tools:** `lib/model.ts`, `app/api/chat/route.ts` with `streamText`, `app/page.tsx` with `useChat`. Explain how the stream flows from server to UI.
+2. **Tool `getWeather`:** `lib/weather` (Open-Meteo + cache) and the tool wrapper. Tests with mocked `fetch`: success, city not found, 5xx, "Lutsk"/"Луцьк".
+3. **Tool `sprayWindow`:** pure function in `lib/spray` + tool wrapper. Unit tests for each rule and boundary values (exactly 4 m/s, exactly 10 °C, rain exactly 3 h away).
+4. **Structured output:** `/api/spray-check`, `generateText` with `tools` + `Output.object` + `stopWhen`; schema `{ city, canSpray, bestWindow: { from, to } | null, reason }` in `lib/schemas.ts`.
+   - **Option A:** the model returns the whole object, and the code **overwrites** `canSpray` and `bestWindow` with values from the `sprayWindow` result (from `result.steps`). If the model wrote something different, `console.warn` with both values (learning to notice when the model "lies").
+   - If `sprayWindow` was not called, return an error instead of the model's guess.
+5. **Agent behavior:** move logic into `lib/agent.ts` (`ToolLoopAgent`), system prompt (agronomist, answers in Ukrainian, never invents weather), `stopWhen: isStepCount(5)`, tool-call cards in the UI (name, arguments, state), README.
+6. **Evals:** measure agent quality with a case set instead of eyeballing.
+   - Cases in `evals/cases.ts`: user prompt + **weather fixture** (so the correct answer is known upfront) + expectations.
+   - Weather in evals comes from fixtures via a stubbed `fetch`; the model is **real**, via AI Gateway.
+   - Code-based checks (deterministic, these come first):
+     - the right tools were called (`sprayWindow` for spraying questions; `getWeather` optional);
+     - tool arguments are correct (`city`, `date`: "tomorrow" resolved to the right date);
+     - `/spray-check` output passes the zod schema; `canSpray`/`bestWindow` match expectations;
+     - the model did not "override" the decision (no `console.warn` from option A);
+     - `reason` is in Ukrainian and mentions the rejection cause (wind / precipitation / temperature);
+     - step count ≤ limit.
+   - Case set: "can spray" / "can't because of wind / rain / temperature", nonexistent city, "Lutsk" in Latin script, non-spraying question (no tools needed), ambiguous date.
+   - Each case runs N times (default 3) → **pass rate**, since the model is non-deterministic.
+   - LLM-as-judge is optional, only for `reason` quality (does it invent numbers not present in tool data).
+   - Report: table of cases with pass rate + comparison of two models (primary vs fallback).
+   - Run via a separate `npm run eval` command (separate Vitest config), **not** in `npx vitest`: evals are slow, cost tokens and are non-deterministic.
+7. **Small home-made RAG (no vector DB):** tool `searchDocs`.
+   - Corpus: 5–10 short markdown documents in `data/docs/` (spraying rules, weather effects, general pesticide label requirements). A learning corpus, with a source in every file.
+   - Indexing via `npm run index`: chunk by headings → `embedMany` → `data/index.json` (chunk text, `source`, vector).
+   - Embeddings: `google/gemini-embedding-001` (available on the Free Tier, verified 2026-11-11; `openai/text-embedding-3-small` is not available on the Free Tier). The model name is a constant in `lib/model.ts`.
+   - Search: `embed(query)` → `cosineSimilarity` over all chunks in memory → top-k (k=3) with a similarity threshold.
+   - Tool `searchDocs({ query })` → `[{ text, source, score }]`; the agent **cites sources** and says "I don't know" when nothing relevant is found.
+   - Evals: retrieval recall@k on "question → expected source" pairs + answer-with-citation cases in the stage 6 set.
+   - Why no vector DB: on dozens of chunks a brute-force scan is instant, and it exposes the whole RAG mechanism. Add a vector DB once the corpus grows.
 
-## Майбутні tools (наступні проєкти, не зараз)
-`getField` / `saveFieldNote` (пам'ять полів), `diagnosePhoto` (фото-діагностика), далі — субагенти.
+## Future tools (next projects, not now)
+`getField` / `saveFieldNote` (field memory), `diagnosePhoto` (photo diagnostics), then subagents.
 
-## Правила роботи
-- **Я вчуся:** коротко пояснюй кожне нове API AI SDK і чому саме так. Після етапу дай 2–3 питання для самоперевірки.
-- **Один етап за раз.** Після етапу зупинись, щоб я запустив, перевірив і закомітив.
-- **Не вигадуй API з пам'яті:** AI SDK змінюється між мажорними версіями. Перевіряй встановлену версію в `node_modules/ai` (`docs/` і типи).
-- Мінімум залежностей; нічого не додавай без пояснення навіщо.
-- Ключі тільки в `.env.local`, ніколи в коді й комітах. Шаблон — `.env.example`.
-- Код, коміти й README англійською; пояснення мені — українською.
-- Коміти маленькі, conventional commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
+## Working rules
+- **I'm learning:** briefly explain every new AI SDK API and why it's used this way. After each stage, give 2–3 self-check questions.
+- **One stage at a time.** Stop after each stage so I can run, verify and commit.
+- **Don't invent APIs from memory:** the AI SDK changes between major versions. Check the installed version in `node_modules/ai` (`docs/` and types).
+- Minimal dependencies; never add one without explaining why.
+- Keys only in `.env.local`, never in code or commits. Template: `.env.example`.
+- **Language:** code, commits, README, CLAUDE.md and all plans/docs in English. Explanations to me in chat in Ukrainian.
+- Small commits, conventional commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
 
-## Правила написання коду
-- **Не додавай коментарі в код** — ні при створенні файлів, ні при змінах. Жодних `//`, `/* */`, JSDoc чи «поясню, що робить рядок».
-- Зрозумілість — через назви змінних, функцій, типів і маленькі функції.
-- Пояснення рішень пиши мені в чаті, а не в коді.
-- Виняток — лише коли я прямо прошу коментар.
+## Code style
+- **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does".
+- Clarity comes from names of variables, functions and types, and from small functions.
+- Explain decisions to me in chat, not in code.
+- Exception: only when I explicitly ask for a comment.
 
-## Команди
-- `npm run dev` — локальний запуск
-- `npm run lint` — лінт
-- `npx vitest` — тести (з етапу 2)
-- `npm run eval` — evals з реальною моделлю (з етапу 6, коштує токени)
-- `npm run index` — побудова RAG-індексу (з етапу 7)
+## Commands
+- `npm run dev`: local dev server
+- `npm run lint`: lint
+- `npx vitest`: tests (from stage 2)
+- `npm run eval`: evals against the real model (from stage 6, costs tokens)
+- `npm run index`: build the RAG index (from stage 7)
 
-## Структура (орієнтовно)
+## Structure (approximate)
 ```
 app/
-  api/chat/route.ts          # канал: веб-чат (стрім)
-  api/spray-check/route.ts   # канал: structured JSON
+  api/chat/route.ts          channel: web chat (stream)
+  api/spray-check/route.ts   channel: structured JSON
   page.tsx
 lib/
-  model.ts                   # назва моделі (одна константа)
-  agent.ts                   # агент: модель, промпт, tools, stopWhen (етап 5)
-  schemas.ts                 # zod-схеми
-  weather/                   # Open-Meteo: geocoding, forecast, кеш + тести
-  spray/                     # правила обприскування (чиста функція) + тести
-  tools/                     # обгортки tool() над weather/, spray/, rag/
-  rag/                       # чанкінг, embeddings, пошук (етап 7)
-evals/                       # кейси, фікстури погоди, раннер (етап 6)
+  model.ts                   model names (constants)
+  agent.ts                   agent: model, prompt, tools, stopWhen (stage 5)
+  schemas.ts                 zod schemas
+  weather/                   Open-Meteo: geocoding, forecast, cache + tests
+  spray/                     spraying rules (pure function) + tests
+  tools/                     tool() wrappers over weather/, spray/, rag/
+  rag/                       chunking, embeddings, search (stage 7)
+evals/                       cases, weather fixtures, runner (stage 6)
 data/
-  docs/                      # корпус для RAG (етап 7)
-  index.json                 # згенерований індекс (етап 7)
+  docs/                      RAG corpus (stage 7)
+  index.json                 generated index (stage 7)
 scripts/
-  build-index.ts             # npm run index (етап 7)
+  build-index.ts             npm run index (stage 7)
 ```
