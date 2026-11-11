@@ -1,10 +1,8 @@
 # CLAUDE.md — agro-agent
 
-## About me and the goal
-- I'm a Full-Stack / React Native developer (5+ years, TypeScript), currently learning to build AI agents.
-- This is a **learning project**: I want to **understand** every decision, not just get working code.
-- This project is **P0+**, a modified version of P0 from my learning plan: the original P0 (stages 1–5) extended with evals (stage 6) and a small RAG (stage 7).
-- Later it becomes the foundation of a Telegram agro bot (weather → spray window → RAG → field memory → photo diagnostics → multi-agent).
+## Overview
+- Scope: **P0+**, the core P0 (stages 1–5) extended with evals (stage 6) and a small RAG (stage 7).
+- Roadmap: this agent becomes the foundation of a Telegram agro bot (weather → spray window → RAG → field memory → photo diagnostics → multi-agent).
 
 ## What we're building
 An **agro agent** on the Vercel AI SDK, with a web chat as its first channel. The agent:
@@ -93,7 +91,7 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 2. **Tool `getWeather`:** `lib/weather` (Open-Meteo + cache) and the tool wrapper. Tests with mocked `fetch`: success, city not found, 5xx, "Lutsk"/"Луцьк".
 3. **Tool `sprayWindow`:** pure function in `lib/spray` + tool wrapper. Unit tests for each rule and boundary values (exactly 4 m/s, exactly 10 °C, rain exactly 3 h away).
 4. **Structured output:** `/api/spray-check`, `generateText` with `tools` + `Output.object` + `stopWhen`; schema `{ city, canSpray, bestWindow: { from, to } | null, reason }` in `lib/schemas.ts`.
-   - **Option A:** the model returns the whole object, and the code **overwrites** `canSpray` and `bestWindow` with values from the `sprayWindow` result (from `result.steps`). If the model wrote something different, `console.warn` with both values (learning to notice when the model "lies").
+   - **Option A:** the model returns the whole object, and the code **overwrites** `canSpray` and `bestWindow` with values from the `sprayWindow` result (from `result.steps`). If the model wrote something different, `console.warn` with both values to surface model/rule disagreement.
    - If `sprayWindow` was not called, return an error instead of the model's guess.
 5. **Agent behavior:** move logic into `lib/agent.ts` (`ToolLoopAgent`), system prompt (agronomist, answers in Ukrainian, never invents weather), `stopWhen: isStepCount(5)`, tool-call cards in the UI (name, arguments, state), README.
 
@@ -114,7 +112,7 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
    - Report: table of cases with pass rate + comparison of two models (primary vs fallback).
    - Run via a separate `npm run eval` command (separate Vitest config), **not** in `npx vitest`: evals are slow, cost tokens and are non-deterministic.
 7. **Small home-made RAG (no vector DB):** tool `searchDocs`.
-   - Corpus: 5–10 short markdown documents in `data/docs/` (spraying rules, weather effects, general pesticide label requirements). A learning corpus, with a source in every file.
+   - Corpus: 5–10 short markdown documents in `data/docs/` (spraying rules, weather effects, general pesticide label requirements). Each file states its source.
    - Indexing via `npm run index`: chunk by headings → `embedMany` → `data/index.json` (chunk text, `source`, vector).
    - Embeddings: `google/gemini-embedding-001` (available on the Free Tier, verified 2026-11-11; `openai/text-embedding-3-small` is not available on the Free Tier). The model name is a constant in `lib/model.ts`.
    - Search: `embed(query)` → `cosineSimilarity` over all chunks in memory → top-k (k=3) with a similarity threshold.
@@ -126,19 +124,19 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 `getField` / `saveFieldNote` (field memory), `diagnosePhoto` (photo diagnostics), then subagents.
 
 ## Working rules
-- **I'm learning:** briefly explain every new AI SDK API and why it's used this way. After each stage, give 2–3 self-check questions.
-- **One stage at a time.** Stop after each stage so I can run, verify and commit.
+- Briefly explain each new AI SDK API and the reasoning behind its use. After each stage, list 2–3 review questions.
+- **One stage at a time.** Stop after each stage for manual verification and commit.
 - **Don't invent APIs from memory:** the AI SDK changes between major versions. Check the installed version in `node_modules/ai` (`docs/` and types).
 - Minimal dependencies; never add one without explaining why.
 - Keys only in `.env.local`, never in code or commits. Template: `.env.example`.
-- **Language:** code, commits, README, CLAUDE.md and all plans/docs in English. Explanations to me in chat in Ukrainian.
+- **Language:** code, commits, README, CLAUDE.md and all plans/docs in English. Chat communication in Ukrainian.
 - Small commits, conventional commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
 
 ## Code style
 - **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does".
 - Clarity comes from names of variables, functions and types, and from small functions.
-- Explain decisions to me in chat, not in code.
-- Exception: only when I explicitly ask for a comment.
+- Explain decisions in chat, not in code.
+- Exception: only when a comment is explicitly requested.
 
 ## Commands
 - `npm run dev`: local dev server
