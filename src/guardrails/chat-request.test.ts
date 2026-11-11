@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAT_LIMITS, parseChatRequest, readJsonBody } from "@/lib/guardrails/chat-request";
+import { CHAT_LIMITS, parseChatRequest, readJsonBody } from "@/guardrails/chat-request";
 
 function postRequest(body: string, headers: Record<string, string> = {}) {
   return new Request("http://localhost/api/chat", { method: "POST", body, headers });
@@ -15,7 +15,7 @@ describe("readJsonBody", () => {
   });
 
   it("rejects a body over the byte limit", async () => {
-    const body = JSON.stringify({ text: "а".repeat(CHAT_LIMITS.maxBodyBytes) });
+    const body = JSON.stringify({ text: "a".repeat(CHAT_LIMITS.maxBodyBytes) });
     expect(await readJsonBody(postRequest(body))).toEqual({ ok: false, status: 413, error: "payload_too_large" });
   });
 
@@ -26,7 +26,7 @@ describe("readJsonBody", () => {
 
   it("stops reading a streamed body once it passes the limit", async () => {
     let pulls = 0;
-    const chunk = new TextEncoder().encode("а".repeat(32 * 1024));
+    const chunk = new TextEncoder().encode("a".repeat(64 * 1024));
     const stream = new ReadableStream<Uint8Array>({
       pull(controller) {
         pulls += 1;
@@ -48,7 +48,7 @@ function textMessage(id: string, role: string, text: string) {
   return { id, role, parts: [{ type: "text", text }] };
 }
 
-function conversation(count: number, text = "питання") {
+function conversation(count: number, text = "question") {
   return Array.from({ length: count }, (_, index) =>
     textMessage(String(index), index % 2 === 0 ? "user" : "assistant", text),
   );
@@ -85,18 +85,18 @@ describe("parseChatRequest", () => {
   });
 
   it("rejects a message over the character limit", async () => {
-    const tooLong = "а".repeat(CHAT_LIMITS.maxMessageChars + 1);
+    const tooLong = "a".repeat(CHAT_LIMITS.maxMessageChars + 1);
     const result = await parseChatRequest({ messages: [textMessage("1", "user", tooLong)] });
     expect(result).toEqual({ ok: false, status: 413, error: "message_too_long" });
   });
 
   it("accepts a message exactly at the character limit", async () => {
-    const atLimit = "а".repeat(CHAT_LIMITS.maxMessageChars);
+    const atLimit = "a".repeat(CHAT_LIMITS.maxMessageChars);
     expect(await parseChatRequest({ messages: [textMessage("1", "user", atLimit)] })).toMatchObject({ ok: true });
   });
 
   it("rejects a conversation over the total character limit", async () => {
-    const messages = conversation(5, "а".repeat(CHAT_LIMITS.maxMessageChars)).concat(textMessage("x", "user", "а"));
+    const messages = conversation(5, "a".repeat(CHAT_LIMITS.maxMessageChars)).concat(textMessage("x", "user", "a"));
     const result = await parseChatRequest({ messages });
     expect(result).toEqual({ ok: false, status: 413, error: "conversation_too_long" });
   });
@@ -113,17 +113,17 @@ describe("parseChatRequest", () => {
       role: "assistant",
       parts: [
         { type: "step-start" },
-        { type: "tool-getWeather", toolCallId: "c1", state: "output-available", input: { city: "Луцьк" }, output: { city: "Луцьк" } },
-        { type: "text", text: "Ось прогноз" },
+        { type: "tool-getWeather", toolCallId: "c1", state: "output-available", input: { city: "Lyon" }, output: { city: "Lyon" } },
+        { type: "text", text: "Here is the forecast" },
       ],
     };
-    const result = await parseChatRequest({ messages: [textMessage("1", "user", "погода"), assistant] });
+    const result = await parseChatRequest({ messages: [textMessage("1", "user", "weather"), assistant] });
     expect(result).toMatchObject({ ok: true });
   });
 
   it("rejects unknown assistant part types", async () => {
     const assistant = { id: "2", role: "assistant", parts: [{ type: "file", mediaType: "text/plain", url: "data:," }] };
-    const result = await parseChatRequest({ messages: [textMessage("1", "user", "привіт"), assistant] });
+    const result = await parseChatRequest({ messages: [textMessage("1", "user", "hello"), assistant] });
     expect(result).toMatchObject({ ok: false, status: 400 });
   });
 
@@ -132,10 +132,10 @@ describe("parseChatRequest", () => {
       id: "2",
       role: "assistant",
       parts: [
-        { type: "tool-getWeather", toolCallId: "c1", state: "output-available", input: { city: "Луцьк" }, output: { blob: "а".repeat(CHAT_LIMITS.maxPartChars) } },
+        { type: "tool-getWeather", toolCallId: "c1", state: "output-available", input: { city: "Lyon" }, output: { blob: "a".repeat(CHAT_LIMITS.maxPartChars) } },
       ],
     };
-    const result = await parseChatRequest({ messages: [textMessage("1", "user", "погода"), assistant] });
+    const result = await parseChatRequest({ messages: [textMessage("1", "user", "weather"), assistant] });
     expect(result).toEqual({ ok: false, status: 413, error: "part_too_large" });
   });
 

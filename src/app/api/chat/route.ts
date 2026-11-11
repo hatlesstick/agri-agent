@@ -1,12 +1,14 @@
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
+  isStepCount,
   streamText,
   toUIMessageStream,
 } from "ai";
-import { parseChatRequest, readJsonBody } from "@/lib/guardrails/chat-request";
-import { BASE_INSTRUCTIONS } from "@/lib/instructions";
-import { chatModel, MAX_OUTPUT_TOKENS } from "@/lib/model";
+import { parseChatRequest, readJsonBody } from "@/guardrails/chat-request";
+import { BASE_INSTRUCTIONS } from "@/agent/instructions";
+import { chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/ai/model";
+import { agentTools } from "@/agent/tools";
 
 export async function POST(req: Request) {
   const body = await readJsonBody(req);
@@ -24,6 +26,8 @@ export async function POST(req: Request) {
     system: BASE_INSTRUCTIONS,
     messages: await convertToModelMessages(request.messages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    tools: agentTools,
+    stopWhen: isStepCount(MAX_AGENT_STEPS),
   });
 
   return createUIMessageStreamResponse({

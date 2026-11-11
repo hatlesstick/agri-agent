@@ -30,13 +30,24 @@ export default function ChatPage() {
                 : "self-start rounded-lg bg-zinc-100 px-4 py-2 text-zinc-900"
             }
           >
-            {message.parts.map((part, index) =>
-              part.type === "text" ? (
-                <p key={`${message.id}-${index}`} className="whitespace-pre-wrap">
-                  {part.text}
-                </p>
-              ) : null,
-            )}
+            {message.parts.map((part, index) => {
+              const key = `${message.id}-${index}`;
+              if (part.type === "text") {
+                return (
+                  <p key={key} className="whitespace-pre-wrap">
+                    {part.text}
+                  </p>
+                );
+              }
+              if (part.type.startsWith("tool-")) {
+                return (
+                  <pre key={key} className="my-2 max-h-48 overflow-auto rounded bg-white p-2 text-xs text-zinc-700">
+                    {JSON.stringify(part, null, 2)}
+                  </pre>
+                );
+              }
+              return null;
+            })}
           </li>
         ))}
       </ul>
