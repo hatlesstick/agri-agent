@@ -28,14 +28,19 @@ describe("reconcileSprayCheck", () => {
 
   it("keeps model output when it agrees with sprayWindow", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(reconcileSprayCheck(modelSays(), [sprayWindowResult(assessment())])).toEqual({ ok: true, result: modelSays(), overridden: false });
+    expect(reconcileSprayCheck(modelSays(), [sprayWindowResult(assessment())])).toEqual({ ok: true, result: modelSays(), overridden: false, reasonSource: "model" });
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it("overwrites canSpray and bestWindow and warns when the model disagrees", () => {
+  it("overwrites canSpray, bestWindow and the contradicting reason when the model disagrees", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const outcome = reconcileSprayCheck(modelSays({ canSpray: false, bestWindow: null }), [sprayWindowResult(assessment())]);
-    expect(outcome).toEqual({ ok: true, result: modelSays(), overridden: true });
+    const outcome = reconcileSprayCheck(modelSays({ canSpray: false, bestWindow: null, reason: "Too windy, do not spray." }), [sprayWindowResult(assessment())]);
+    expect(outcome).toEqual({
+      ok: true,
+      result: { ...modelSays(), reason: "Suitable window 2026-11-12T14:00–2026-11-13T00:00 (Europe/Paris local time)." },
+      overridden: true,
+      reasonSource: "rules",
+    });
     expect(warn).toHaveBeenCalledWith("spray-check override", expect.anything());
   });
 

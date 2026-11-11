@@ -1,4 +1,4 @@
-import { NoObjectGeneratedError, type LanguageModel } from "ai";
+import { NoObjectGeneratedError, NoOutputGeneratedError, type LanguageModel } from "ai";
 import { createSprayCheckAgent } from "@/agent/agent";
 import { AGENT_TIMEOUT_MS } from "@/agent/model";
 import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/agent/spray-check/reconcile";
@@ -60,12 +60,15 @@ export async function runSprayCheck({
       });
 
       const reconciliation = reconcileSprayCheck(result.output, current.toolResults);
-      return reconciliation.ok
-        ? { ...reconciliation, reasonSource: "model", trace: traceOf(current) }
-        : { ...reconciliation, trace: traceOf(current) };
+      return { ...reconciliation, trace: traceOf(current) };
     } catch (error) {
-      if (!NoObjectGeneratedError.isInstance(error)) throw error;
-      console.warn(`spray-check: attempt ${attempt} produced no valid object`, error.text?.slice(0, 200) || "(empty)");
+      if (NoObjectGeneratedError.isInstance(error)) {
+        console.warn(`spray-check: attempt ${attempt} produced no valid object`, error.text?.slice(0, 200) || "(empty)");
+      } else if (NoOutputGeneratedError.isInstance(error)) {
+        console.warn(`spray-check: attempt ${attempt} ended without output (step limit or empty stream)`);
+      } else {
+        throw error;
+      }
       if (current.toolResults.length > 0 || collected.toolResults.length === 0) collected = current;
     }
   }

@@ -4,7 +4,7 @@ import type { SprayCheck } from "@/agent/spray-check/schemas";
 export type ToolResult = { toolName: string; output: unknown };
 
 export type Reconciliation =
-  | { ok: true; result: SprayCheck; overridden: boolean }
+  | { ok: true; result: SprayCheck; overridden: boolean; reasonSource: "model" | "rules" }
   | { ok: false; error: "spray_window_not_called" };
 
 function sameWindow(left: SprayCheck["bestWindow"], right: SprayCheck["bestWindow"]): boolean {
@@ -43,7 +43,9 @@ export function reconcileSprayCheck(modelOutput: SprayCheck, toolResults: ToolRe
     });
   }
 
-  return { ok: true, result: { ...modelOutput, ...rules }, overridden };
+  if (!overridden) return { ok: true, result: { ...modelOutput, ...rules }, overridden, reasonSource: "model" };
+  const reason = ruleBasedAnswer(toolResults)?.reason ?? modelOutput.reason;
+  return { ok: true, result: { ...modelOutput, ...rules, reason }, overridden, reasonSource: "rules" };
 }
 
 const REASON_TEXT: Record<string, string> = {
