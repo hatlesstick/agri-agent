@@ -1,6 +1,6 @@
 import { isStepCount, streamText } from "ai";
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { agentTools, buildInstructions, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
+import { agentTools, agentToolsContext, buildInstructions, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
 import { EVAL_NOW, EVAL_TOMORROW, stubWeatherScenario, type WeatherScenario } from "@/agent/evals/scenarios";
 import { printEvalReport, recordEval } from "@/agent/evals/report";
 import { CHAT_MODEL, isMockMode } from "@/agent/model";
@@ -105,6 +105,7 @@ async function runCase(testCase: AgentCase): Promise<string[]> {
     system: buildInstructions(EVAL_NOW),
     prompt: testCase.prompt,
     tools: agentTools,
+    toolsContext: agentToolsContext(EVAL_NOW),
     stopWhen: isStepCount(MAX_AGENT_STEPS),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     runtimeContext: { evalRunId: EVAL_RUN_ID, evalCase: testCase.id, model: MODEL_LABEL },
@@ -122,14 +123,7 @@ async function runCase(testCase: AgentCase): Promise<string[]> {
 }
 
 describe(SUITE, () => {
-  beforeEach(() => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(EVAL_NOW);
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.unstubAllGlobals();
-  });
+  afterEach(() => vi.unstubAllGlobals());
   afterAll(() => printEvalReport(SUITE));
 
   it.each(AGENT_CASES)("$id", async (testCase) => {

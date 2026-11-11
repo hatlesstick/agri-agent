@@ -5,6 +5,7 @@ import {
   type SprayWindowInput,
   type SprayWindowOutput,
 } from "@/agent/tools/spray-window/schemas";
+import { clockContextSchema } from "@/agent/tools/shared/schemas";
 import { resolveDay } from "@/domain/spray/dates";
 import { assessSprayWindows } from "@/domain/spray/rules";
 import { getForecast } from "@/domain/weather/forecast";
@@ -32,5 +33,6 @@ export const sprayWindowTool = tool({
     "Decide whether a field can be sprayed on a given day in a city. Applies fixed agronomic rules (wind 1–4 m/s, 10–25 °C, no rain 3 h before and after) to the hourly forecast and returns canSpray, the best window and all suitable windows in city-local time. This result is final: report it, never override it.",
   inputSchema: sprayWindowInputSchema,
   outputSchema: sprayWindowOutputSchema,
-  execute: (input) => sprayWindow(input),
+  contextSchema: clockContextSchema,
+  execute: (input, { context }) => sprayWindow(input, context.now),
 });

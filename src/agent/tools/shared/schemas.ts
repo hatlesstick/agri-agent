@@ -9,3 +9,9 @@ export const cityNameSchema = z
   .max(100)
   .regex(LATIN_CITY_NAME)
   .describe("City name in English, Latin script, base form: Lyon, Munich, Kraków");
+
+export const clockContextSchema = z.object({
+  now: z.date(),
+});
+
+export type ClockContext = z.infer<typeof clockContextSchema>;

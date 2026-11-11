@@ -5,6 +5,7 @@ import {
   type GetWeatherInput,
   type GetWeatherOutput,
 } from "@/agent/tools/get-weather/schemas";
+import { clockContextSchema } from "@/agent/tools/shared/schemas";
 import { getForecast } from "@/domain/weather/forecast";
 import { isWeatherError, type HourlyPoint } from "@/domain/weather/types";
 
@@ -64,5 +65,6 @@ export const getWeatherTool = tool({
     "Get the hourly weather forecast (next 48 hours, city-local time) for a city: temperature °C, wind m/s, precipitation mm, precipitation probability %, relative humidity %.",
   inputSchema: getWeatherInputSchema,
   outputSchema: getWeatherOutputSchema,
-  execute: (input) => getWeather(input),
+  contextSchema: clockContextSchema,
+  execute: (input, { context }) => getWeather(input, context.now),
 });
