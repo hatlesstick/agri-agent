@@ -2,14 +2,6 @@ import { LangfuseClient } from "@langfuse/client";
 import { isTelemetryEnabled } from "@/agent";
 import { serverEnv } from "@/config/env";
 
-export type RunScores = {
-  passed: boolean;
-  toolSelection: boolean;
-  toolArguments: boolean | null;
-  steps: number;
-  comment: string;
-};
-
 let client: LangfuseClient | null = null;
 
 function scoreClient(): LangfuseClient | null {
@@ -25,17 +17,21 @@ function scoreClient(): LangfuseClient | null {
   return client;
 }
 
-export function recordRunScores(traceId: string, scores: RunScores): void {
+export function recordScores(traceId: string, scores: Record<string, boolean | number | null>, comment?: string): void {
   const langfuse = scoreClient();
   if (!langfuse) return;
 
-  const common = { traceId, environment: "evals" } as const;
-  langfuse.score.create({ ...common, name: "eval_passed", value: scores.passed ? 1 : 0, dataType: "BOOLEAN", comment: scores.comment || undefined });
-  langfuse.score.create({ ...common, name: "tool_selection", value: scores.toolSelection ? 1 : 0, dataType: "BOOLEAN" });
-  if (scores.toolArguments !== null) {
-    langfuse.score.create({ ...common, name: "tool_arguments", value: scores.toolArguments ? 1 : 0, dataType: "BOOLEAN" });
+  for (const [name, value] of Object.entries(scores)) {
+    if (value === null) continue;
+    langfuse.score.create({
+      traceId,
+      environment: "evals",
+      name,
+      value: typeof value === "boolean" ? (value ? 1 : 0) : value,
+      dataType: typeof value === "boolean" ? "BOOLEAN" : "NUMERIC",
+      comment: name === "eval_passed" && comment ? comment : undefined,
+    });
   }
-  langfuse.score.create({ ...common, name: "steps", value: scores.steps, dataType: "NUMERIC" });
 }
 
 export async function flushScores(): Promise<void> {
