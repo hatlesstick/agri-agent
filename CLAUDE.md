@@ -24,7 +24,8 @@ Next.js-чат на Vercel AI SDK, який:
 - Next.js (App Router), TypeScript (strict), Tailwind
 - Vercel AI SDK: `ai`, `@ai-sdk/react`
 - Моделі через **Vercel AI Gateway**: env `AI_GATEWAY_API_KEY`, модель задається рядком `"provider/model"` (без окремих provider-пакетів).
-  - Модель для розробки: **`anthropic/claude-haiku-5.5`** ($0.10 / $0.50 за 1M токенів, tool-use + structured-output; перевірено в каталогі AI Gateway 2026-11-11). Запасна: `google/gemini-2.5-flash-lite`.
+  - Модель для розробки: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 за 1M токенів, tool-use + structured-output; доступна на Free Tier, tool calling перевірено 2026-11-11). Запасна: `openai/gpt-5.4-nano`.
+  - `anthropic/claude-haiku-5.5` на Free Tier **недоступна** (потрібні платні кредити).
   - Назва моделі — одна константа в `lib/model.ts`, щоб міняти в одному місці.
 - `zod` для схем tools і structured output
 - Open-Meteo API (без ключа):
