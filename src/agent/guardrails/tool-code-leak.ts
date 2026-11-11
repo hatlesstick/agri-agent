@@ -2,7 +2,8 @@ import type { LanguageModelMiddleware } from "ai";
 
 export const TOOL_CODE_FALLBACK = "I could not run the weather check this time. Please ask again.";
 
-const LEAK_PATTERN = /^\s*(?:<|```)?\s*tool_code|default_api\.\w+\(/i;
+const LEAK_PATTERN = /(?:^|\n)\s*(?:<|```)?\s*tool_code\b|\btool_code\s*[:(]|default_api\.\w+\(/i;
+const TAIL_CHARS = 40;
 const DECISION_CHARS = 40;
 
 export function looksLikeLeakedToolCode(text: string): boolean {
@@ -12,7 +13,7 @@ export function looksLikeLeakedToolCode(text: string): boolean {
 type WrapStream = NonNullable<LanguageModelMiddleware["wrapStream"]>;
 type StreamPart = Awaited<ReturnType<WrapStream>>["stream"] extends ReadableStream<infer Part> ? Part : never;
 
-type BlockState = { buffer: string; decided: "pending" | "pass" | "leak" };
+type BlockState = { buffer: string; tail: string; decided: "pending" | "pass" | "leak" };
 
 export const toolCodeLeakMiddleware: LanguageModelMiddleware = {
   wrapGenerate: async ({ doGenerate }) => {
@@ -38,6 +39,7 @@ export const toolCodeLeakMiddleware: LanguageModelMiddleware = {
         controller.enqueue({ type: "text-delta", id, delta: TOOL_CODE_FALLBACK });
       } else {
         state.decided = "pass";
+        state.tail = state.buffer.slice(-TAIL_CHARS);
         if (state.buffer) controller.enqueue({ type: "text-delta", id, delta: state.buffer });
       }
       state.buffer = "";
@@ -45,12 +47,22 @@ export const toolCodeLeakMiddleware: LanguageModelMiddleware = {
 
     const transform = new TransformStream<StreamPart, StreamPart>({
       transform(part, controller) {
-        if (part.type === "text-start") blocks.set(part.id, { buffer: "", decided: "pending" });
+        if (part.type === "text-start") blocks.set(part.id, { buffer: "", tail: "", decided: "pending" });
 
         if (part.type === "text-delta") {
           const state = blocks.get(part.id);
-          if (!state || state.decided === "pass") return controller.enqueue(part);
+          if (!state) return controller.enqueue(part);
           if (state.decided === "leak") return;
+          if (state.decided === "pass") {
+            const window = state.tail + part.delta;
+            if (looksLikeLeakedToolCode(window)) {
+              console.warn("guardrail: leaked tool_code text replaced");
+              state.decided = "leak";
+              return controller.enqueue({ type: "text-delta", id: part.id, delta: `\n\n${TOOL_CODE_FALLBACK}` });
+            }
+            state.tail = window.slice(-TAIL_CHARS);
+            return controller.enqueue(part);
+          }
           state.buffer += part.delta;
           if (state.buffer.length >= DECISION_CHARS) decide(part.id, state, controller);
           return;

@@ -1,8 +1,8 @@
 {
-  "runId": "eval-2026-11-11T21-47-41-147Z",
+  "runId": "eval-2026-11-11T21-49-41-962Z",
   "suite": "agent evals (tool selection)",
   "model": "mock",
-  "createdAt": "2026-11-11T21:47:43.879Z",
+  "createdAt": "2026-11-11T21:49:44.749Z",
   "rows": [
     {
       "suite": "agent evals (tool selection)",
@@ -15,8 +15,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 65.85104200000004,
-      "p95LatencyMs": 65.85104200000004
+      "p50LatencyMs": 65.62337500000001,
+      "p95LatencyMs": 65.62337500000001
     },
     {
       "suite": "agent evals (tool selection)",
@@ -29,8 +29,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 17.701374999999985,
-      "p95LatencyMs": 17.701374999999985
+      "p50LatencyMs": 19.508167000000014,
+      "p95LatencyMs": 19.508167000000014
     },
     {
       "suite": "agent evals (tool selection)",
@@ -43,8 +43,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 14.488709000000028,
-      "p95LatencyMs": 14.488709000000028
+      "p50LatencyMs": 13.228791000000001,
+      "p95LatencyMs": 13.228791000000001
     },
     {
       "suite": "agent evals (tool selection)",
@@ -57,8 +57,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 14.639124999999979,
-      "p95LatencyMs": 14.639124999999979
+      "p50LatencyMs": 12.292832999999973,
+      "p95LatencyMs": 12.292832999999973
     },
     {
       "suite": "agent evals (tool selection)",
@@ -71,8 +71,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 12.395708000000013,
-      "p95LatencyMs": 12.395708000000013
+      "p50LatencyMs": 11.424583999999982,
+      "p95LatencyMs": 11.424583999999982
     },
     {
       "suite": "agent evals (tool selection)",
@@ -101,8 +101,8 @@
       "avgSteps": 1,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 1.521208999999999,
-      "p95LatencyMs": 1.521208999999999
+      "p50LatencyMs": 1.5445839999999862,
+      "p95LatencyMs": 1.5445839999999862
     },
     {
       "suite": "agent evals (tool selection)",
@@ -115,8 +115,8 @@
       "avgSteps": 1,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 1.7858329999999683,
-      "p95LatencyMs": 1.7858329999999683
+      "p50LatencyMs": 1.5074590000000399,
+      "p95LatencyMs": 1.5074590000000399
     },
     {
       "suite": "agent evals (tool selection)",
@@ -129,8 +129,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 10.93954199999996,
-      "p95LatencyMs": 10.93954199999996
+      "p50LatencyMs": 10.106375000000014,
+      "p95LatencyMs": 10.106375000000014
     },
     {
       "suite": "agent evals (tool selection)",
@@ -151,8 +151,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 7.766832999999963,
-      "p95LatencyMs": 7.766832999999963
+      "p50LatencyMs": 7.917166000000009,
+      "p95LatencyMs": 7.917166000000009
     },
     {
       "suite": "agent evals (tool selection)",
@@ -181,8 +181,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 8.385417000000018,
-      "p95LatencyMs": 8.385417000000018
+      "p50LatencyMs": 9.78249999999997,
+      "p95LatencyMs": 9.78249999999997
     }
   ]
 }

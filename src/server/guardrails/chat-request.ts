@@ -97,6 +97,15 @@ export function withoutClientToolData(messages: UIMessage[]): UIMessage[] {
     .filter((message) => message.parts.length > 0);
 }
 
+function messageText(message: UIMessage): string {
+  return message.parts.map((part) => (part.type === "text" ? part.text : "")).join("\n");
+}
+
+export function dropBlockedHistory(messages: UIMessage[], isBlocked: (text: string) => boolean): UIMessage[] {
+  const latestUserIndex = messages.findLastIndex((message) => message.role === "user");
+  return messages.filter((message, index) => index === latestUserIndex || !isBlocked(messageText(message)));
+}
+
 export function latestUserText(messages: UIMessage[]): string {
   const latest = messages.findLast((message) => message.role === "user");
   return latest?.parts.map((part) => (part.type === "text" ? part.text : "")).join("\n") ?? "";

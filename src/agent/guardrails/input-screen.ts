@@ -14,11 +14,12 @@ const RULES: Array<{ reason: Exclude<ScreenVerdict, { verdict: "allow" }>["reaso
       /\b(ignore|disregard|forget|override|bypass)\b[^.?!\n]{0,40}\b(previous|prior|above|earlier|all|any|your|the|these|system)\b[^.?!\n]{0,20}\b(instructions?|rules|prompts?|guidelines|guardrails)\b/i,
   },
   { reason: "prompt_injection", pattern: /\b(you are now|from now on you are|act as (an? )?(unfiltered|unrestricted|different))\b/i },
-  { reason: "prompt_injection", pattern: /\b(developer|god|debug|admin) mode\b|\bjailbreak\b|\bDAN\b/i },
+  { reason: "prompt_injection", pattern: /\b(developer|god|debug|admin) mode\b|\bjailbreak\b/i },
+  { reason: "prompt_injection", pattern: /\bDAN\b/ },
   { reason: "prompt_injection", pattern: /\bpretend (to be|you are|that you)\b/i },
   {
     reason: "instruction_leak",
-    pattern: /\b(show|reveal|print|repeat|output|display|tell me|what (are|were|is))\b[^.?!\n]{0,30}\b(system prompt|hidden prompt|your (instructions|rules|prompt)|initial instructions)\b/i,
+    pattern: /\b(show|reveal|print|repeat|output|display|tell me|what (are|were|is))\b[^.?!\n]{0,30}\b(system prompt|hidden prompt|your (instructions|prompt)|initial instructions)\b/i,
   },
   { reason: "role_spoofing", pattern: /<\/?\s*(system|assistant|developer|tool)\s*>|^\s*(system|assistant|developer)\s*:/im },
 ];
