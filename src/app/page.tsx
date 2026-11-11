@@ -2,10 +2,12 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState, type FormEvent } from "react";
+import type { AgroAgentUIMessage } from "@/agent";
+import { ChatMessage } from "@/app/_components/chat-message";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status, stop, error, regenerate } = useChat();
+  const { messages, sendMessage, status, stop, error, regenerate } = useChat<AgroAgentUIMessage>();
   const isBusy = status === "submitted" || status === "streaming";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -21,34 +23,12 @@ export default function ChatPage() {
       <h1 className="text-2xl font-semibold">Agro Agent</h1>
 
       <ul className="flex flex-1 flex-col gap-3">
-        {messages.map((message) => (
-          <li
+        {messages.map((message, index) => (
+          <ChatMessage
             key={message.id}
-            className={
-              message.role === "user"
-                ? "self-end rounded-lg bg-blue-600 px-4 py-2 text-white"
-                : "self-start rounded-lg bg-zinc-100 px-4 py-2 text-zinc-900"
-            }
-          >
-            {message.parts.map((part, index) => {
-              const key = `${message.id}-${index}`;
-              if (part.type === "text") {
-                return (
-                  <p key={key} className="whitespace-pre-wrap">
-                    {part.text}
-                  </p>
-                );
-              }
-              if (part.type.startsWith("tool-")) {
-                return (
-                  <pre key={key} className="my-2 max-h-48 overflow-auto rounded bg-white p-2 text-xs text-zinc-700">
-                    {JSON.stringify(part, null, 2)}
-                  </pre>
-                );
-              }
-              return null;
-            })}
-          </li>
+            message={message}
+            isComplete={index < messages.length - 1 || status === "ready" || status === "error"}
+          />
         ))}
       </ul>
 
