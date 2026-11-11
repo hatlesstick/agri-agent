@@ -9,6 +9,11 @@ function cityFrom(text: string): string {
 
 export const MOCK_TOOL_MATCHERS: MockToolMatcher[] = [
   {
+    toolName: "sprayWindow",
+    matches: (text) => /\bspray/i.test(text),
+    input: (text) => ({ city: cityFrom(text), date: "tomorrow" }),
+  },
+  {
     toolName: "getWeather",
     matches: (text) => /\bweather\b/i.test(text),
     input: (text) => ({ city: cityFrom(text) }),

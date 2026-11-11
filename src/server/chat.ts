@@ -6,7 +6,7 @@ import {
   toUIMessageStream,
 } from "ai";
 import { parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
-import { agentTools, BASE_INSTRUCTIONS, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
+import { agentTools, buildInstructions, chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent";
 
 export async function handleChatRequest(req: Request): Promise<Response> {
   const body = await readJsonBody(req);
@@ -21,7 +21,7 @@ export async function handleChatRequest(req: Request): Promise<Response> {
 
   const result = streamText({
     model: chatModel(),
-    system: BASE_INSTRUCTIONS,
+    system: buildInstructions(),
     messages: await convertToModelMessages(request.messages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     tools: agentTools,
