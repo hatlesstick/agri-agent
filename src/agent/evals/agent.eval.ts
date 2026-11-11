@@ -41,6 +41,27 @@ const AGENT_CASES: AgentCase[] = [
     expectedCalls: [{ toolName: "getWeather", city: "Munich" }],
   },
   {
+    id: "lowercase city without preposition → getWeather(Munich)",
+    prompt: "munich weather",
+    scenario: "calm",
+    runsOnMock: true,
+    expectedCalls: [{ toolName: "getWeather", city: "Munich" }],
+  },
+  {
+    id: "city after 'for' → getWeather(Munich)",
+    prompt: "What is the weather for Munich?",
+    scenario: "calm",
+    runsOnMock: true,
+    expectedCalls: [{ toolName: "getWeather", city: "Munich" }],
+  },
+  {
+    id: "spraying question without preposition → sprayWindow(Munich)",
+    prompt: "can I spray Munich tomorrow",
+    scenario: "calm",
+    runsOnMock: true,
+    expectedCalls: [{ toolName: "sprayWindow", city: "Munich", date: "tomorrow" }],
+  },
+  {
     id: "French question → sprayWindow with English city name",
     prompt: "Puis-je pulvériser à Lyon demain ?",
     scenario: "calm",
@@ -58,7 +79,7 @@ const AGENT_CASES: AgentCase[] = [
     id: "no city given → no tool call",
     prompt: "Can I spray tomorrow?",
     scenario: "calm",
-    runsOnMock: false,
+    runsOnMock: true,
     expectedCalls: "none",
   },
   {

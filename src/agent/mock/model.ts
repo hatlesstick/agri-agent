@@ -9,7 +9,7 @@ type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Pa
 export type MockToolMatcher = {
   toolName: string;
   matches: (userText: string) => boolean;
-  input: (userText: string) => Record<string, unknown>;
+  input: (userText: string) => Record<string, unknown> | null;
 };
 
 export type MockChatModelOptions = {
@@ -80,7 +80,8 @@ function scriptResponse(options: DoStreamOptions, toolMatchers: MockToolMatcher[
     (candidate) => toolNames.includes(candidate.toolName) && candidate.matches(userText),
   );
   if (matcher) {
-    return toolCallParts(matcher.toolName, matcher.input(userText));
+    const input = matcher.input(userText);
+    return input ? toolCallParts(matcher.toolName, input) : textParts("[mock] Which city do you mean?");
   }
 
   return textParts(`[mock] You said: ${userText}`);

@@ -1,21 +1,41 @@
 import type { MockToolMatcher } from "@/agent/mock/model";
 
-const DEFAULT_MOCK_CITY = "Lyon";
-const CITY_AFTER_PREPOSITION = /\bin\s+(\p{Lu}[\p{L}'’-]*)/u;
+const CITY_AFTER_PREPOSITION = /\b(?:in|for|at|near)\s+(\p{L}[\p{L}'’-]*)/iu;
 
-function cityFrom(text: string): string {
-  return text.match(CITY_AFTER_PREPOSITION)?.[1] ?? DEFAULT_MOCK_CITY;
+const NON_CITY_WORDS = new Set([
+  "a", "an", "the", "is", "are", "be", "it", "i", "we", "my", "me", "can", "could", "should", "will", "would",
+  "what", "whats", "how", "when", "where", "which", "do", "does", "to", "of", "and", "or", "please",
+  "weather", "forecast", "spray", "spraying", "field", "fields", "today", "tomorrow", "now", "good", "ok", "okay",
+]);
+
+function capitalize(word: string): string {
+  return word.charAt(0).toLocaleUpperCase("en") + word.slice(1);
+}
+
+export function cityFrom(text: string): string | null {
+  const afterPreposition = text.match(CITY_AFTER_PREPOSITION)?.[1];
+  if (afterPreposition && !NON_CITY_WORDS.has(afterPreposition.toLowerCase())) return capitalize(afterPreposition);
+
+  const candidates = (text.match(/\p{L}[\p{L}'’-]*/gu) ?? []).filter((word) => !NON_CITY_WORDS.has(word.toLowerCase()));
+  const candidate = candidates.at(-1);
+  return candidate ? capitalize(candidate) : null;
 }
 
 export const MOCK_TOOL_MATCHERS: MockToolMatcher[] = [
   {
     toolName: "sprayWindow",
     matches: (text) => /\bspray/i.test(text),
-    input: (text) => ({ city: cityFrom(text), date: "tomorrow" }),
+    input: (text) => {
+      const city = cityFrom(text);
+      return city ? { city, date: "tomorrow" } : null;
+    },
   },
   {
     toolName: "getWeather",
-    matches: (text) => /\bweather\b/i.test(text),
-    input: (text) => ({ city: cityFrom(text) }),
+    matches: (text) => /\bweather\b|\bforecast\b/i.test(text),
+    input: (text) => {
+      const city = cityFrom(text);
+      return city ? { city } : null;
+    },
   },
 ];
