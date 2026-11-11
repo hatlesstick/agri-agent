@@ -19,6 +19,25 @@ describe("readJsonBody", () => {
     expect(await readJsonBody(postRequest(body))).toEqual({ ok: false, status: 413, error: "payload_too_large" });
   });
 
+  it("rejects a malformed content-length", async () => {
+    const request = postRequest("{}", { "content-length": "-5" });
+    expect(await readJsonBody(request)).toEqual({ ok: false, status: 400, error: "invalid_request" });
+  });
+
+  it("stops reading a streamed body once it passes the limit", async () => {
+    let pulls = 0;
+    const chunk = new TextEncoder().encode("а".repeat(32 * 1024));
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls += 1;
+        controller.enqueue(chunk);
+      },
+    });
+    const request = new Request("http://localhost/api/chat", { method: "POST", body: stream, duplex: "half" } as RequestInit);
+    expect(await readJsonBody(request)).toEqual({ ok: false, status: 413, error: "payload_too_large" });
+    expect(pulls).toBeLessThan(10);
+  });
+
   it("rejects early when content-length is over the limit", async () => {
     const request = postRequest("{}", { "content-length": String(CHAT_LIMITS.maxBodyBytes + 1) });
     expect(await readJsonBody(request)).toEqual({ ok: false, status: 413, error: "payload_too_large" });
@@ -86,6 +105,38 @@ describe("parseChatRequest", () => {
     const filePart = { type: "file", mediaType: "text/plain", url: `data:text/plain;base64,${"QQ".repeat(50_000)}` };
     const result = await parseChatRequest({ messages: [{ id: "1", role: "user", parts: [filePart] }] });
     expect(result).toMatchObject({ ok: false, status: 400 });
+  });
+
+  it("accepts assistant text, step-start and tool parts", async () => {
+    const assistant = {
+      id: "2",
+      role: "assistant",
+      parts: [
+        { type: "step-start" },
+        { type: "tool-getWeather", toolCallId: "c1", state: "output-available", input: { city: "Луцьк" }, output: { city: "Луцьк" } },
+        { type: "text", text: "Ось прогноз" },
+      ],
+    };
+    const result = await parseChatRequest({ messages: [textMessage("1", "user", "погода"), assistant] });
+    expect(result).toMatchObject({ ok: true });
+  });
+
+  it("rejects unknown assistant part types", async () => {
+    const assistant = { id: "2", role: "assistant", parts: [{ type: "file", mediaType: "text/plain", url: "data:," }] };
+    const result = await parseChatRequest({ messages: [textMessage("1", "user", "привіт"), assistant] });
+    expect(result).toMatchObject({ ok: false, status: 400 });
+  });
+
+  it("rejects an oversized assistant tool part", async () => {
+    const assistant = {
+      id: "2",
+      role: "assistant",
+      parts: [
+        { type: "tool-getWeather", toolCallId: "c1", state: "output-available", input: { city: "Луцьк" }, output: { blob: "а".repeat(CHAT_LIMITS.maxPartChars) } },
+      ],
+    };
+    const result = await parseChatRequest({ messages: [textMessage("1", "user", "погода"), assistant] });
+    expect(result).toEqual({ ok: false, status: 413, error: "part_too_large" });
   });
 
   it("keeps only the most recent messages", async () => {
