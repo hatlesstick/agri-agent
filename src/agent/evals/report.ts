@@ -1,4 +1,4 @@
-export type EvalRow = { suite: string; case: string; model: string; passed: number; runs: number; failures: string };
+export type EvalRow = { suite: string; case: string; model: string; passed: number; runs: number; infraErrors?: number; failures: string };
 
 const rows: EvalRow[] = [];
 
@@ -16,6 +16,7 @@ export function printEvalReport(suite: string): void {
       case: row.case,
       model: row.model,
       "pass rate": `${row.passed}/${row.runs}`,
+      "infra errors": row.infraErrors ?? 0,
       failures: row.failures,
     })),
   );

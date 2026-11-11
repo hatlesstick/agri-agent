@@ -114,6 +114,15 @@ function callFailures(calls: ToolCall[], expected: AgentCase["expectedCalls"]): 
   });
 }
 
+type RunOutcome = { kind: "passed" } | { kind: "failed"; failures: string[] } | { kind: "infra"; reason: string };
+
+const INFRA_ERROR = /RateLimit|Rate limit|429|ECONNRESET|ETIMEDOUT|fetch failed/i;
+const DELAY_BETWEEN_RUNS_MS = Number(process.env.EVAL_DELAY_MS ?? (MOCK ? 0 : 2000));
+const INFRA_BACKOFF_MS = MOCK ? 0 : 15_000;
+const MAX_ATTEMPTS = RUNS * 3;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function runCase(testCase: AgentCase): Promise<string[]> {
   clearForecastCache();
   stubWeatherScenario(testCase.scenario);
@@ -129,6 +138,7 @@ async function runCase(testCase: AgentCase): Promise<string[]> {
     toolsContext: agentToolsContext(EVAL_NOW),
     stopWhen: isStepCount(MAX_AGENT_STEPS),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    maxRetries: MOCK ? 0 : 4,
     runtimeContext: { evalRunId: EVAL_RUN_ID, evalCase: testCase.id, model: MODEL_LABEL },
     telemetry: {
       functionId: `eval:${testCase.id}`,
@@ -143,6 +153,13 @@ async function runCase(testCase: AgentCase): Promise<string[]> {
   return callFailures(steps.flatMap((step) => step.toolCalls), testCase.expectedCalls);
 }
 
+async function classify(testCase: AgentCase): Promise<RunOutcome> {
+  const failures = await runCase(testCase).catch((error: unknown) => [`error: ${String(error).slice(0, 160)}`]);
+  const infra = failures.find((failure) => INFRA_ERROR.test(failure));
+  if (infra) return { kind: "infra", reason: infra };
+  return failures.length === 0 ? { kind: "passed" } : { kind: "failed", failures };
+}
+
 describe(SUITE, () => {
   afterEach(() => vi.unstubAllGlobals());
   afterAll(() => printEvalReport(SUITE));
@@ -155,13 +172,31 @@ describe(SUITE, () => {
 
     const failures: string[] = [];
     let passed = 0;
-    for (let run = 0; run < RUNS; run += 1) {
-      const runFailures = await runCase(testCase).catch((error: unknown) => [`error: ${String(error).slice(0, 80)}`]);
-      if (runFailures.length === 0) passed += 1;
-      else failures.push(...runFailures);
+    let completed = 0;
+    let infraErrors = 0;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS && completed < RUNS; attempt += 1) {
+      if (attempt > 0) await sleep(DELAY_BETWEEN_RUNS_MS);
+      const outcome = await classify(testCase);
+      if (outcome.kind === "infra") {
+        infraErrors += 1;
+        await sleep(INFRA_BACKOFF_MS);
+        continue;
+      }
+      completed += 1;
+      if (outcome.kind === "passed") passed += 1;
+      else failures.push(...outcome.failures);
     }
 
-    recordEval({ suite: SUITE, case: testCase.id, model: MODEL_LABEL, passed, runs: RUNS, failures: [...new Set(failures)].join("; ") });
-    expect(passed / RUNS).toBeGreaterThanOrEqual(REQUIRED_PASS_RATE);
+    recordEval({
+      suite: SUITE,
+      case: testCase.id,
+      model: MODEL_LABEL,
+      passed,
+      runs: completed,
+      infraErrors,
+      failures: completed < RUNS ? `only ${completed}/${RUNS} runs completed` : [...new Set(failures)].join("; "),
+    });
+    expect(completed, "runs completed despite infrastructure errors").toBe(RUNS);
+    expect(passed / completed).toBeGreaterThanOrEqual(REQUIRED_PASS_RATE);
   });
 });

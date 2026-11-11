@@ -1,11 +1,28 @@
 import { vi } from "vitest";
 import forecastLyon from "@/domain/weather/__fixtures__/forecast-lyon.json";
-import geocodingEmpty from "@/domain/weather/__fixtures__/geocoding-empty.json";
-import geocodingLyon from "@/domain/weather/__fixtures__/geocoding-lyon.json";
 
 export const EVAL_NOW = new Date("2026-11-11T08:30:00Z");
 export const EVAL_TOMORROW = "2026-11-12";
 export const UNKNOWN_CITY = "Xyzzyqwv";
+
+type EvalCity = { name: string; country: string; admin1: string; latitude: number; longitude: number; timezone: string };
+
+const EVAL_CITIES: EvalCity[] = [
+  { name: "Lyon", country: "France", admin1: "Auvergne-Rhône-Alpes", latitude: 45.74906, longitude: 4.84789, timezone: "Europe/Paris" },
+  { name: "Munich", country: "Germany", admin1: "Bavaria", latitude: 48.13743, longitude: 11.57549, timezone: "Europe/Berlin" },
+];
+
+function cityByName(name: string | null): EvalCity | undefined {
+  return EVAL_CITIES.find((city) => city.name.toLowerCase() === name?.trim().toLowerCase());
+}
+
+function cityByLatitude(latitude: string | null): EvalCity | undefined {
+  return EVAL_CITIES.find((city) => String(city.latitude) === latitude);
+}
+
+function geocodingResponse(city: EvalCity | undefined) {
+  return city ? { results: [{ ...city }] } : {};
+}
 
 export type WeatherScenario = "calm" | "windy" | "rainy_morning" | "cold";
 
@@ -29,11 +46,12 @@ function valuesAt(scenario: WeatherScenario, time: string): HourlyValues {
   }
 }
 
-export function scenarioForecast(scenario: WeatherScenario) {
+export function scenarioForecast(scenario: WeatherScenario, timezone = "Europe/Paris") {
   const times = forecastLyon.hourly.time;
   const values = times.map((time) => valuesAt(scenario, time));
   return {
     ...forecastLyon,
+    timezone,
     hourly: {
       time: times,
       temperature_2m: values.map((value) => value.temperature),
@@ -55,9 +73,12 @@ export function stubWeatherScenario(scenario: WeatherScenario) {
     vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const url = new URL(input instanceof Request ? input.url : String(input));
       if (url.host.startsWith("geocoding")) {
-        return json(url.searchParams.get("name") === UNKNOWN_CITY ? geocodingEmpty : geocodingLyon);
+        return json(geocodingResponse(cityByName(url.searchParams.get("name"))));
       }
-      if (url.host === "api.open-meteo.com") return json(scenarioForecast(scenario));
+      if (url.host === "api.open-meteo.com") {
+        const city = cityByLatitude(url.searchParams.get("latitude"));
+        return city ? json(scenarioForecast(scenario, city.timezone)) : new Response("unknown location", { status: 400 });
+      }
       return originalFetch(input, init);
     }),
   );
