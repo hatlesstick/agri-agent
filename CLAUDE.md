@@ -1,19 +1,23 @@
 # CLAUDE.md — agro-agent
 
 ## Overview
-- Scope: **P0+**, the core P0 (stages 1–5) extended with evals (stage 6) and a small RAG (stage 7).
-- Roadmap: this agent becomes the foundation of a Telegram agro bot (weather → spray window → RAG → field memory → photo diagnostics → multi-agent).
+`agro-agent` is a tool-using AI agent that assesses field-spraying conditions from weather forecasts. It is built on the Vercel AI SDK, with a web chat as the first delivery channel.
 
-## What we're building
-An **agro agent** on the Vercel AI SDK, with a web chat as its first channel. The agent:
-1. streams responses to the UI;
-2. decides on its own which tools to call and chains the steps (weather → spray window → answer);
-3. determines whether a field can be sprayed and explains why;
-4. returns structured output `{ city, canSpray, bestWindow, reason }` via a separate endpoint.
+### Capabilities
+- Streams responses to the client.
+- Selects and chains tools autonomously (weather → spray window → answer).
+- Determines whether a field can be sprayed, identifies the best time window, and explains the decision.
+- Exposes a structured endpoint returning `{ city, canSpray, bestWindow, reason }`.
 
-**P0 milestone (after stage 5):** for the prompt "Чи можна завтра обприскувати в Луцьку?" ("Can I spray in Lutsk tomorrow?") the model calls the tools by itself and returns a typed answer with an explanation.
+### Scope
+Release **P0+**: core agent (P0, stages 1–5) plus evaluation suite and retrieval-augmented answers (stages 6–7).
 
-**P0+ done (after stage 7):** `npm run eval` reports pass rates for all cases on both models, and the agent answers spraying-practice questions from `data/docs/` with cited sources (or says it doesn't know).
+### Acceptance criteria
+- **P0 (stage 5):** for the prompt "Чи можна завтра обприскувати в Луцьку?" ("Can I spray in Lutsk tomorrow?"), the agent invokes the required tools without guidance and returns a schema-valid answer with a rationale.
+- **P0+ (stage 7):** `npm run eval` reports pass rates for every case on both the primary and fallback models; spraying-practice questions are answered from `data/docs/` with cited sources, or explicitly declined when no relevant source exists.
+
+### Roadmap
+This agent is the foundation for a Telegram agronomy bot: weather → spray window → RAG → field memory → photo diagnostics → multi-agent.
 
 ## Core principle: code decides, the model explains
 - `canSpray` and `bestWindow` are computed by a **deterministic function** using the rules below.
