@@ -31,8 +31,12 @@ const SHOULD_ALLOW = [
   "",
 ];
 
+function asciiLabel(text: string): string {
+  return text.replace(/[^\x20-\x7E]/g, (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`);
+}
+
 function record(name: string, passed: boolean, failure = "") {
-  recordEval({ suite: SUITE, case: name, model: "none", passed: passed ? 1 : 0, runs: 1, failures: passed ? "" : failure });
+  recordEval({ suite: SUITE, case: asciiLabel(name), model: "none", passed: passed ? 1 : 0, runs: 1, failures: passed ? "" : failure });
 }
 
 describe(SUITE, () => {
@@ -55,7 +59,7 @@ describe(SUITE, () => {
     ["2 l/ha", true],
     ["0,5 kg / ha", true],
     ["1.5 L/ha of product", true],
-    ["2 л/га", true],
+    ["2 \u043b/\u0433\u0430", true],
     ["2 litres of water", false],
     ["wind 5 km/h", false],
     ["10 l/hour", false],

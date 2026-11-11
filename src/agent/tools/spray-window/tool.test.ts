@@ -91,7 +91,7 @@ describe("sprayWindowInputSchema", () => {
   });
 
   it("rejects a non-Latin city name", () => {
-    expect(sprayWindowInputSchema.safeParse({ city: "Ліон", date: "today" }).success).toBe(false);
+    expect(sprayWindowInputSchema.safeParse({ city: "\u041b\u0456\u043e\u043d", date: "today" }).success).toBe(false);
   });
 });
 

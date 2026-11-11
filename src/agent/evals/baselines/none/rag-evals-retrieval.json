@@ -1,0 +1,24 @@
+{
+  "runId": "eval-2026-11-11T21-42-48-976Z",
+  "suite": "rag evals (retrieval)",
+  "model": "none",
+  "createdAt": "2026-11-11T21:42:53.187Z",
+  "rows": [
+    {
+      "suite": "rag evals (retrieval)",
+      "case": "corpus: 19 chunks",
+      "model": "none",
+      "passed": 1,
+      "runs": 1,
+      "failures": ""
+    },
+    {
+      "suite": "rag evals (retrieval)",
+      "case": "mock recall@3",
+      "model": "mock",
+      "passed": 11,
+      "runs": 12,
+      "failures": "weather-conditions-for-spraying.md#temperature"
+    }
+  ]
+}

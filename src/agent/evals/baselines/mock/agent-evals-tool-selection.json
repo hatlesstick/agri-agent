@@ -1,8 +1,8 @@
 {
-  "runId": "eval-2026-11-11T21-16-21-471Z",
+  "runId": "eval-2026-11-11T21-42-48-976Z",
   "suite": "agent evals (tool selection)",
   "model": "mock",
-  "createdAt": "2026-11-11T21:16:22.921Z",
+  "createdAt": "2026-11-11T21:42:49.405Z",
   "rows": [
     {
       "suite": "agent evals (tool selection)",
@@ -15,8 +15,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 60.016542000000015,
-      "p95LatencyMs": 60.016542000000015
+      "p50LatencyMs": 58.78020799999996,
+      "p95LatencyMs": 58.78020799999996
     },
     {
       "suite": "agent evals (tool selection)",
@@ -29,8 +29,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 11.753750000000025,
-      "p95LatencyMs": 11.753750000000025
+      "p50LatencyMs": 13.304332999999986,
+      "p95LatencyMs": 13.304332999999986
     },
     {
       "suite": "agent evals (tool selection)",
@@ -43,8 +43,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 6.983375000000024,
-      "p95LatencyMs": 6.983375000000024
+      "p50LatencyMs": 7.582833999999991,
+      "p95LatencyMs": 7.582833999999991
     },
     {
       "suite": "agent evals (tool selection)",
@@ -57,8 +57,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 6.756582999999978,
-      "p95LatencyMs": 6.756582999999978
+      "p50LatencyMs": 8.079624999999965,
+      "p95LatencyMs": 8.079624999999965
     },
     {
       "suite": "agent evals (tool selection)",
@@ -71,8 +71,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 6.324415999999985,
-      "p95LatencyMs": 6.324415999999985
+      "p50LatencyMs": 6.530624999999986,
+      "p95LatencyMs": 6.530624999999986
     },
     {
       "suite": "agent evals (tool selection)",
@@ -101,8 +101,8 @@
       "avgSteps": 1,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 1.6230000000000473,
-      "p95LatencyMs": 1.6230000000000473
+      "p50LatencyMs": 1.7148750000000064,
+      "p95LatencyMs": 1.7148750000000064
     },
     {
       "suite": "agent evals (tool selection)",
@@ -115,8 +115,8 @@
       "avgSteps": 1,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 1.5214170000000422,
-      "p95LatencyMs": 1.5214170000000422
+      "p50LatencyMs": 1.5618329999999787,
+      "p95LatencyMs": 1.5618329999999787
     },
     {
       "suite": "agent evals (tool selection)",
@@ -129,8 +129,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 4.078958999999998,
-      "p95LatencyMs": 4.078958999999998
+      "p50LatencyMs": 4.210874999999987,
+      "p95LatencyMs": 4.210874999999987
     },
     {
       "suite": "agent evals (tool selection)",
@@ -139,6 +139,20 @@
       "passed": 0,
       "runs": 0,
       "failures": "skipped: needs a real model"
+    },
+    {
+      "suite": "agent evals (tool selection)",
+      "case": "spraying-practice question → searchDocs",
+      "model": "mock",
+      "passed": 1,
+      "runs": 1,
+      "infraErrors": 0,
+      "failures": "",
+      "avgSteps": 2,
+      "avgInputTokens": 0,
+      "avgOutputTokens": 0,
+      "p50LatencyMs": 7.760459000000026,
+      "p95LatencyMs": 7.760459000000026
     },
     {
       "suite": "agent evals (tool selection)",
@@ -167,8 +181,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 4.104040999999995,
-      "p95LatencyMs": 4.104040999999995
+      "p50LatencyMs": 3.397542000000044,
+      "p95LatencyMs": 3.397542000000044
     }
   ]
 }

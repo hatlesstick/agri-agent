@@ -1,8 +1,8 @@
 {
-  "runId": "eval-2026-11-11T21-16-21-471Z",
+  "runId": "eval-2026-11-11T21-42-48-976Z",
   "suite": "spray-check evals (structured output)",
   "model": "mock",
-  "createdAt": "2026-11-11T21:16:22.049Z",
+  "createdAt": "2026-11-11T21:42:51.511Z",
   "rows": [
     {
       "suite": "spray-check evals (structured output)",
@@ -15,8 +15,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 65.846,
-      "p95LatencyMs": 65.846
+      "p50LatencyMs": 65.53116699999998,
+      "p95LatencyMs": 65.53116699999998
     },
     {
       "suite": "spray-check evals (structured output)",
@@ -29,8 +29,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 11.815458000000035,
-      "p95LatencyMs": 11.815458000000035
+      "p50LatencyMs": 12.173834,
+      "p95LatencyMs": 12.173834
     },
     {
       "suite": "spray-check evals (structured output)",
@@ -43,8 +43,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 7.680165999999986,
-      "p95LatencyMs": 7.680165999999986
+      "p50LatencyMs": 8.01037500000001,
+      "p95LatencyMs": 8.01037500000001
     },
     {
       "suite": "spray-check evals (structured output)",
@@ -57,8 +57,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 8.031207999999936,
-      "p95LatencyMs": 8.031207999999936
+      "p50LatencyMs": 6.959666999999968,
+      "p95LatencyMs": 6.959666999999968
     },
     {
       "suite": "spray-check evals (structured output)",
@@ -71,8 +71,8 @@
       "avgSteps": 1,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 4.394667000000027,
-      "p95LatencyMs": 4.394667000000027
+      "p50LatencyMs": 4.5925829999999905,
+      "p95LatencyMs": 4.5925829999999905
     },
     {
       "suite": "spray-check evals (structured output)",
@@ -85,8 +85,8 @@
       "avgSteps": 2,
       "avgInputTokens": 0,
       "avgOutputTokens": 0,
-      "p50LatencyMs": 5.688916999999947,
-      "p95LatencyMs": 5.688916999999947
+      "p50LatencyMs": 7.707375000000013,
+      "p95LatencyMs": 7.707375000000013
     },
     {
       "suite": "spray-check evals (structured output)",
