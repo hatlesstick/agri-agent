@@ -1,11 +1,11 @@
 import { createAgentUIStreamResponse } from "ai";
 import { AGENT_TIMEOUT_MS, createAgroAgent, SCREEN_REFUSAL, screenInput } from "@/agent";
 import { latestUserText, parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
-import { chatRateLimiter, clientKey, rateLimitedResponse } from "@/server/guardrails/rate-limit";
+import { checkRateLimit, rateLimitedResponse } from "@/server/guardrails/rate-limit";
 import { refusalStreamResponse } from "@/server/screened-response";
 
 export async function handleChatRequest(req: Request): Promise<Response> {
-  const limit = chatRateLimiter.check(clientKey(req));
+  const limit = checkRateLimit(req, "chat");
   if (!limit.allowed) return rateLimitedResponse(limit.retryAfterMs);
 
   const body = await readJsonBody(req);

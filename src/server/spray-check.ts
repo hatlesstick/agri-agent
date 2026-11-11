@@ -1,6 +1,6 @@
 import { runSprayCheck, screenInput, sprayCheckRequestSchema } from "@/agent";
 import { readJsonBody } from "@/server/guardrails/chat-request";
-import { clientKey, rateLimitedResponse, sprayCheckRateLimiter } from "@/server/guardrails/rate-limit";
+import { checkRateLimit, rateLimitedResponse } from "@/server/guardrails/rate-limit";
 
 const ERROR_STATUS = {
   spray_window_not_called: 422,
@@ -8,7 +8,7 @@ const ERROR_STATUS = {
 } as const;
 
 export async function handleSprayCheckRequest(req: Request): Promise<Response> {
-  const limit = sprayCheckRateLimiter.check(clientKey(req));
+  const limit = checkRateLimit(req, "sprayCheck");
   if (!limit.allowed) return rateLimitedResponse(limit.retryAfterMs);
 
   const body = await readJsonBody(req);
