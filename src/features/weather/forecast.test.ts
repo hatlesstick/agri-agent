@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import forecastLyon from "@/features/weather/__fixtures__/forecast-lyon.json";
 import geocodingEmpty from "@/features/weather/__fixtures__/geocoding-empty.json";
 import geocodingLyon from "@/features/weather/__fixtures__/geocoding-lyon.json";
-import { clearForecastCache, getForecast } from "@/features/weather/forecast";
+import {
+  clearForecastCache,
+  FORECAST_CACHE_MAX_ENTRIES,
+  forecastCacheSize,
+  getForecast,
+} from "@/features/weather/forecast";
 import { isWeatherError, type Forecast } from "@/features/weather/types";
 
 type FetchHandler = (url: URL) => Response | Promise<Response>;
@@ -171,6 +176,45 @@ describe("getForecast", () => {
     vi.setSystemTime(new Date("2026-11-11T10:16:00Z"));
     await getForecast("Lyon");
     expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("evicts the oldest entry when the cache is full", async () => {
+    const fetchMock = stubFetch();
+    for (let index = 0; index < FORECAST_CACHE_MAX_ENTRIES; index += 1) {
+      await getForecast(`Lyon${index}`);
+    }
+    expect(forecastCacheSize()).toBe(FORECAST_CACHE_MAX_ENTRIES);
+
+    await getForecast("Overflow");
+    expect(forecastCacheSize()).toBe(FORECAST_CACHE_MAX_ENTRIES);
+
+    const callsBefore = fetchMock.mock.calls.length;
+    await getForecast("Lyon0");
+    expect(fetchMock.mock.calls.length).toBe(callsBefore + 2);
+  });
+
+  it("keeps a recently used entry when evicting", async () => {
+    const fetchMock = stubFetch();
+    for (let index = 0; index < FORECAST_CACHE_MAX_ENTRIES; index += 1) {
+      await getForecast(`Lyon${index}`);
+    }
+    await getForecast("Lyon0");
+    await getForecast("Overflow");
+
+    const callsBefore = fetchMock.mock.calls.length;
+    await getForecast("Lyon0");
+    expect(fetchMock.mock.calls.length).toBe(callsBefore);
+  });
+
+  it("drops an expired entry when it is read", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    stubFetch();
+    vi.setSystemTime(new Date("2026-11-11T10:00:00Z"));
+    await getForecast("Lyon");
+    vi.setSystemTime(new Date("2026-11-11T10:16:00Z"));
+    stubFetch({ forecast: () => json({}, 503) });
+    await getForecast("Lyon");
+    expect(forecastCacheSize()).toBe(0);
   });
 
   it("does not cache failures", async () => {
