@@ -89,6 +89,19 @@ export async function readJsonBody(request: Request): Promise<JsonBodyResult> {
   }
 }
 
+export function withoutClientToolData(messages: UIMessage[]): UIMessage[] {
+  return messages
+    .map((message) =>
+      message.role === "assistant" ? { ...message, parts: message.parts.filter((part) => part.type === "text") } : message,
+    )
+    .filter((message) => message.parts.length > 0);
+}
+
+export function latestUserText(messages: UIMessage[]): string {
+  const latest = messages.findLast((message) => message.role === "user");
+  return latest?.parts.map((part) => (part.type === "text" ? part.text : "")).join("\n") ?? "";
+}
+
 function textLength(message: UIMessage): number {
   return message.parts.reduce((total, part) => total + (part.type === "text" ? part.text.length : 0), 0);
 }
@@ -114,5 +127,5 @@ export async function parseChatRequest(body: unknown): Promise<ChatRequestResult
     return { ok: false, status: 413, error: "conversation_too_long" };
   }
 
-  return { ok: true, messages: messages.slice(-CHAT_LIMITS.keepLastMessages) };
+  return { ok: true, messages: withoutClientToolData(messages.slice(-CHAT_LIMITS.keepLastMessages)) };
 }

@@ -15,6 +15,7 @@ const serverEnvSchema = z.object({
   LANGFUSE_SECRET_KEY: z.string().startsWith("sk-lf-").optional(),
   LANGFUSE_BASE_URL: httpsUrl.default("https://cloud.langfuse.com"),
   LANGFUSE_ENVIRONMENT: z.string().regex(/^[a-z0-9-_]+$/).default("development"),
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().max(1000).default(10),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

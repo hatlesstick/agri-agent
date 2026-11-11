@@ -1,5 +1,6 @@
 import { NoObjectGeneratedError, type LanguageModel } from "ai";
 import { createSprayCheckAgent } from "@/agent/agent";
+import { AGENT_TIMEOUT_MS } from "@/agent/model";
 import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/agent/spray-check/reconcile";
 import type { SprayCheckOutcome, SprayCheckTrace } from "@/agent/spray-check/schemas";
 
@@ -11,6 +12,7 @@ export type SprayCheckInput = {
   now?: Date;
   maxRetries?: number;
   telemetryFunctionId?: string;
+  abortSignal?: AbortSignal;
 };
 
 type Collected = SprayCheckTrace & { toolResults: ToolResult[] };
@@ -29,6 +31,7 @@ export async function runSprayCheck({
   now = new Date(),
   maxRetries,
   telemetryFunctionId = "spray-check",
+  abortSignal,
 }: SprayCheckInput): Promise<SprayCheckOutcome> {
   let collected = emptyCollected();
 
@@ -43,6 +46,8 @@ export async function runSprayCheck({
       const result = await agent.generate({
         prompt: question,
         options: { now },
+        abortSignal,
+        timeout: AGENT_TIMEOUT_MS,
         onStepEnd: (step) => {
           current.steps += 1;
           current.toolCalls.push(...step.toolCalls.map(({ toolName, input }) => ({ toolName, input })));

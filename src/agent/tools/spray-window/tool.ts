@@ -6,7 +6,7 @@ import {
   type SprayWindowOutput,
 } from "@/agent/tools/spray-window/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
-import { resolveDay } from "@/domain/spray/dates";
+import { resolveDay, todayIn } from "@/domain/spray/dates";
 import { assessSprayWindows } from "@/domain/spray/rules";
 import { getForecast } from "@/domain/weather/forecast";
 import { isWeatherError } from "@/domain/weather/types";
@@ -16,6 +16,9 @@ export async function sprayWindow(input: SprayWindowInput, now: Date = new Date(
   if (isWeatherError(forecast)) return sprayWindowOutputSchema.parse(forecast);
 
   const date = resolveDay(input.date, forecast.timezone, now);
+  if (date < todayIn(forecast.timezone, now)) {
+    return sprayWindowOutputSchema.parse({ error: "date_in_past" });
+  }
   if (!forecast.hourly.some((point) => point.time.startsWith(date))) {
     return sprayWindowOutputSchema.parse({ error: "date_out_of_range" });
   }

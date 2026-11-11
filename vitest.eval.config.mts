@@ -7,7 +7,7 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   test: {
-    include: ["src/agent/evals/**/*.eval.ts"],
+    include: ["src/**/*.eval.ts"],
     setupFiles: ["src/agent/evals/setup.ts"],
     env: loadEnv("", process.cwd(), ""),
     testTimeout: 120_000,

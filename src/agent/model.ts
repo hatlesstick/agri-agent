@@ -1,4 +1,5 @@
-import type { LanguageModel } from "ai";
+import { gateway, wrapLanguageModel, type LanguageModel } from "ai";
+import { labelReminderMiddleware } from "@/agent/guardrails/label-reminder";
 import { serverEnv } from "@/config/env";
 import { createMockChatModel } from "@/agent/mock/model";
 import { MOCK_TOOL_MATCHERS } from "@/agent/mock/tool-matchers";
@@ -9,11 +10,13 @@ export const EMBEDDING_MODEL = "google/gemini-embedding-001";
 
 export const MAX_OUTPUT_TOKENS = 800;
 export const MAX_AGENT_STEPS = 5;
+export const AGENT_TIMEOUT_MS = 30_000;
 
 export function isMockMode(): boolean {
   return serverEnv().AI_MOCK;
 }
 
 export function chatModel(): LanguageModel {
-  return isMockMode() ? createMockChatModel({ toolMatchers: MOCK_TOOL_MATCHERS }) : CHAT_MODEL;
+  const model = isMockMode() ? createMockChatModel({ toolMatchers: MOCK_TOOL_MATCHERS }) : gateway(CHAT_MODEL);
+  return wrapLanguageModel({ model, middleware: labelReminderMiddleware });
 }

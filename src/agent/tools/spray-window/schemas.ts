@@ -26,7 +26,7 @@ const sprayWindowSlotSchema = z.object({
 });
 
 export const sprayWindowErrorSchema = z.object({
-  error: z.enum(["city_not_found", "weather_unavailable", "date_out_of_range"]),
+  error: z.enum(["city_not_found", "weather_unavailable", "date_out_of_range", "date_in_past"]),
 });
 
 export const sprayAssessmentSchema = z.object({
