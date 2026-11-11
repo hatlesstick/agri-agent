@@ -160,11 +160,12 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 - Small commits, conventional commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
 
 ## Testing strategy
-- During development, behaviour is checked with **evals** in `src/agent/evals/` (`*.eval.ts`, separate Vitest config `vitest.eval.config.mts`):
-  - **tool evals**: tools run on synthetic weather scenarios (calm, windy, rainy morning, cold) with stubbed Open-Meteo; deterministic, no model;
-  - **agent evals**: prompts → expected tool calls and arguments; mock model by default, real model via `npm run eval:real`, each case run several times and reported as a pass rate.
-- Every new tool or behaviour adds eval cases.
-- **Unit tests are deferred to stage 9.** The last full unit suite (104 tests) lives in commit `cbe7e9f`; restore with `git checkout cbe7e9f -- $(git ls-tree -r --name-only cbe7e9f | grep '\.test\.ts$')`.
+Three free layers, all must stay green before a commit:
+- **Unit tests** (`npm test`, `*.test.ts` next to the code): pure logic and tools with stubbed Open-Meteo — weather client and cache, spray rules and dates, tools, reconciliation, RAG chunking and ranking, env, request guardrails, mock model.
+- **Deterministic evals** (`npm run eval`, `*.eval.ts`, mock model forced): tool scenarios, guardrails (input screen, markdown safety, leak and label middleware, rate limiting), UI activity logic, agent and spray-check flows on the mock model; results in `.evals/results`, compared with committed baselines.
+- **Real-model evals** (`npm run eval:real`): only when the user asks — they share the AI Gateway rate limit with manual testing and cost tokens. Each case runs several times and reports a pass rate; scores go to Langfuse.
+
+Every new tool or behaviour adds unit tests for its pure logic and eval cases for its agent behaviour.
 
 ## Code style
 - **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does".
@@ -177,7 +178,7 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 - `npm run lint`: lint
 - `npm run eval`: tool and agent evals with the mock model (free)
 - `npm run eval:real`: agent evals against the real model (costs tokens; report shows pass rate per case)
-- `npm test`: unit tests (deferred to stage 9; currently none)
+- `npm test`: unit tests
 - `npm run index`: build the RAG index (from stage 8)
 
 ## Structure

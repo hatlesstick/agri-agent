@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "eval": "AI_MOCK=1 vitest run --config vitest.eval.config.mts",
     "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts",
     "eval:baseline": "node scripts/promote-eval-baseline.mjs",
