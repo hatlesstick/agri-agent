@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agro Weather Chat",
+  title: "Agro Agent",
   description: "Can I spray my field today? A weather-aware AI chat.",
 };
 
