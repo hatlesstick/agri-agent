@@ -17,13 +17,24 @@ const serverEnvSchema = z.object({
   LANGFUSE_ENVIRONMENT: z.string().regex(/^[a-z0-9-_]+$/).default("development"),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().max(1000).default(10),
   GLOBAL_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().max(10_000).default(60),
-  TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
+  TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).optional(),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+});
+
+const validatedServerEnvSchema = serverEnvSchema.superRefine((env, context) => {
+  if (env.NODE_ENV === "production" && env.TRUSTED_PROXY_HOPS === undefined) {
+    context.addIssue({
+      code: "custom",
+      path: ["TRUSTED_PROXY_HOPS"],
+      message: "must be set explicitly in production (1 on Vercel) so rate limits are per client",
+    });
+  }
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function serverEnv(): ServerEnv {
-  const parsed = serverEnvSchema.safeParse(
+  const parsed = validatedServerEnvSchema.safeParse(
     Object.fromEntries(Object.entries(process.env).map(([key, value]) => [key, optionalEmpty(value)])),
   );
   if (!parsed.success) {

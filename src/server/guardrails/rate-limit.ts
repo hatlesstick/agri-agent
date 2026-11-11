@@ -2,38 +2,51 @@ import { serverEnv } from "@/config/env";
 
 export type RateLimitDecision = { allowed: boolean; retryAfterMs: number };
 
-export type RateLimiter = { check(key: string): RateLimitDecision };
+export type RateLimiter = {
+  peek(key: string): RateLimitDecision;
+  record(key: string): void;
+  check(key: string): RateLimitDecision;
+};
 
 type RateLimiterOptions = { limit: number; windowMs: number; maxKeys?: number; now?: () => number };
 
 export function createRateLimiter({ limit, windowMs, maxKeys = 10_000, now = Date.now }: RateLimiterOptions): RateLimiter {
   const hits = new Map<string, number[]>();
 
+  const recentHits = (key: string, time: number) => (hits.get(key) ?? []).filter((hit) => hit > time - windowMs);
+
+  const peek = (key: string): RateLimitDecision => {
+    const time = now();
+    const recent = recentHits(key, time);
+    return recent.length >= limit ? { allowed: false, retryAfterMs: recent[0] + windowMs - time } : { allowed: true, retryAfterMs: 0 };
+  };
+
+  const record = (key: string): void => {
+    const time = now();
+    const recent = recentHits(key, time);
+    hits.delete(key);
+    hits.set(key, [...recent, time]);
+    while (hits.size > maxKeys) {
+      const oldestKey = hits.keys().next().value;
+      if (oldestKey === undefined) break;
+      hits.delete(oldestKey);
+    }
+  };
+
   return {
+    peek,
+    record,
     check(key) {
-      const time = now();
-      const recent = (hits.get(key) ?? []).filter((hit) => hit > time - windowMs);
-      hits.delete(key);
-
-      if (recent.length >= limit) {
-        hits.set(key, recent);
-        return { allowed: false, retryAfterMs: recent[0] + windowMs - time };
-      }
-
-      hits.set(key, [...recent, time]);
-      while (hits.size > maxKeys) {
-        const oldestKey = hits.keys().next().value;
-        if (oldestKey === undefined) break;
-        hits.delete(oldestKey);
-      }
-      return { allowed: true, retryAfterMs: 0 };
+      const decision = peek(key);
+      if (decision.allowed) record(key);
+      return decision;
     },
   };
 }
 
 const UNTRUSTED_CLIENT = "untrusted-client";
 
-export function clientKey(req: Request, trustedProxyHops: number = serverEnv().TRUSTED_PROXY_HOPS): string {
+export function clientKey(req: Request, trustedProxyHops: number = serverEnv().TRUSTED_PROXY_HOPS ?? 0): string {
   if (trustedProxyHops === 0) return UNTRUSTED_CLIENT;
   const hops = (req.headers.get("x-forwarded-for") ?? "")
     .split(",")
@@ -57,8 +70,18 @@ const sprayCheckRateLimiter = createRateLimiter({ limit: serverEnv().RATE_LIMIT_
 
 const ROUTE_LIMITERS = { chat: chatRateLimiter, sprayCheck: sprayCheckRateLimiter } as const;
 
+const GLOBAL_KEY = "global";
+
+export function checkLimits(limiters: Array<{ limiter: RateLimiter; key: string }>): RateLimitDecision {
+  const blocked = limiters.map(({ limiter, key }) => limiter.peek(key)).find((decision) => !decision.allowed);
+  if (blocked) return blocked;
+  for (const { limiter, key } of limiters) limiter.record(key);
+  return { allowed: true, retryAfterMs: 0 };
+}
+
 export function checkRateLimit(req: Request, route: keyof typeof ROUTE_LIMITERS): RateLimitDecision {
-  const global = globalRateLimiter.check("global");
-  if (!global.allowed) return global;
-  return ROUTE_LIMITERS[route].check(clientKey(req));
+  return checkLimits([
+    { limiter: ROUTE_LIMITERS[route], key: clientKey(req) },
+    { limiter: globalRateLimiter, key: GLOBAL_KEY },
+  ]);
 }

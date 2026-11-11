@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 import { describe, expect, it } from "vitest";
 import { latestUserText, parseChatRequest } from "@/server/guardrails/chat-request";
-import { clientKey, createRateLimiter } from "@/server/guardrails/rate-limit";
+import { checkLimits, clientKey, createRateLimiter } from "@/server/guardrails/rate-limit";
 
 describe("http guardrail evals (deterministic)", () => {
   it("strips client-supplied tool results from assistant history", async () => {
@@ -53,6 +53,17 @@ describe("http guardrail evals (deterministic)", () => {
     const request = new Request("http://localhost", { headers: { "x-forwarded-for": "6.6.6.6, 203.0.113.7" } });
     expect(clientKey(request, 1)).toBe("203.0.113.7");
     expect(clientKey(request, 2)).toBe("6.6.6.6");
+  });
+
+  it("a client blocked by its own limit does not consume the global budget", () => {
+    const perClient = createRateLimiter({ limit: 2, windowMs: 60_000, now: () => 0 });
+    const global = createRateLimiter({ limit: 5, windowMs: 60_000, now: () => 0 });
+    const attempt = (client: string) => checkLimits([{ limiter: perClient, key: client }, { limiter: global, key: "global" }]).allowed;
+
+    const noisy = Array.from({ length: 20 }, () => attempt("noisy"));
+    expect(noisy.filter(Boolean)).toHaveLength(2);
+    expect([attempt("quiet-1"), attempt("quiet-2"), attempt("quiet-3")]).toEqual([true, true, true]);
+    expect(attempt("quiet-4")).toBe(false);
   });
 
   it("rate limiter keeps memory bounded", () => {
