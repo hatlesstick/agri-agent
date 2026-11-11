@@ -58,6 +58,14 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
   - temperature 10–25 °C;
   - relative humidity ≥ 50 % (optional, can be enabled later; Delta T next).
 
+### `sprayOutlook`
+- Input: `{ city }`. One call assesses every remaining forecast day (up to 3) with the same rules; used for "when / which day / this week" questions so the model never has to call `sprayWindow` several times (Gemini sometimes leaks parallel calls as `tool_code` text; a middleware replaces such text).
+- Not available to the `/api/spray-check` agent (`activeTools`), whose schema describes a single day.
+
+### `searchDocs`
+- Input: `{ query }` (short English query). Searches `data/index.json` (embeddings of `data/docs/*.md`, built by `npm run index`) and returns top-3 passages with `source` above a similarity threshold (`REAL_MIN_SCORE`, to be calibrated with the real retrieval eval). Mock mode builds an in-memory bag-of-words index.
+- The agent answers practice questions only from returned passages, cites sources, and says it has no reliable information when there are no hits.
+
 ## Stack
 - Node.js 22+ (AI SDK 7 requires Node 22+ and ESM)
 - Next.js 16 (App Router), TypeScript (strict), Tailwind 4
