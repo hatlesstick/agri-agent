@@ -1,5 +1,6 @@
+import { after } from "next/server";
 import { createAgentUIStreamResponse } from "ai";
-import { AGENT_TIMEOUT_MS, createAgroAgent, SCREEN_REFUSAL, screenInput } from "@/agent";
+import { AGENT_TIMEOUT_MS, createAgroAgent, flushAgentTelemetry, isTelemetryEnabled, SCREEN_REFUSAL, screenInput } from "@/agent";
 import { dropBlockedHistory, latestUserText, parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
 import { checkRateLimit, rateLimitedResponse } from "@/server/guardrails/rate-limit";
 import { chatErrorMessage } from "@/server/chat-errors";
@@ -24,6 +25,8 @@ export async function handleChatRequest(req: Request): Promise<Response> {
     console.warn("guardrail: chat input blocked", { reason: screen.reason });
     return refusalStreamResponse(SCREEN_REFUSAL);
   }
+
+  if (isTelemetryEnabled()) after(() => flushAgentTelemetry());
 
   return createAgentUIStreamResponse({
     agent: createAgroAgent(),

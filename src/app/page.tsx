@@ -6,6 +6,7 @@ import type { AgroAgentUIMessage } from "@/agent";
 import { currentActivity } from "@/app/_components/agent-activity";
 import { AgentStatus } from "@/app/_components/agent-status";
 import { ChatMessage } from "@/app/_components/chat-message";
+import { friendlyChatError } from "@/app/_components/chat-errors";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
@@ -42,7 +43,7 @@ export default function ChatPage() {
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
-          <span>{error.message || "Something went wrong."}</span>
+          <span>{friendlyChatError(error.message)}</span>
           <button type="button" onClick={() => regenerate()} className="underline">
             Retry
           </button>

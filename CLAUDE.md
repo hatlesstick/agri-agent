@@ -54,7 +54,8 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - Output: `{ canSpray, bestWindow: { from, to } | null, windows: [...], rejectedReasons }`.
 - Rules are a pure function in `src/domain/spray`; thresholds are **parameters with defaults**:
   - wind 1–4 m/s (lower bound: dead calm risks temperature inversion and drift);
-  - no precipitation 3 h before and 3 h after;
+  - no precipitation 3 h before and 3 h after the spraying hour (Open-Meteo `precipitation` at hour T is the sum of the preceding hour, so the check spans values from index i-2 to i+4);
+  - hours that have already passed in the city are never offered;
   - temperature 10–25 °C;
   - relative humidity ≥ 50 % (optional, can be enabled later; Delta T next).
 
@@ -83,6 +84,7 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
   - `forecast_days=3` because for "tomorrow" the "no rain 3 h after" rule needs hours from the day after.
 
 ## Time format
+- Open-Meteo is queried with `timeformat=unixtime`; hours are labelled with `Intl` in the city's time zone, so labels stay correct across daylight-saving switches (Open-Meteo's own local labels use one fixed offset per response).
 - All times are the **city's local time** as ISO without offset, as Open-Meteo returns with `timezone=auto`: `"2026-11-12T08:00"`.
 - Tool results include a `timezone` field (e.g. `"Europe/Paris"`).
 - Relative days ("today", "tomorrow") are resolved by tools in the city's timezone, not by the model.

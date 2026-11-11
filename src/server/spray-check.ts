@@ -1,4 +1,5 @@
-import { runSprayCheck, screenInput, sprayCheckRequestSchema } from "@/agent";
+import { after } from "next/server";
+import { flushAgentTelemetry, isTelemetryEnabled, runSprayCheck, screenInput, sprayCheckRequestSchema } from "@/agent";
 import { readJsonBody } from "@/server/guardrails/chat-request";
 import { checkRateLimit, rateLimitedResponse } from "@/server/guardrails/rate-limit";
 
@@ -33,6 +34,8 @@ export async function handleSprayCheckRequest(req: Request): Promise<Response> {
     console.warn("guardrail: spray-check input blocked", { reason: screen.reason });
     return Response.json({ error: "blocked_input" }, { status: 422 });
   }
+
+  if (isTelemetryEnabled()) after(() => flushAgentTelemetry());
 
   let outcome: Awaited<ReturnType<typeof runSprayCheck>>;
   try {

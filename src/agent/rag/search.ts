@@ -19,11 +19,24 @@ function buildMockIndex(): RagIndex {
   };
 }
 
+export function usableIndex(index: RagIndex | null, embeddingModel: string): RagIndex | null {
+  if (!index || index.chunks.length === 0) {
+    console.warn("rag: index is missing or empty; run npm run index");
+    return null;
+  }
+  if (index.model !== embeddingModel) {
+    console.warn(`rag: index was built with ${index.model} but queries use ${embeddingModel}; run npm run index`);
+    return null;
+  }
+  return index;
+}
+
 function loadIndex(): RagIndex | null {
   if (cachedIndex) return cachedIndex;
   if (isMockMode()) return (cachedIndex = buildMockIndex());
-  if (!existsSync(INDEX_FILE)) return null;
-  return (cachedIndex = JSON.parse(readFileSync(INDEX_FILE, "utf8")) as RagIndex);
+  const stored = existsSync(INDEX_FILE) ? (JSON.parse(readFileSync(INDEX_FILE, "utf8")) as RagIndex) : null;
+  cachedIndex = usableIndex(stored, EMBEDDING_MODEL);
+  return cachedIndex;
 }
 
 async function embedQuery(query: string): Promise<number[]> {
