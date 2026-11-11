@@ -78,6 +78,21 @@ function SprayOutlookSummary({ output }: { output: Extract<ToolPart, { type: "to
   );
 }
 
+function SearchDocsSummary({ output }: { output: Extract<ToolPart, { type: "tool-searchDocs" }>["output"] }) {
+  if (!output || "error" in output) return null;
+  if (output.hits.length === 0) return <p className="text-zinc-600">📚 No relevant passages found</p>;
+  return (
+    <ul className="space-y-1">
+      {output.hits.map((hit) => (
+        <li key={hit.id}>
+          📚 {hit.title} — {hit.heading} <span className="text-zinc-500">({hit.score.toFixed(2)})</span>
+          <div className="text-xs text-zinc-500">{hit.source}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function GetWeatherSummary({ output }: { output: Extract<ToolPart, { type: "tool-getWeather" }>["output"] }) {
   if (!output || "error" in output) return null;
   const first = output.hourly[0];
@@ -96,6 +111,7 @@ function OutputSummary({ part }: { part: ToolPart }) {
   if (part.type === "tool-sprayWindow") return <SprayWindowSummary output={part.output} />;
   if (part.type === "tool-getWeather") return <GetWeatherSummary output={part.output} />;
   if (part.type === "tool-sprayOutlook") return <SprayOutlookSummary output={part.output} />;
+  if (part.type === "tool-searchDocs") return <SearchDocsSummary output={part.output} />;
   return null;
 }
 

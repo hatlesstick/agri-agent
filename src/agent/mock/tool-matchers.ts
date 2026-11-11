@@ -22,7 +22,14 @@ export function cityFrom(text: string): string | null {
   return candidate ? capitalize(candidate) : null;
 }
 
+const PRACTICE_TOPIC = /\b(drift|inversion|rainfast\w*|delta t|label|buffer|nozzle|droplet)/i;
+
 export const MOCK_TOOL_MATCHERS: MockToolMatcher[] = [
+  {
+    toolName: "searchDocs",
+    matches: (text) => PRACTICE_TOPIC.test(text),
+    input: (text) => ({ query: text.slice(0, 200) }),
+  },
   {
     toolName: "sprayOutlook",
     matches: (text) =>
