@@ -26,6 +26,8 @@ export type SprayCheckTrace = {
   toolCalls: Array<{ toolName: string; input: unknown }>;
 };
 
+export type ReasonSource = "model" | "rules";
+
 export type SprayCheckOutcome =
-  | { ok: true; result: SprayCheck; overridden: boolean; trace: SprayCheckTrace }
+  | { ok: true; result: SprayCheck; overridden: boolean; reasonSource: ReasonSource; trace: SprayCheckTrace }
   | { ok: false; error: SprayCheckError; trace: SprayCheckTrace };

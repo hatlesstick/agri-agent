@@ -100,6 +100,7 @@ function runOnce(testCase: SprayCheckCase, attempt: number): Promise<RunOutcome>
         eval_passed: failures.length === 0,
         schema_valid: outcome.ok ? sprayCheckSchema.safeParse(outcome.result).success : null,
         decision_overridden: outcome.ok ? outcome.overridden : null,
+        reason_from_rules: outcome.ok ? outcome.reasonSource === "rules" : null,
         steps: outcome.trace.steps,
       },
       failures.join("; "),

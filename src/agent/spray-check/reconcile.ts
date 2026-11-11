@@ -45,3 +45,40 @@ export function reconcileSprayCheck(modelOutput: SprayCheck, toolResults: ToolRe
 
   return { ok: true, result: { ...modelOutput, ...rules }, overridden };
 }
+
+const REASON_TEXT: Record<string, string> = {
+  wind_too_low: "wind too low",
+  wind_too_high: "wind too strong",
+  too_cold: "too cold",
+  too_hot: "too hot",
+  precipitation_nearby: "rain within 3 hours",
+  humidity_too_low: "humidity too low",
+  insufficient_data: "missing forecast data",
+};
+
+export function ruleBasedAnswer(toolResults: ToolResult[]): SprayCheck | null {
+  const lastSprayWindow = toolResults.findLast((result) => result.toolName === "sprayWindow");
+  if (!lastSprayWindow) return null;
+
+  const assessment = sprayAssessmentSchema.safeParse(lastSprayWindow.output);
+  if (!assessment.success) {
+    const failure = sprayWindowErrorSchema.safeParse(lastSprayWindow.output);
+    const error = failure.success ? failure.data.error : "unexpected_tool_output";
+    return { city: "", canSpray: false, bestWindow: null, reason: `No assessment available: ${error.replaceAll("_", " ")}.` };
+  }
+
+  const { city, canSpray, bestWindow, rejectedReasons, timezone } = assessment.data;
+  if (canSpray && bestWindow) {
+    return {
+      city,
+      canSpray,
+      bestWindow: { from: bestWindow.from, to: bestWindow.to },
+      reason: `Suitable window ${bestWindow.from}–${bestWindow.to} (${timezone} local time).`,
+    };
+  }
+
+  const reasons = Object.entries(rejectedReasons)
+    .sort(([, left], [, right]) => (right ?? 0) - (left ?? 0))
+    .map(([reason, hours]) => `${REASON_TEXT[reason] ?? reason} (${hours} h)`);
+  return { city, canSpray: false, bestWindow: null, reason: `No suitable window: ${reasons.join(", ") || "no data"}.` };
+}
