@@ -26,6 +26,7 @@ export async function handleChatRequest(req: Request): Promise<Response> {
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     tools: agentTools,
     stopWhen: isStepCount(MAX_AGENT_STEPS),
+    telemetry: { functionId: "chat" },
   });
 
   return createUIMessageStreamResponse({

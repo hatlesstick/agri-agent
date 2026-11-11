@@ -11,6 +11,7 @@ const MOCK = isMockMode();
 const MODEL_LABEL = MOCK ? "mock" : CHAT_MODEL;
 const RUNS = Number(process.env.EVAL_RUNS ?? (MOCK ? 1 : 3));
 const REQUIRED_PASS_RATE = MOCK ? 1 : 2 / 3;
+const EVAL_RUN_ID = `eval-${new Date().toISOString()}`;
 
 type ExpectedCall = { toolName: keyof typeof agentTools; city?: string; date?: string };
 
@@ -106,6 +107,11 @@ async function runCase(testCase: AgentCase): Promise<string[]> {
     tools: agentTools,
     stopWhen: isStepCount(MAX_AGENT_STEPS),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    runtimeContext: { evalRunId: EVAL_RUN_ID, evalCase: testCase.id, model: MODEL_LABEL },
+    telemetry: {
+      functionId: `eval:${testCase.id}`,
+      includeRuntimeContext: { evalRunId: true, evalCase: true, model: true },
+    },
   });
   const steps = await Promise.resolve(result.steps).catch(() => null);
   await Promise.resolve(result.text).catch(() => null);

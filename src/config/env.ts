@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const httpsUrl = z.url({ protocol: /^https$/ });
 
+const optionalEmpty = (value: unknown) => (value === "" ? undefined : value);
+
 const serverEnvSchema = z.object({
   OPEN_METEO_GEOCODING_URL: httpsUrl,
   OPEN_METEO_FORECAST_URL: httpsUrl,
@@ -9,12 +11,18 @@ const serverEnvSchema = z.object({
     .enum(["0", "1"])
     .optional()
     .transform((value) => value === "1"),
+  LANGFUSE_PUBLIC_KEY: z.string().startsWith("pk-lf-").optional(),
+  LANGFUSE_SECRET_KEY: z.string().startsWith("sk-lf-").optional(),
+  LANGFUSE_BASE_URL: httpsUrl.default("https://cloud.langfuse.com"),
+  LANGFUSE_ENVIRONMENT: z.string().regex(/^[a-z0-9-_]+$/).default("development"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function serverEnv(): ServerEnv {
-  const parsed = serverEnvSchema.safeParse(process.env);
+  const parsed = serverEnvSchema.safeParse(
+    Object.fromEntries(Object.entries(process.env).map(([key, value]) => [key, optionalEmpty(value)])),
+  );
   if (!parsed.success) {
     const invalidKeys = parsed.error.issues.map((issue) => issue.path.join(".")).join(", ");
     throw new Error(`Invalid server environment: ${invalidKeys}`);

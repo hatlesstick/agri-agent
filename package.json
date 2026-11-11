@@ -12,7 +12,10 @@
     "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts"
   },
   "dependencies": {
+    "@ai-sdk/otel": "^1.0.170",
     "@ai-sdk/react": "^4.0.174",
+    "@langfuse/otel": "^6.1.1",
+    "@opentelemetry/sdk-trace-node": "^2.12.1",
     "ai": "^7.0.170",
     "next": "16.4.6",
     "react": "19.3.0",

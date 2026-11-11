@@ -8,6 +8,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/agent/evals/**/*.eval.ts"],
+    setupFiles: ["src/agent/evals/setup.ts"],
     env: loadEnv("", process.cwd(), ""),
     testTimeout: 120_000,
     fileParallelism: false,
