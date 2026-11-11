@@ -3,6 +3,7 @@
 ## About me and the goal
 - I'm a Full-Stack / React Native developer (5+ years, TypeScript), currently learning to build AI agents.
 - This is a **learning project**: I want to **understand** every decision, not just get working code.
+- This project is **P0+**, a modified version of P0 from my learning plan: the original P0 (stages 1–5) extended with evals (stage 6) and a small RAG (stage 7).
 - Later it becomes the foundation of a Telegram agro bot (weather → spray window → RAG → field memory → photo diagnostics → multi-agent).
 
 ## What we're building
@@ -12,7 +13,9 @@ An **agro agent** on the Vercel AI SDK, with a web chat as its first channel. Th
 3. determines whether a field can be sprayed and explains why;
 4. returns structured output `{ city, canSpray, bestWindow, reason }` via a separate endpoint.
 
-**Done when:** for the prompt "Чи можна завтра обприскувати в Луцьку?" ("Can I spray in Lutsk tomorrow?") the model calls the tools by itself and returns a typed answer with an explanation.
+**P0 milestone (after stage 5):** for the prompt "Чи можна завтра обприскувати в Луцьку?" ("Can I spray in Lutsk tomorrow?") the model calls the tools by itself and returns a typed answer with an explanation.
+
+**P0+ done (after stage 7):** `npm run eval` reports pass rates for all cases on both models, and the agent answers spraying-practice questions from `data/docs/` with cited sources (or says it doesn't know).
 
 ## Core principle: code decides, the model explains
 - `canSpray` and `bestWindow` are computed by a **deterministic function** using the rules below.
@@ -85,6 +88,7 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 - Tools in the UI: message parts `tool-<name>` with states `input-streaming` / `input-available` / `output-available` / `output-error`.
 
 ## Stages (one at a time, stop after each)
+### P0
 1. **Chat without tools:** `lib/model.ts`, `app/api/chat/route.ts` with `streamText`, `app/page.tsx` with `useChat`. Explain how the stream flows from server to UI.
 2. **Tool `getWeather`:** `lib/weather` (Open-Meteo + cache) and the tool wrapper. Tests with mocked `fetch`: success, city not found, 5xx, "Lutsk"/"Луцьк".
 3. **Tool `sprayWindow`:** pure function in `lib/spray` + tool wrapper. Unit tests for each rule and boundary values (exactly 4 m/s, exactly 10 °C, rain exactly 3 h away).
@@ -92,6 +96,8 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
    - **Option A:** the model returns the whole object, and the code **overwrites** `canSpray` and `bestWindow` with values from the `sprayWindow` result (from `result.steps`). If the model wrote something different, `console.warn` with both values (learning to notice when the model "lies").
    - If `sprayWindow` was not called, return an error instead of the model's guess.
 5. **Agent behavior:** move logic into `lib/agent.ts` (`ToolLoopAgent`), system prompt (agronomist, answers in Ukrainian, never invents weather), `stopWhen: isStepCount(5)`, tool-call cards in the UI (name, arguments, state), README.
+
+### P0+ extension
 6. **Evals:** measure agent quality with a case set instead of eyeballing.
    - Cases in `evals/cases.ts`: user prompt + **weather fixture** (so the correct answer is known upfront) + expectations.
    - Weather in evals comes from fixtures via a stubbed `fetch`; the model is **real**, via AI Gateway.
