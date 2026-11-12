@@ -1,3 +1,3 @@
-import { handleSprayCheckRequest } from "@/server/spray-check";
+import { sprayCheckController } from "@/server/controllers/spray-check/SprayCheckController";
 
-export const POST = handleSprayCheckRequest;
+export const POST = sprayCheckController.handle;

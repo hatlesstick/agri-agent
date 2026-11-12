@@ -1,7 +1,7 @@
 import { gateway, wrapLanguageModel, type LanguageModel } from "ai";
 import { labelReminderMiddleware } from "@/agent/guardrails/label-reminder";
 import { toolCodeLeakMiddleware } from "@/agent/guardrails/tool-code-leak";
-import { serverEnv } from "@/config/env";
+import { serverEnv } from "@/shared/config/env";
 import { createMockChatModel } from "@/agent/mock/model";
 import { MOCK_TOOL_MATCHERS } from "@/agent/mock/tool-matchers";
 

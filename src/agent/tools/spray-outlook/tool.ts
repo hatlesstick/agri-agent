@@ -6,13 +6,13 @@ import {
   type SprayOutlookInput,
   type SprayOutlookOutput,
 } from "@/agent/tools/spray-outlook/schemas";
-import { currentLocalHour, todayIn } from "@/domain/time";
-import { assessSprayWindows } from "@/domain/spray/rules";
-import { getForecast } from "@/domain/weather/forecast";
-import { isWeatherError } from "@/domain/weather/types";
+import { currentLocalHour, todayIn } from "@/shared/helpers/time";
+import { sprayWindowService } from "@/server/services/spray-window/SprayWindowService";
+import { weatherRepository } from "@/server/repositories/weather/WeatherRepository";
+import { isWeatherError } from "@/server/repositories/weather/weather.types";
 
 export async function sprayOutlook(input: SprayOutlookInput, now: Date = new Date()): Promise<SprayOutlookOutput> {
-  const forecast = await getForecast(input.city);
+  const forecast = await weatherRepository.getForecast(input.city);
   if (isWeatherError(forecast)) return sprayOutlookOutputSchema.parse(forecast);
 
   const today = todayIn(forecast.timezone, now);
@@ -22,8 +22,10 @@ export async function sprayOutlook(input: SprayOutlookInput, now: Date = new Dat
     city: forecast.city,
     timezone: forecast.timezone,
     days: dates.map((date) => {
-      const { canSpray, bestWindow, rejectedReasons } = assessSprayWindows(forecast.hourly, date, {}, {
-        notBefore: currentLocalHour(forecast.timezone, now),
+      const { canSpray, bestWindow, rejectedReasons } = sprayWindowService.assess({
+        hourly: forecast.hourly,
+        date,
+        options: { notBefore: currentLocalHour(forecast.timezone, now) },
       });
       return { date, canSpray, bestWindow, rejectedReasons };
     }),

@@ -1,14 +1,6 @@
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { z } from "zod";
-
-export const CHAT_LIMITS = {
-  maxMessages: 20,
-  maxMessageChars: 2000,
-  maxTotalChars: 8000,
-  keepLastMessages: 12,
-  maxBodyBytes: 256 * 1024,
-  maxPartChars: 20_000,
-} as const;
+import { CHAT_LIMITS } from "@/shared/config/chat-limits";
 
 const userMessageSchema = z.looseObject({
   id: z.string().min(1),

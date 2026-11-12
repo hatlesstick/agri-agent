@@ -2,7 +2,7 @@ import { OpenTelemetry } from "@ai-sdk/otel";
 import { LangfuseSpanProcessor } from "@langfuse/otel";
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { registerTelemetry } from "ai";
-import { serverEnv } from "@/config/env";
+import { serverEnv } from "@/shared/config/env";
 
 type TelemetryOptions = { exportMode?: "immediate" | "batched"; environment?: string };
 
