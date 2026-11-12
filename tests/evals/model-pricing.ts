@@ -8,9 +8,10 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
   "amazon/nova-lite": { inputUsdPerToken: 0.00000006, outputUsdPerToken: 0.00000024 },
   "amazon/nova-2-lite": { inputUsdPerToken: 0.00000033, outputUsdPerToken: 0.00000275 },
   "amazon/nova-micro": { inputUsdPerToken: 0.000000035, outputUsdPerToken: 0.00000014 },
+  "deepseek/deepseek-v4-flash": { inputUsdPerToken: 0.00000013, outputUsdPerToken: 0.00000026 },
 };
 
-export const COMPARISON_MODELS = ["google/gemini-2.5-flash-lite", "openai/gpt-5.4-nano", "amazon/nova-lite", "amazon/nova-2-lite"] as const;
+export const COMPARISON_MODELS = ["google/gemini-2.5-flash-lite", "openai/gpt-5.4-nano", "deepseek/deepseek-v4-flash"] as const;
 
 export function estimateCostUsd(model: string, inputTokens: number | undefined, outputTokens: number | undefined): number | undefined {
   const price = MODEL_PRICES[model];

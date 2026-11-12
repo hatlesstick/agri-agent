@@ -13,8 +13,7 @@ describe("estimateCostUsd", () => {
     expect(estimateCostUsd("amazon/nova-lite", undefined, 10)).toBeUndefined();
   });
 
-  it("has a price for every comparison model, including Amazon Bedrock models", () => {
+  it("has a price for every comparison model", () => {
     expect(COMPARISON_MODELS.filter((model) => !MODEL_PRICES[model])).toEqual([]);
-    expect(COMPARISON_MODELS.some((model) => model.startsWith("amazon/"))).toBe(true);
   });
 });

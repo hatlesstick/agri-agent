@@ -69,6 +69,6 @@ describe("renderComparison", () => {
   it("renders a template with instructions when there are no real-model results", () => {
     const empty = renderComparison([], "2026-11-12");
     expect(empty).toContain("No real-model results yet");
-    expect(empty).toContain("EVAL_MODEL=amazon/nova-lite npm run eval:real");
+    expect(empty).toContain("EVAL_MODEL=deepseek/deepseek-v4-flash npm run eval:real");
   });
 });
