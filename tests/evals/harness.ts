@@ -1,6 +1,7 @@
 import { propagateAttributes, startActiveObservation } from "@langfuse/tracing";
 import type { LanguageModel } from "ai";
 import { expect } from "vitest";
+import { estimateCostUsd } from "@tests/evals/model-pricing";
 import { recordEval } from "@tests/evals/report";
 import { evalTags } from "@tests/evals/tags";
 import { CHAT_MODEL, chatModel, isMockMode } from "@/agent/model";
@@ -97,6 +98,9 @@ export async function evaluateCase(
   const overBudget = avgSteps !== undefined && avgSteps > maxAvgSteps;
   if (overBudget) failures.push(`avg steps ${avgSteps.toFixed(1)} > budget ${maxAvgSteps}`);
 
+  const avgInputTokens = average(metrics.map((metric) => metric.inputTokens));
+  const avgOutputTokens = average(metrics.map((metric) => metric.outputTokens));
+
   recordEval({
     suite,
     case: caseId,
@@ -106,8 +110,9 @@ export async function evaluateCase(
     infraErrors,
     failures: completed < RUNS ? `only ${completed}/${RUNS} runs completed` : [...new Set(failures)].join("; "),
     avgSteps,
-    avgInputTokens: average(metrics.map((metric) => metric.inputTokens)),
-    avgOutputTokens: average(metrics.map((metric) => metric.outputTokens)),
+    avgInputTokens,
+    avgOutputTokens,
+    avgCostUsd: estimateCostUsd(MODEL_LABEL, avgInputTokens, avgOutputTokens),
     p50LatencyMs: percentile(latencies, 0.5),
     p95LatencyMs: percentile(latencies, 0.95),
   });
