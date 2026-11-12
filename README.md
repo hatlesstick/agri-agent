@@ -57,12 +57,25 @@ npm run dev                  # http://localhost:3000
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint, including layer boundary rules |
-| `npm test` | Unit tests |
+| `npm test` | Unit and component tests |
+| `npm run typecheck` | Next.js route types and `tsc --noEmit` |
 | `npm run eval` | Deterministic and mock-model evals (free) |
 | `npm run eval:real` | Real-model evals (costs tokens, shares the Gateway rate limit; `EVAL_RUNS=1` for a quick run) |
 | `npm run eval:baseline` | Promote the latest eval results to the committed baseline |
-| `npm run eval:compare` | Side-by-side table of the latest real-model results per model |
+| `npm run eval:summary` | Markdown summary of the latest eval run |
+| `npm run eval:compare` | Writes [`docs/model-comparison.md`](docs/model-comparison.md) from the latest real-model run per model |
 | `npm run index` | Rebuild `data/index.json` embeddings from `data/docs/` (then recalibrate the RAG threshold) |
+
+## Model comparison
+
+Candidates: `google/gemini-2.5-flash-lite` (default), `openai/gpt-5.4-nano`, and Amazon Bedrock models `amazon/nova-lite` and `amazon/nova-2-lite`, all through AI Gateway (no AWS credentials needed). Every model runs the same eval cases with fixed weather fixtures, so the expected answer is known.
+
+```
+EVAL_MODEL=amazon/nova-lite npm run eval:real
+npm run eval:compare
+```
+
+The table reports pass rate per suite, average estimated cost per case (tokens × Gateway list prices), p50/p95 latency and infrastructure errors; each run's traces and scores are in Langfuse (tag = model). Real runs can also be started from GitHub Actions → Real-model evals.
 
 ## API
 
