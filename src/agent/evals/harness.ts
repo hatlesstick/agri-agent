@@ -2,6 +2,7 @@ import { propagateAttributes, startActiveObservation } from "@langfuse/tracing";
 import type { LanguageModel } from "ai";
 import { expect } from "vitest";
 import { recordEval } from "@/agent/evals/report";
+import { evalTags } from "@/agent/evals/tags";
 import { CHAT_MODEL, chatModel, isMockMode } from "@/agent/model";
 
 export const MOCK = isMockMode();
@@ -10,6 +11,7 @@ export const MODEL_LABEL = MOCK ? "mock" : EVAL_MODEL;
 export const RUNS = Number(process.env.EVAL_RUNS || (MOCK ? 1 : 3));
 export const REQUIRED_PASS_RATE = MOCK ? 1 : 2 / 3;
 export const EVAL_RUN_ID = process.env.EVAL_RUN_ID ?? `eval-${new Date().toISOString()}`;
+export const EXTRA_TAGS = evalTags(process.env.EVAL_TAGS);
 export const RETRIES_PER_CALL = MOCK ? 0 : 4;
 export const EVAL_TIMEOUT_MS = 180_000;
 export const DEFAULT_MAX_AVG_STEPS = 3;
@@ -43,7 +45,7 @@ export function tracedRun(
 ): Promise<RunOutcome> {
   return startActiveObservation(name, (observation) =>
     propagateAttributes(
-      { traceName: name, sessionId: EVAL_RUN_ID, tags: ["eval", MODEL_LABEL], metadata: { ...metadata, model: MODEL_LABEL } },
+      { traceName: name, sessionId: EVAL_RUN_ID, tags: ["eval", MODEL_LABEL, ...EXTRA_TAGS], metadata: { ...metadata, model: MODEL_LABEL } },
       () => run(observation.traceId),
     ),
   );
