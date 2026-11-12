@@ -16,6 +16,7 @@
     "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts",
     "eval:baseline": "node scripts/promote-eval-baseline.mjs",
     "eval:compare": "EVAL_COMPARE=1 AI_MOCK=1 vitest run --config vitest.eval.config.mts src/agent/evals/compare.eval.ts",
+    "eval:summary": "tsx scripts/eval-summary.ts",
     "index": "tsx --env-file=.env.local scripts/build-index.ts"
   },
   "dependencies": {

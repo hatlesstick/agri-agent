@@ -1,0 +1,84 @@
+name: Real-model evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: AI Gateway model id
+        type: string
+        default: google/gemini-2.5-flash-lite
+      suite:
+        description: Eval suite
+        type: choice
+        default: all
+        options: [all, agent, spray-check, rag]
+      runs:
+        description: Runs per case
+        type: number
+        default: 3
+
+concurrency:
+  group: eval-real
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  eval-real:
+    name: Real-model evals (${{ inputs.model }}, ${{ inputs.suite }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AI_MOCK: "0"
+      EVAL_MODEL: ${{ inputs.model }}
+      EVAL_RUNS: ${{ inputs.runs }}
+      EVAL_SUITE: ${{ inputs.suite }}
+      EVAL_TAGS: ci
+      EVAL_RUN_ID: ci-${{ github.run_id }}-${{ github.run_attempt }}
+      LANGFUSE_ENVIRONMENT: ci
+      AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+      LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
+      OPEN_METEO_GEOCODING_URL: ${{ secrets.OPEN_METEO_GEOCODING_URL }}
+      OPEN_METEO_FORECAST_URL: ${{ secrets.OPEN_METEO_FORECAST_URL }}
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Check required secrets
+        run: |
+          missing=""
+          for name in AI_GATEWAY_API_KEY OPEN_METEO_GEOCODING_URL OPEN_METEO_FORECAST_URL; do
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            exit 1
+          fi
+      - name: Run evals
+        run: |
+          case "$EVAL_SUITE" in
+            all) files="" ;;
+            agent) files="src/agent/evals/agent.eval.ts" ;;
+            spray-check) files="src/agent/evals/spray-check.eval.ts" ;;
+            rag) files="src/agent/evals/rag.eval.ts" ;;
+            *) echo "::error::Unknown suite: $EVAL_SUITE"; exit 1 ;;
+          esac
+          npm run eval:real -- $files
+      - name: Write summary
+        if: always()
+        run: npm run -s eval:summary >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: eval-real-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .evals/results/
+          if-no-files-found: ignore
+          retention-days: 30
