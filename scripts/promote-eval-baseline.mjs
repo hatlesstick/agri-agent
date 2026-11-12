@@ -2,7 +2,7 @@ import { cpSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const resultsDir = join(process.cwd(), ".evals", "results");
-const baselinesDir = join(process.cwd(), "src", "agent", "evals", "baselines");
+const baselinesDir = join(process.cwd(), "tests", "evals", "baselines");
 
 const runs = existsSync(resultsDir) ? readdirSync(resultsDir).sort() : [];
 const runId = process.argv[2] ?? runs.at(-1);

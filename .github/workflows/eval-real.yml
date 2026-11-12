@@ -65,9 +65,9 @@ jobs:
         run: |
           case "$EVAL_SUITE" in
             all) files="" ;;
-            agent) files="src/agent/evals/agent.eval.ts" ;;
-            spray-check) files="src/agent/evals/spray-check.eval.ts" ;;
-            rag) files="src/agent/evals/rag.eval.ts" ;;
+            agent) files="tests/evals/agent/agent.eval.ts" ;;
+            spray-check) files="tests/evals/agent/spray-check.eval.ts" ;;
+            rag) files="tests/evals/agent/rag.eval.ts" ;;
             *) echo "::error::Unknown suite: $EVAL_SUITE"; exit 1 ;;
           esac
           npm run eval:real -- $files

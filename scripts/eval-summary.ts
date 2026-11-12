@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { SuiteResult } from "@/agent/evals/report";
-import { renderRunSummary } from "@/agent/evals/summary";
+import type { SuiteResult } from "@tests/evals/report";
+import { renderRunSummary } from "@tests/evals/summary";
 
 const RESULTS_DIR = join(process.cwd(), ".evals", "results");
 

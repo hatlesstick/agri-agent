@@ -1,3 +1,3 @@
-import { handleChatRequest } from "@/server/chat";
+import { chatController } from "@/server/controllers/chat/ChatController";
 
-export const POST = handleChatRequest;
+export const POST = chatController.handle;

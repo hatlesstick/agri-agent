@@ -1,10 +1,9 @@
-import { existsSync, readFileSync } from "node:fs";
 import { embed } from "ai";
 import { mockEmbedding } from "@/agent/mock/embedding";
 import { EMBEDDING_MODEL, isMockMode } from "@/agent/model";
-import { INDEX_FILE, readCorpusChunks } from "@/agent/rag/corpus";
-import { rankChunks } from "@/domain/rag/search";
-import type { RagIndex, SearchHit } from "@/domain/rag/types";
+import { docsRepository } from "@/server/repositories/docs/DocsRepository";
+import { rankChunks } from "@/agent/rag/rank";
+import type { RagIndex, SearchHit } from "@/server/repositories/docs/docs.types";
 
 export const REAL_MIN_SCORE = 0.64;
 export const MOCK_MIN_SCORE = 0.15;
@@ -15,7 +14,7 @@ function buildMockIndex(): RagIndex {
   return {
     model: "mock",
     createdAt: new Date(0).toISOString(),
-    chunks: readCorpusChunks().map((chunk) => ({ ...chunk, embedding: mockEmbedding(chunk.text) })),
+    chunks: docsRepository.readCorpusChunks().map((chunk) => ({ ...chunk, embedding: mockEmbedding(chunk.text) })),
   };
 }
 
@@ -34,8 +33,7 @@ export function usableIndex(index: RagIndex | null, embeddingModel: string): Rag
 function loadIndex(): RagIndex | null {
   if (cachedIndex) return cachedIndex;
   if (isMockMode()) return (cachedIndex = buildMockIndex());
-  const stored = existsSync(INDEX_FILE) ? (JSON.parse(readFileSync(INDEX_FILE, "utf8")) as RagIndex) : null;
-  cachedIndex = usableIndex(stored, EMBEDDING_MODEL);
+  cachedIndex = usableIndex(docsRepository.readIndex(), EMBEDDING_MODEL);
   return cachedIndex;
 }
 
