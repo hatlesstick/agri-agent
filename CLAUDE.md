@@ -72,7 +72,7 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - Next.js 16 (App Router), TypeScript (strict), Tailwind 4
 - Vercel AI SDK 7: `ai`, `@ai-sdk/react`
 - Models via **Vercel AI Gateway** (bundled in `ai`): env `AI_GATEWAY_API_KEY`, model set as a `"provider/model"` string (no separate provider packages).
-  - Development model: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 per 1M tokens, tool-use + structured-output; available on the Free Tier, tool calling verified 2026-11-11). Fallback: `openai/gpt-5.4-nano`. Comparison candidates also include Amazon Bedrock models served by the Gateway (`amazon/nova-lite`, `amazon/nova-2-lite`); no AWS credentials or `@ai-sdk/amazon-bedrock` needed. Prices for cost estimates live in `tests/evals/model-pricing.ts` with the date they were read.
+  - Development model: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 per 1M tokens, tool-use + structured-output; available on the Free Tier, tool calling verified 2026-11-11). Fallback: `openai/gpt-5.4-nano`. Comparison candidates also include `deepseek/deepseek-v4-flash` and Amazon Bedrock models served by the Gateway (`amazon/nova-lite`, `amazon/nova-2-lite`); these need paid Gateway credits (Free Tier returns "Free tier users do not have access to this model", verified 2026-11-12). Tool input schemas must stay portable across providers: no Unicode property escapes (`\p{…}`) in regex patterns, since OpenAI rejects them. Prices for cost estimates live in `tests/evals/model-pricing.ts` with the date they were read.
   - `anthropic/claude-haiku-5.5` is **not available** on the Free Tier (requires paid credits).
   - The model name is a single constant in `src/agent/model.ts`.
 - `zod` for tool schemas and structured output
