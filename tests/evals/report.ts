@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect } from "vitest";
+import { slug } from "@tests/evals/slug";
 
 export type EvalRow = {
   suite: string;
@@ -26,10 +27,6 @@ const REGRESSION_DROP = 0.5;
 const STEPS_WARNING_INCREASE = 1;
 
 const rows: EvalRow[] = [];
-
-export function slug(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
 
 export function recordEval(row: EvalRow): void {
   rows.push(row);
