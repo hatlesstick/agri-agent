@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { AgroAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@/agent";
 import { currentActivity, summarizeSteps } from "@/app/_components/agent-activity";
 
-type Part = AgroAgentUIMessage["parts"][number];
+type Part = AgriAgentUIMessage["parts"][number];
 
-function assistant(parts: unknown[]): AgroAgentUIMessage {
+function assistant(parts: unknown[]): AgriAgentUIMessage {
   return { id: "a", role: "assistant", parts: parts as Part[] };
 }
 
@@ -29,7 +29,7 @@ describe("agent activity (deterministic)", () => {
     ["writing answer", assistant([STEP, toolPart("output-available"), STEP, { type: "text", text: "No" }]), "✍️ Writing the answer…", 2],
     ["tool failed", assistant([STEP, toolPart("output-error")]), "⚠️ sprayWindow failed, recovering…", 1],
   ])("%s", (_, message, label, step) => {
-    const activity = currentActivity(message as AgroAgentUIMessage | undefined);
+    const activity = currentActivity(message as AgriAgentUIMessage | undefined);
     expect(`${activity.icon} ${activity.label}`).toBe(label);
     expect(activity.step).toBe(step);
   });

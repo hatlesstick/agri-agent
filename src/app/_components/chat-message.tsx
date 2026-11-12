@@ -1,19 +1,19 @@
-import type { AgroAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@/agent";
 import { summarizeSteps } from "@/app/_components/agent-activity";
 import { AssistantMarkdown } from "@/app/_components/assistant-markdown";
 import { isToolPart, ToolCallCard } from "@/app/_components/tool-call-card";
 
 const EMPTY_ANSWER_NOTICE = "The assistant returned no explanation. The tool result above is the answer.";
 
-function hasVisibleText(message: AgroAgentUIMessage): boolean {
+function hasVisibleText(message: AgriAgentUIMessage): boolean {
   return message.parts.some((part) => part.type === "text" && part.text.trim().length > 0);
 }
 
-function hasToolResult(message: AgroAgentUIMessage): boolean {
+function hasToolResult(message: AgriAgentUIMessage): boolean {
   return message.parts.some((part) => isToolPart(part) && part.state === "output-available");
 }
 
-export function ChatMessage({ message, isComplete }: { message: AgroAgentUIMessage; isComplete: boolean }) {
+export function ChatMessage({ message, isComplete }: { message: AgriAgentUIMessage; isComplete: boolean }) {
   if (message.role === "user") {
     return (
       <li className="self-end rounded-lg bg-blue-600 px-4 py-2 text-white">

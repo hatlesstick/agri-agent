@@ -1,4 +1,4 @@
-# agro-agent
+# agri-agent
 
 A tool-using AI agent that decides whether a field can be sprayed, based on the weather forecast.
 Built with Next.js and the Vercel AI SDK 7; the first channel is a web chat, plus a structured JSON endpoint.

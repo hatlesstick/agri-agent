@@ -1,6 +1,6 @@
-import type { AgroAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@/agent";
 
-type MessagePart = AgroAgentUIMessage["parts"][number];
+type MessagePart = AgriAgentUIMessage["parts"][number];
 export type ToolPart = Extract<MessagePart, { type: `tool-${string}` }>;
 
 const STATE_LABEL: Record<ToolPart["state"], string> = {

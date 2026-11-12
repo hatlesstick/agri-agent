@@ -1,7 +1,7 @@
-# CLAUDE.md — agro-agent
+# CLAUDE.md — agri-agent
 
 ## Overview
-`agro-agent` is a tool-using AI agent that assesses field-spraying conditions from weather forecasts. It is built on the Vercel AI SDK, with a web chat as the first delivery channel.
+`agri-agent` is a tool-using AI agent that assesses field-spraying conditions from weather forecasts. It is built on the Vercel AI SDK, with a web chat as the first delivery channel.
 
 ### Capabilities
 - Streams responses to the client.

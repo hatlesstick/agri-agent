@@ -17,7 +17,7 @@ export type AgentFactoryOptions = {
   telemetryFunctionId?: string;
 };
 
-export function createAgroAgent({ model = chatModel(), maxRetries, telemetryFunctionId = "chat" }: AgentFactoryOptions = {}) {
+export function createAgriAgent({ model = chatModel(), maxRetries, telemetryFunctionId = "chat" }: AgentFactoryOptions = {}) {
   return new ToolLoopAgent({
     model,
     tools: agentTools,
@@ -59,5 +59,5 @@ export function createSprayCheckAgent({
   });
 }
 
-export type AgroAgent = ReturnType<typeof createAgroAgent>;
-export type AgroAgentUIMessage = InferAgentUIMessage<AgroAgent>;
+export type AgriAgent = ReturnType<typeof createAgriAgent>;
+export type AgriAgentUIMessage = InferAgentUIMessage<AgriAgent>;

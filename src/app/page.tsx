@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState, type FormEvent } from "react";
-import type { AgroAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@/agent";
 import { currentActivity } from "@/app/_components/agent-activity";
 import { AgentStatus } from "@/app/_components/agent-status";
 import { ChatMessage } from "@/app/_components/chat-message";
@@ -10,7 +10,7 @@ import { friendlyChatError } from "@/app/_components/chat-errors";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status, stop, error, regenerate } = useChat<AgroAgentUIMessage>();
+  const { messages, sendMessage, status, stop, error, regenerate } = useChat<AgriAgentUIMessage>();
   const isBusy = status === "submitted" || status === "streaming";
   const [startedAt, setStartedAt] = useState(0);
   const lastMessage = messages.at(-1);
@@ -27,7 +27,7 @@ export default function ChatPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 p-6">
-      <h1 className="text-2xl font-semibold">Agro Agent</h1>
+      <h1 className="text-2xl font-semibold">Agri Agent</h1>
 
       <ul className="flex flex-1 flex-col gap-3">
         {messages.map((message, index) => (

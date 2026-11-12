@@ -1,5 +1,5 @@
 import { afterAll, afterEach, describe, it, vi } from "vitest";
-import { agentTools, createAgroAgent } from "@/agent";
+import { agentTools, createAgriAgent } from "@/agent";
 import { evalModel, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@/agent/evals/harness";
 import { printEvalReport } from "@/agent/evals/report";
 import { EVAL_NOW, EVAL_TOMORROW, stubWeatherScenario, type WeatherScenario } from "@/agent/evals/scenarios";
@@ -174,7 +174,7 @@ function runOnce(testCase: AgentCase, attempt: number): Promise<RunOutcome> {
   return tracedRun(`eval:${testCase.id}`, { evalCase: testCase.id, run: attempt, scenario: testCase.scenario }, async (traceId) => {
     clearForecastCache();
     stubWeatherScenario(testCase.scenario);
-    const agent = createAgroAgent({ model: evalModel(), maxRetries: RETRIES_PER_CALL, telemetryFunctionId: `eval:${testCase.id}` });
+    const agent = createAgriAgent({ model: evalModel(), maxRetries: RETRIES_PER_CALL, telemetryFunctionId: `eval:${testCase.id}` });
     const result = await agent.generate({
       messages: [...(testCase.history ?? []), { role: "user" as const, content: testCase.prompt }],
       options: { now: EVAL_NOW },

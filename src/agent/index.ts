@@ -1,4 +1,4 @@
-export { createAgroAgent, type AgroAgentUIMessage } from "@/agent/agent";
+export { createAgriAgent, type AgriAgentUIMessage } from "@/agent/agent";
 export { BASE_INSTRUCTIONS, buildInstructions } from "@/agent/instructions";
 export { chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/agent/model";
 export { runSprayCheck } from "@/agent/spray-check/run";
