@@ -24,15 +24,15 @@ describe("renderRunSummary", () => {
   it("renders a heading, a totals line per suite and a row per case", () => {
     const markdown = renderRunSummary("ci-42", [
       result("agent", [
-        row("lyon-tomorrow", 3, 3, { avgSteps: 2, avgInputTokens: 1200, avgOutputTokens: 80, p50LatencyMs: 1500, p95LatencyMs: 2400 }),
+        row("lyon-tomorrow", 3, 3, { avgSteps: 2, avgInputTokens: 1200, avgOutputTokens: 80, avgCostUsd: 0.000152, p50LatencyMs: 1500, p95LatencyMs: 2400 }),
         row("rain-today", 1, 3, { infraErrors: 1, failures: "canSpray mismatch | pipe" }),
       ]),
     ]);
 
     expect(markdown).toContain("## Eval run ci-42");
     expect(markdown).toContain("### agent — google/gemini-2.5-flash-lite: 4/6 runs passed");
-    expect(markdown).toContain("| lyon-tomorrow | ✅ 3/3 | 0 | 2.0 | 1200/80 | 1500 | 2400 |  |");
-    expect(markdown).toContain("| rain-today | ❌ 1/3 | 1 |  |  |  |  | canSpray mismatch \\| pipe |");
+    expect(markdown).toContain("| lyon-tomorrow | ✅ 3/3 | 0 | 2.0 | 1200/80 | $0.000152 | 1500 | 2400 |  |");
+    expect(markdown).toContain("| rain-today | ❌ 1/3 | 1 |  |  |  |  |  | canSpray mismatch \\| pipe |");
   });
 
   it("marks skipped cases and sorts suites by name", () => {

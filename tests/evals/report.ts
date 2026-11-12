@@ -13,6 +13,7 @@ export type EvalRow = {
   avgSteps?: number;
   avgInputTokens?: number;
   avgOutputTokens?: number;
+  avgCostUsd?: number;
   p50LatencyMs?: number;
   p95LatencyMs?: number;
 };

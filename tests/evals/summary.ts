@@ -1,6 +1,6 @@
 import type { EvalRow, SuiteResult } from "@tests/evals/report";
 
-const HEADER = "| case | pass rate | infra errors | avg steps | tokens in/out | p50 ms | p95 ms | failures |\n|---|---|---|---|---|---|---|---|";
+const HEADER = "| case | pass rate | infra errors | avg steps | tokens in/out | cost | p50 ms | p95 ms | failures |\n|---|---|---|---|---|---|---|---|---|";
 
 function number(value: number | undefined, digits: number): string {
   return value === undefined || Number.isNaN(value) ? "" : value.toFixed(digits);
@@ -23,6 +23,7 @@ function caseLine(row: EvalRow): string {
     String(row.infraErrors ?? 0),
     number(row.avgSteps, 1),
     tokens,
+    row.avgCostUsd === undefined ? "" : `$${row.avgCostUsd.toFixed(6)}`,
     number(row.p50LatencyMs, 0),
     number(row.p95LatencyMs, 0),
     cellText(row.failures),
