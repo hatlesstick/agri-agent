@@ -66,6 +66,20 @@ npm run dev                  # http://localhost:3000
 | `npm run eval:compare` | Writes [`docs/model-comparison.md`](docs/model-comparison.md) from the latest real-model run per model |
 | `npm run index` | Rebuild `data/index.json` embeddings from `data/docs/` (then recalibrate the RAG threshold) |
 
+## Quality gates and CI
+
+| Layer | Command | Where it runs | Cost |
+|---|---|---|---|
+| Lint, types, unit and component tests | `npm run lint`, `npm run typecheck`, `npm test` | every PR and push to `main` | free |
+| Deterministic and mock-model evals | `npm run eval` | every PR and push to `main` (offline: any unstubbed network call fails) | free |
+| Production build | `npm run build` | every PR and push to `main` | free |
+| Secret scan | gitleaks | every PR and push to `main` | free |
+| Real-model evals | `npm run eval:real` or GitHub Actions → Real-model evals (manual, one run at a time) | on demand | tokens |
+| Model comparison | `npm run eval:compare` | on demand, after real runs | free |
+| Langfuse experiments | `npm run langfuse:experiment` | on demand | tokens |
+
+CI needs no secrets except the Open-Meteo URLs; the manual real-model workflow reads `AI_GATEWAY_API_KEY` and `LANGFUSE_*` from repository secrets and tags traces with `ci`.
+
 ## Model comparison
 
 Candidates: `google/gemini-2.5-flash-lite` (default), `openai/gpt-5.4-nano`, and Amazon Bedrock models `amazon/nova-lite` and `amazon/nova-2-lite`, all through AI Gateway (no AWS credentials needed). Every model runs the same eval cases with fixed weather fixtures, so the expected answer is known.
