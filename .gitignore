@@ -49,3 +49,6 @@ PLAN.md
 
 # eval results
 .evals/
+
+# local plans
+docs/plan-*.md

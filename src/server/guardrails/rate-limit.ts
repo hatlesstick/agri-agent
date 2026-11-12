@@ -64,11 +64,24 @@ export function rateLimitedResponse(retryAfterMs: number): Response {
 
 const WINDOW_MS = 60_000;
 
-const globalRateLimiter = createRateLimiter({ limit: serverEnv().GLOBAL_RATE_LIMIT_PER_MINUTE, windowMs: WINDOW_MS });
-const chatRateLimiter = createRateLimiter({ limit: serverEnv().RATE_LIMIT_PER_MINUTE, windowMs: WINDOW_MS });
-const sprayCheckRateLimiter = createRateLimiter({ limit: serverEnv().RATE_LIMIT_PER_MINUTE, windowMs: WINDOW_MS });
+type RateLimitedRoute = "chat" | "sprayCheck";
 
-const ROUTE_LIMITERS = { chat: chatRateLimiter, sprayCheck: sprayCheckRateLimiter } as const;
+type ServerLimiters = { global: RateLimiter; routes: Record<RateLimitedRoute, RateLimiter> };
+
+let serverLimiters: ServerLimiters | null = null;
+
+function limitersFromEnv(): ServerLimiters {
+  if (serverLimiters) return serverLimiters;
+  const env = serverEnv();
+  serverLimiters = {
+    global: createRateLimiter({ limit: env.GLOBAL_RATE_LIMIT_PER_MINUTE, windowMs: WINDOW_MS }),
+    routes: {
+      chat: createRateLimiter({ limit: env.RATE_LIMIT_PER_MINUTE, windowMs: WINDOW_MS }),
+      sprayCheck: createRateLimiter({ limit: env.RATE_LIMIT_PER_MINUTE, windowMs: WINDOW_MS }),
+    },
+  };
+  return serverLimiters;
+}
 
 const GLOBAL_KEY = "global";
 
@@ -79,9 +92,10 @@ export function checkLimits(limiters: Array<{ limiter: RateLimiter; key: string 
   return { allowed: true, retryAfterMs: 0 };
 }
 
-export function checkRateLimit(req: Request, route: keyof typeof ROUTE_LIMITERS): RateLimitDecision {
+export function checkRateLimit(req: Request, route: RateLimitedRoute): RateLimitDecision {
+  const limiters = limitersFromEnv();
   return checkLimits([
-    { limiter: ROUTE_LIMITERS[route], key: clientKey(req) },
-    { limiter: globalRateLimiter, key: GLOBAL_KEY },
+    { limiter: limiters.routes[route], key: clientKey(req) },
+    { limiter: limiters.global, key: GLOBAL_KEY },
   ]);
 }

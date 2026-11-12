@@ -10,7 +10,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.eval.ts"],
-    setupFiles: ["src/agent/evals/setup.ts"],
+    setupFiles: ["src/test/setup.ts", "src/agent/evals/setup.ts"],
     env: { ...loadEnv("", process.cwd(), ""), EVAL_RUN_ID: runId },
     testTimeout: 120_000,
     fileParallelism: false,

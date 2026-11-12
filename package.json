@@ -2,11 +2,15 @@
   "name": "agri-agent",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "eval": "AI_MOCK=1 vitest run --config vitest.eval.config.mts",
     "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts",
