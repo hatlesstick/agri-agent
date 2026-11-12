@@ -15,8 +15,8 @@ permissions:
 env:
   CI_OFFLINE: "1"
   AI_MOCK: "1"
-  OPEN_METEO_GEOCODING_URL: https://geocoding-api.open-meteo.com/v1/search
-  OPEN_METEO_FORECAST_URL: https://api.open-meteo.com/v1/forecast
+  OPEN_METEO_GEOCODING_URL: ${{ secrets.OPEN_METEO_GEOCODING_URL }}
+  OPEN_METEO_FORECAST_URL: ${{ secrets.OPEN_METEO_FORECAST_URL }}
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
@@ -56,3 +56,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
