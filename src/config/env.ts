@@ -31,6 +31,8 @@ const validatedServerEnvSchema = serverEnvSchema.superRefine((env, context) => {
   }
 });
 
+export const SERVER_ENV_KEYS = Object.keys(serverEnvSchema.shape) as Array<keyof typeof serverEnvSchema.shape>;
+
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function serverEnv(): ServerEnv {

@@ -5,9 +5,9 @@ import { recordEval } from "@/agent/evals/report";
 import { CHAT_MODEL, chatModel, isMockMode } from "@/agent/model";
 
 export const MOCK = isMockMode();
-export const EVAL_MODEL = process.env.EVAL_MODEL ?? CHAT_MODEL;
+export const EVAL_MODEL = process.env.EVAL_MODEL || CHAT_MODEL;
 export const MODEL_LABEL = MOCK ? "mock" : EVAL_MODEL;
-export const RUNS = Number(process.env.EVAL_RUNS ?? (MOCK ? 1 : 3));
+export const RUNS = Number(process.env.EVAL_RUNS || (MOCK ? 1 : 3));
 export const REQUIRED_PASS_RATE = MOCK ? 1 : 2 / 3;
 export const EVAL_RUN_ID = process.env.EVAL_RUN_ID ?? `eval-${new Date().toISOString()}`;
 export const RETRIES_PER_CALL = MOCK ? 0 : 4;
@@ -22,7 +22,7 @@ export type RunOutcome =
   | { kind: "infra"; reason: string };
 
 const INFRA_ERROR = /RateLimit|Rate limit|429|ECONNRESET|ETIMEDOUT|fetch failed|AbortError|Delay was aborted/i;
-const DELAY_BETWEEN_RUNS_MS = Number(process.env.EVAL_DELAY_MS ?? (MOCK ? 0 : 2000));
+const DELAY_BETWEEN_RUNS_MS = Number(process.env.EVAL_DELAY_MS || (MOCK ? 0 : 2000));
 const INFRA_BACKOFF_MS = MOCK ? 0 : 15_000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
