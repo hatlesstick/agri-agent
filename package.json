@@ -17,6 +17,8 @@
     "eval:baseline": "node scripts/promote-eval-baseline.mjs",
     "eval:compare": "tsx scripts/compare-models.ts",
     "eval:summary": "tsx scripts/eval-summary.ts",
+    "langfuse:dataset": "tsx --env-file=.env.local scripts/langfuse-dataset-sync.ts",
+    "langfuse:experiment": "tsx --env-file=.env.local scripts/langfuse-experiment.ts",
     "index": "tsx --env-file=.env.local scripts/build-index.ts"
   },
   "dependencies": {

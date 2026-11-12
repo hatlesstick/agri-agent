@@ -172,13 +172,14 @@ Test layout:
 tests/
   unit/<same path as src>/…   e.g. tests/unit/server/services/spray-window/SprayWindowService.test.ts
   unit/ui/<level>/<Component>.test.tsx
-  evals/                      harness, report, scenarios, scores, tags, summary, setup, baselines/; suites in agent/, server/, ui/
+  evals/                      harness, report, scores, tags, summary, setup, baselines/; shared case data (spray-check-cases, weather-fixtures) and experiment logic used by both evals and Langfuse scripts; suites in agent/, server/, ui/
   fixtures/                   shared JSON fixtures (weather/)
   support/                    test infrastructure: offline guard, setup files
 ```
 - Import code under test via `@/…`, test helpers and fixtures via `@tests/…`.
 - Every new service, repository, helper or hook gets unit tests; every new component gets a component test (render, user interaction via `@testing-library/user-event`, accessible queries by role/label); every new tool or agent behaviour gets eval cases.
 - Bug fixes start with a failing test.
+- Modules imported by scripts (`scripts/*.ts`, run with `tsx`) must not import `vitest`; keep Vitest-only helpers (`vi.stubGlobal`, `expect`) in `scenarios.ts`, `harness.ts` and `report.ts`.
 
 ## Code style
 - **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does". Clarity comes from names and small functions; decisions are explained in chat. Exception: only when a comment is explicitly requested.
@@ -203,6 +204,8 @@ tests/
 - `npm run typecheck`: Next.js route types + `tsc --noEmit`
 - `npm run eval:summary`: markdown summary of the latest eval run
 - `npm run eval:compare`: writes `docs/model-comparison.md` from the latest real-model run per model and suite
+- `npm run langfuse:dataset`: creates/updates the Langfuse dataset `agri-agent-spray-check` from `tests/evals/spray-check-cases.ts` (writes to Langfuse: only when the user asks)
+- `npm run langfuse:experiment -- --model <id>`: runs a Langfuse experiment over the dataset (real model: only when the user asks); `AI_MOCK=1 … -- --dry-run` checks the wiring locally without Langfuse
 - `npm run index`: build the RAG index (from stage 8)
 
 ## Structure
