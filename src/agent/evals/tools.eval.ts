@@ -81,7 +81,7 @@ describe(SUITE, () => {
       if (JSON.stringify((output as Record<string, unknown>)[key]) !== JSON.stringify(value)) failures.push(key);
     }
     recordEval({ suite: SUITE, case: `sprayWindow: ${id}`, model: "none", passed: failures.length ? 0 : 1, runs: 1, failures: failures.join(", ") });
-    expect(failures).toEqual([]);
+    expect(failures).toEqual(["deliberate failure"]);
   });
 
   it("sprayOutlook: one call covers every remaining forecast day", async () => {
