@@ -82,10 +82,10 @@ CI needs no secrets except the Open-Meteo URLs; the manual real-model workflow r
 
 ## Model comparison
 
-Candidates: `google/gemini-2.5-flash-lite` (default), `openai/gpt-5.4-nano`, and Amazon Bedrock models `amazon/nova-lite` and `amazon/nova-2-lite`, all through AI Gateway (no AWS credentials needed). Every model runs the same eval cases with fixed weather fixtures, so the expected answer is known.
+Candidates: `google/gemini-2.5-flash-lite` (default), `openai/gpt-5.4-nano` (fallback) and `deepseek/deepseek-v4-flash`, all through AI Gateway. On the Gateway Free Tier only Gemini and GPT are available; DeepSeek and Amazon Bedrock models (`amazon/nova-lite`, `amazon/nova-2-lite`, priced in `tests/evals/model-pricing.ts`) need paid credits. Every model runs the same eval cases with fixed weather fixtures, so the expected answer is known.
 
 ```
-EVAL_MODEL=amazon/nova-lite npm run eval:real
+EVAL_MODEL=openai/gpt-5.4-nano npm run eval:real
 npm run eval:compare
 ```
 
@@ -98,7 +98,7 @@ The spray-check eval cases are also a Langfuse dataset (`agri-agent-spray-check`
 ```
 npm run langfuse:dataset                                         # create the dataset and upsert its items (safe to re-run)
 npm run langfuse:experiment -- --model google/gemini-2.5-flash-lite
-npm run langfuse:experiment -- --model amazon/nova-lite
+npm run langfuse:experiment -- --model openai/gpt-5.4-nano
 AI_MOCK=1 npm run langfuse:experiment -- --dry-run               # local check with the mock model, nothing is sent
 ```
 
