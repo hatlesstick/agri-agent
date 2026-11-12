@@ -77,6 +77,21 @@ npm run eval:compare
 
 The table reports pass rate per suite, average estimated cost per case (tokens × Gateway list prices), p50/p95 latency and infrastructure errors; each run's traces and scores are in Langfuse (tag = model). Real runs can also be started from GitHub Actions → Real-model evals.
 
+## Langfuse datasets and experiments
+
+The spray-check eval cases are also a Langfuse dataset (`agri-agent-spray-check`): each item has the question, the weather scenario, a fixed clock and the rule-based expected decision.
+
+```
+npm run langfuse:dataset                                         # create the dataset and upsert its items (safe to re-run)
+npm run langfuse:experiment -- --model google/gemini-2.5-flash-lite
+npm run langfuse:experiment -- --model amazon/nova-lite
+AI_MOCK=1 npm run langfuse:experiment -- --dry-run               # local check with the mock model, nothing is sent
+```
+
+Each experiment run executes the spray-check agent on every item with the fixture weather and records item scores (`rule_consistency`, `tool_usage`, `steps`, `latency_ms`) and a run score (`pass_rate`); metadata includes the model and the prompt version (last commit of `src/agent/instructions.ts`, or `--prompt-version`).
+
+To compare runs: Langfuse → Datasets → `agri-agent-spray-check` → Runs → select two runs → Compare. The view shows each item's output and scores side by side, plus average scores, latency and cost per run.
+
 ## API
 
 ### `POST /api/chat`
