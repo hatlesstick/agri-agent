@@ -6,9 +6,9 @@ import {
   type GetWeatherOutput,
 } from "@/agent/tools/get-weather/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
-import { currentLocalHour } from "@/domain/time";
-import { getForecast } from "@/domain/weather/forecast";
-import { isWeatherError, type HourlyPoint } from "@/domain/weather/types";
+import { currentLocalHour } from "@/shared/helpers/time";
+import { weatherRepository } from "@/server/repositories/weather/WeatherRepository";
+import { isWeatherError, type HourlyPoint } from "@/server/repositories/weather/weather.types";
 
 export const WEATHER_HOURS_FOR_MODEL = 48;
 
@@ -28,7 +28,7 @@ function roundPoint(point: HourlyPoint): HourlyPoint {
 }
 
 export async function getWeather(input: GetWeatherInput, now: Date = new Date()): Promise<GetWeatherOutput> {
-  const forecast = await getForecast(input.city);
+  const forecast = await weatherRepository.getForecast(input.city);
   if (isWeatherError(forecast)) return getWeatherOutputSchema.parse(forecast);
 
   const fromHour = currentLocalHour(forecast.timezone, now);

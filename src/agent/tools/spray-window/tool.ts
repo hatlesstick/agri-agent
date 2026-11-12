@@ -6,14 +6,14 @@ import {
   type SprayWindowOutput,
 } from "@/agent/tools/spray-window/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
-import { resolveDay } from "@/domain/spray/dates";
-import { currentLocalHour, todayIn } from "@/domain/time";
-import { assessSprayWindows } from "@/domain/spray/rules";
-import { getForecast } from "@/domain/weather/forecast";
-import { isWeatherError } from "@/domain/weather/types";
+import { resolveDay } from "@/shared/helpers/relative-day";
+import { currentLocalHour, todayIn } from "@/shared/helpers/time";
+import { sprayWindowService } from "@/server/services/spray-window/SprayWindowService";
+import { weatherRepository } from "@/server/repositories/weather/WeatherRepository";
+import { isWeatherError } from "@/server/repositories/weather/weather.types";
 
 export async function sprayWindow(input: SprayWindowInput, now: Date = new Date()): Promise<SprayWindowOutput> {
-  const forecast = await getForecast(input.city);
+  const forecast = await weatherRepository.getForecast(input.city);
   if (isWeatherError(forecast)) return sprayWindowOutputSchema.parse(forecast);
 
   const date = resolveDay(input.date, forecast.timezone, now);
@@ -28,7 +28,7 @@ export async function sprayWindow(input: SprayWindowInput, now: Date = new Date(
     city: forecast.city,
     date,
     timezone: forecast.timezone,
-    ...assessSprayWindows(forecast.hourly, date, {}, { notBefore: currentLocalHour(forecast.timezone, now) }),
+    ...sprayWindowService.assess({ hourly: forecast.hourly, date, options: { notBefore: currentLocalHour(forecast.timezone, now) } }),
   });
 }
 

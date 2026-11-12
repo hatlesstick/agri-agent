@@ -100,12 +100,20 @@ curl -s localhost:3000/api/spray-check \
 
 ```
 src/
-  app/        UI and one-line route re-exports
-  server/     HTTP handlers and HTTP guardrails
-  agent/      ToolLoopAgent, instructions, tools, mock model, spray-check, evals, telemetry
-  domain/     pure business logic: weather (Open-Meteo + cache), spray rules
-  config/     zod-validated environment
+  app/        Next.js routes only (pages and one-line API route re-exports)
+  ui/         frontend, atomic design: atoms, molecules, organisms, templates, pages, hooks, helpers, schemas
+  server/     backend API: controllers, services, repositories, guardrails, helpers
+  agent/      ToolLoopAgent, instructions, tools, model guardrails, RAG search, spray-check, mock model, telemetry
+  shared/     zod-validated env, shared limits, time helpers
+tests/
+  unit/       unit and component tests mirroring src/
+  evals/      deterministic and real-model eval suites, harness, baselines
+  fixtures/   shared test fixtures
+  support/    test setup (offline guard, DOM cleanup)
 ```
 
-Dependencies only point down (`app → server → agent → domain`), enforced by ESLint.
-See `CLAUDE.md` for the detailed conventions.
+- Frontend, backend and agent are separate parts with one-way imports, enforced by ESLint.
+- Spraying rules live in `SprayWindowService`; the model only explains the result.
+- Forms use `react-hook-form` with `zod` schemas; UI logic lives in custom hooks, components only render.
+
+See `CLAUDE.md` for the full conventions: folder rules, naming, component and class patterns, and where new code goes.
