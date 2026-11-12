@@ -17,7 +17,7 @@ export type EvalRow = {
   p95LatencyMs?: number;
 };
 
-type SuiteResult = { runId: string; suite: string; model: string; createdAt: string; rows: EvalRow[] };
+export type SuiteResult = { runId: string; suite: string; model: string; createdAt: string; rows: EvalRow[] };
 
 const RESULTS_DIR = join(process.cwd(), ".evals", "results");
 export const BASELINES_DIR = join(process.cwd(), "src", "agent", "evals", "baselines");
