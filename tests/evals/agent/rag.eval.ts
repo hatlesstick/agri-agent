@@ -3,11 +3,10 @@ import { printEvalReport, recordEval } from "@tests/evals/report";
 import { MOCK } from "@tests/evals/harness";
 import { docsRepository } from "@/server/repositories/docs/DocsRepository";
 import { REAL_MIN_SCORE, resetSearchIndexCache, searchDocs } from "@/agent/rag/search";
-import { embed } from "ai";
+import { cosineSimilarity, embed } from "ai";
 import { existsSync, readFileSync } from "node:fs";
 import { EMBEDDING_MODEL } from "@/agent/model";
 import { INDEX_FILE } from "@/server/repositories/docs/DocsRepository";
-import { cosineSimilarity } from "@/agent/rag/rank";
 import type { RagIndex } from "@/server/repositories/docs/docs.types";
 import { chunkMarkdown } from "@/server/repositories/docs/chunk-markdown";
 
