@@ -1,8 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 function clientAddress(request: NextRequest): string | undefined {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip")?.trim() || undefined;
+  const platform = request.headers.get("x-real-ip")?.trim();
+  if (platform) return platform;
+  const hops = (request.headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((hop) => hop.trim())
+    .filter(Boolean);
+  return hops.at(-1);
 }
 
 export function proxy(request: NextRequest): NextResponse {
