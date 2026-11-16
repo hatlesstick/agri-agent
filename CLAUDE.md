@@ -12,7 +12,7 @@ Architecture and the rules behind it: **docs/architecture.md** (source of truth)
 - Roadmap: weather → spray window → RAG → field memory → photo diagnostics → multi-agent; Step 1 history in `docs/step-1-stages.md`.
 
 ## Product
-An AI assistant for farmers and agronomists. Scope: **docs/product-scope.md** — the **core** (Steps 1–5) is built now; the **backlog** (E1–E7, requirements in **docs/backlog-extensions.md**) comes after the core. Known gaps: **docs/tech-debt.md**. Visual language: **docs/design-system.md** (once the direction is chosen).
+An AI assistant for farmers and agronomists. Scope: **docs/product-scope.md** — the **core** (Steps 1–5) is built now; the **backlog** (E1–E7, requirements in **docs/backlog-extensions.md**) comes after the core. Known gaps: **docs/tech-debt.md**. Visual language: **docs/design-system.md** ("Ozymyna and Chernozem").
 - **Scope rule:** work only on the current step. Backlog items are not implemented unless the developer asks. When a core design choice affects a backlog item (PostGIS for E2, `pending_actions` for E3, farm scoping for E6), keep it possible but do not build it.
 - **Definition of done for any feature:** tests and evals in CI, tracing, docs updated (README only for user-visible capabilities, details in `docs/`), tech-debt entries added or removed.
 - Users: farmer / owner (50–2,000 ha, "what to do today on which field"), agronomist (reviews and approves), worker / machine operator (phone, often offline).
