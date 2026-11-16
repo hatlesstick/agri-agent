@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseChatRequest, readJsonBody } from "@/server/guardrails/chat-request";
-import { CHAT_LIMITS } from "@/shared/config/chat-limits";
+import { CHAT_LIMITS } from "@agri/shared";
 
 function postRequest(body: string, headers: Record<string, string> = {}) {
   return new Request("http://localhost/api/chat", { method: "POST", body, headers });

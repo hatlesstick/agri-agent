@@ -6,7 +6,7 @@ import {
   type SprayOutlookInput,
   type SprayOutlookOutput,
 } from "@/agent/tools/spray-outlook/schemas";
-import { currentLocalHour, todayIn } from "@/shared/helpers/time";
+import { currentLocalHour, todayIn } from "@agri/shared";
 import { sprayWindowService } from "@/server/services/spray-window/SprayWindowService";
 import { weatherRepository } from "@/server/repositories/weather/WeatherRepository";
 import { isWeatherError } from "@/server/repositories/weather/weather.types";

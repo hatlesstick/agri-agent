@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { serverEnv } from "@/shared/config/env";
+import { serverEnv } from "@/server-env";
 
 describe("serverEnv", () => {
   afterEach(() => vi.unstubAllEnvs());

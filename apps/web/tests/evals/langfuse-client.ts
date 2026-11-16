@@ -1,5 +1,5 @@
 import { LangfuseClient } from "@langfuse/client";
-import { serverEnv } from "@/shared/config/env";
+import { serverEnv } from "@agri/shared/server-env";
 
 export function requireLangfuseClient(): LangfuseClient {
   const env = serverEnv();

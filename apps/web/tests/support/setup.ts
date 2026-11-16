@@ -1,3 +1,3 @@
-import { installOfflineGuard } from "@tests/support/offline-guard";
+import { installOfflineGuard } from "@agri/shared/testing";
 
 installOfflineGuard();

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CHAT_LIMITS } from "@/shared/config/chat-limits";
+import { CHAT_LIMITS } from "@agri/shared";
 
 export const chatMessageFormSchema = z.object({
   text: z

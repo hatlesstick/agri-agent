@@ -22,6 +22,7 @@
     "index": "tsx --env-file=.env.local scripts/build-index.ts"
   },
   "dependencies": {
+    "@agri/shared": "workspace:*",
     "@ai-sdk/otel": "^1.0.170",
     "@ai-sdk/react": "^4.0.174",
     "@hookform/resolvers": "^7.0.6",

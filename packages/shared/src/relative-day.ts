@@ -1,4 +1,4 @@
-import { todayIn } from "@/shared/helpers/time";
+import { todayIn } from "@/time";
 
 export { todayIn };
 

@@ -1,4 +1,4 @@
-import { todayIn } from "@/shared/helpers/relative-day";
+import { todayIn } from "@agri/shared";
 
 export const BASE_INSTRUCTIONS = [
   "You are Agri Agent, an assistant for farmers and agronomists in Europe.",

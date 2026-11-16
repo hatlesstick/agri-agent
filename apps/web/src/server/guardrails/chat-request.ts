@@ -1,6 +1,6 @@
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { z } from "zod";
-import { CHAT_LIMITS } from "@/shared/config/chat-limits";
+import { CHAT_LIMITS } from "@agri/shared";
 
 const userMessageSchema = z.looseObject({
   id: z.string().min(1),

@@ -1,6 +1,6 @@
 import { OpenMeteoClient } from "@/server/repositories/weather/OpenMeteoClient";
 import type { Forecast, WeatherResult } from "@/server/repositories/weather/weather.types";
-import { todayIn } from "@/shared/helpers/time";
+import { todayIn } from "@agri/shared";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 export const FORECAST_CACHE_MAX_ENTRIES = 200;

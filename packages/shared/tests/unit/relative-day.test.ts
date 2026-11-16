@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveDay, todayIn } from "@/shared/helpers/relative-day";
+import { resolveDay, todayIn } from "@/relative-day";
 
 const LATE_EVENING_UTC = new Date("2026-11-11T23:30:00Z");
 

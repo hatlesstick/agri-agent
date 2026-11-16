@@ -6,8 +6,7 @@ import {
   type SprayWindowOutput,
 } from "@/agent/tools/spray-window/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
-import { resolveDay } from "@/shared/helpers/relative-day";
-import { currentLocalHour, todayIn } from "@/shared/helpers/time";
+import { currentLocalHour, resolveDay, todayIn } from "@agri/shared";
 import { sprayWindowService } from "@/server/services/spray-window/SprayWindowService";
 import { weatherRepository } from "@/server/repositories/weather/WeatherRepository";
 import { isWeatherError } from "@/server/repositories/weather/weather.types";

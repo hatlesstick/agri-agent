@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blockedFetch, installOfflineGuard } from "@tests/support/offline-guard";
+import { blockedFetch, installOfflineGuard } from "@/testing/offline-guard";
 
 describe("offline guard", () => {
   it("rejects any request with the blocked URL in the message", async () => {

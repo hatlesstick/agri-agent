@@ -1,5 +1,5 @@
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
-import { currentLocalHour } from "@/shared/helpers/time";
+import { currentLocalHour } from "@agri/shared";
 
 export const EVAL_NOW = new Date("2026-11-11T08:30:00Z");
 export const EVAL_TOMORROW = "2026-11-12";

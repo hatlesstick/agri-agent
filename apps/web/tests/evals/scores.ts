@@ -1,6 +1,6 @@
 import { LangfuseClient } from "@langfuse/client";
 import { isTelemetryEnabled } from "@/agent";
-import { serverEnv } from "@/shared/config/env";
+import { serverEnv } from "@agri/shared/server-env";
 
 let client: LangfuseClient | null = null;
 

@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ChatComposer } from "@/ui/organisms/ChatComposer";
-import { CHAT_LIMITS } from "@/shared/config/chat-limits";
+import { CHAT_LIMITS } from "@agri/shared";
 
 function setup(isBusy = false) {
   const onSend = vi.fn();

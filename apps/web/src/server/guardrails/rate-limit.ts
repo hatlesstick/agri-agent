@@ -1,4 +1,4 @@
-import { serverEnv } from "@/shared/config/env";
+import { serverEnv } from "@agri/shared/server-env";
 
 export type RateLimitDecision = { allowed: boolean; retryAfterMs: number };
 

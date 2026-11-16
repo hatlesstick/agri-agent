@@ -6,7 +6,7 @@ import {
   type GetWeatherOutput,
 } from "@/agent/tools/get-weather/schemas";
 import { clockContextSchema } from "@/agent/tools/shared/schemas";
-import { currentLocalHour } from "@/shared/helpers/time";
+import { currentLocalHour } from "@agri/shared";
 import { weatherRepository } from "@/server/repositories/weather/WeatherRepository";
 import { isWeatherError, type HourlyPoint } from "@/server/repositories/weather/weather.types";
 
