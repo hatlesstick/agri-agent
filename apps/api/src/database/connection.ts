@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "@/database/schema";
@@ -5,11 +6,33 @@ import type { Database, DatabaseHandle } from "@/database/database.types";
 
 export type PoolLike = Pick<Pool, "query" | "end">;
 
+export const PING_TIMEOUT_MS = 2000;
+const CONNECTION_TIMEOUT_MS = 3000;
+const STATEMENT_TIMEOUT_MS = 10_000;
+
+const logger = new Logger("Database");
+
 const POOL_MAX = 10;
 const IDLE_TIMEOUT_MS = 30_000;
 
 export function createPgPool(url: string): PoolLike {
-  return new Pool({ connectionString: url, max: POOL_MAX, idleTimeoutMillis: IDLE_TIMEOUT_MS });
+  const pool = new Pool({
+    connectionString: url,
+    max: POOL_MAX,
+    idleTimeoutMillis: IDLE_TIMEOUT_MS,
+    connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
+    statement_timeout: STATEMENT_TIMEOUT_MS,
+  });
+  pool.on("error", (error) => logger.warn(`idle database client error: ${error.message}`));
+  return pool;
+}
+
+function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`timed out after ${ms} ms`)), ms);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
 }
 
 export class LazyDatabase implements DatabaseHandle {
@@ -32,7 +55,7 @@ export class LazyDatabase implements DatabaseHandle {
   async ping(): Promise<boolean> {
     try {
       this.get();
-      await this.pool?.query("select 1");
+      await withTimeout(Promise.resolve(this.pool?.query("select 1")), PING_TIMEOUT_MS);
       return true;
     } catch {
       return false;
