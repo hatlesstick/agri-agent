@@ -38,6 +38,14 @@ tests/
 - `ui/` → its own folders and `@agri/shared`; never `apps/api`, never runtime agent / AI SDK server code (`ai` only through `@ai-sdk/react` hooks and type imports).
 - No `src/server`, no `src/app/api`, no `instrumentation.ts` with backend work.
 
+## Styling and UX
+- Visual language, tokens and component rules: `docs/design-system.md`. Components use semantic token classes (`bg-surface`, `text-muted`, `bg-primary`, `text-status-go` …) defined once in `@theme`; never raw palette classes (`blue-600`, `zinc-500`) or hex values in components.
+- Light and dark themes from day one; contrast at least WCAG AA, readable outdoors; touch targets ≥ 44 px.
+- A status is never colour alone: icon + label (can spray / caution / cannot spray).
+- Every agent answer card shows its source, update time and confidence (R3).
+- UI text comes from the UA / EN message dictionaries, not inline strings (from the UI foundation stage).
+- Tone of copy: short, specific, encouraging; empty states explain what will appear and how to add the first item.
+
 ## Testing
 - Vitest projects: `unit` (Node, `*.test.ts`) and `components` (jsdom + Testing Library, `tests/unit/ui/**/*.test.tsx`, user interaction via `@testing-library/user-event`, accessible queries by role/label).
 - `proxy.ts` has a unit test for header handling.

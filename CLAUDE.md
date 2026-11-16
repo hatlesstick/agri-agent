@@ -11,6 +11,14 @@ Architecture and the rules behind it: **docs/architecture.md** (source of truth)
 - Exposes a structured endpoint returning `{ city, canSpray, bestWindow, reason }`.
 - Roadmap: weather → spray window → RAG → field memory → photo diagnostics → multi-agent; Step 1 history in `docs/step-1-stages.md`.
 
+## Product
+An AI assistant for farmers and agronomists. Scope: **docs/product-scope.md** — the **core** (Steps 1–5) is built now; the **backlog** (E1–E7, requirements in **docs/backlog-extensions.md**) comes after the core. Known gaps: **docs/tech-debt.md**. Visual language: **docs/design-system.md** (once the direction is chosen).
+- **Scope rule:** work only on the current step. Backlog items are not implemented unless the developer asks. When a core design choice affects a backlog item (PostGIS for E2, `pending_actions` for E3, farm scoping for E6), keep it possible but do not build it.
+- **Definition of done for any feature:** tests and evals in CI, tracing, docs updated (README only for user-visible capabilities, details in `docs/`), tech-debt entries added or removed.
+- Users: farmer / owner (50–2,000 ha, "what to do today on which field"), agronomist (reviews and approves), worker / machine operator (phone, often offline).
+- Rules every feature follows: R1 code decides, model explains · R2 no write without human approval, audited · R3 every answer shows source, freshness and confidence · R4 data scoped per user / farm · R5 no invented products or doses; doses only from label / RAG / a human; pre-harvest intervals respected · R6 per-user daily model limits · R7 every feature ships with evals · R8 UI and answers in Ukrainian (primary) and English.
+- The UI is an app shell with the chat as one panel, so new screens slot in without a redesign.
+
 ## Core principle: code decides, the model explains
 - `canSpray` and `bestWindow` are computed by deterministic code; the model picks tools and phrases the reason, never recomputes or overrides a decision. If they disagree, the code wins.
 - Large data never flows through the model: it passes short parameters (`city`, `date`), tools fetch data themselves.
