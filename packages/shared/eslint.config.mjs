@@ -9,5 +9,22 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
     rules: { "no-irregular-whitespace": ["error", { skipRegExps: true }] },
   },
+  {
+    files: ["src/**/*.ts"],
+    rules: {
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["next", "next/*", "react", "react-dom", "@nestjs/*", "ai", "ai/*", "@ai-sdk/*", "@agri/*"],
+              message: "@agri/shared is cross-cutting: no frameworks, no AI SDK, no other workspace package.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   { ignores: ["dist/**"] },
 );

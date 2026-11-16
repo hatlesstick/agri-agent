@@ -3,51 +3,35 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 const FRAMEWORKS = ["next", "next/*", "react", "react-dom"];
-const AI_SDK = ["ai", "ai/*", "@ai-sdk/*"];
 const ATOMIC_LEVELS = ["atoms", "molecules", "organisms", "templates", "pages"];
-const AGENT_CONSUMING_SERVICES = ["@/server/services/chat/*", "@/server/services/spray-check/*"];
+const DEEP_PACKAGE_IMPORTS = ["@agri/agent/*", "@agri/shared/*", "!@agri/shared/server-env"];
 
 const BOUNDARIES = [
   {
-    files: ["src/shared/**"],
-    message: "shared/ is cross-cutting: it imports no app layer and no framework.",
-    forbidden: [...FRAMEWORKS, ...AI_SDK, "@/agent", "@/agent/*", "@/server/*", "@/ui/*", "@/app/*"],
-  },
-  {
-    files: ["src/server/repositories/**"],
-    message: "server/repositories is data access: it may use shared/ and other repositories only.",
-    forbidden: [...FRAMEWORKS, ...AI_SDK, "@/agent", "@/agent/*", "@/server/controllers/*", "@/server/services/*", "@/server/guardrails/*", "@/server/helpers/*", "@/ui/*", "@/app/*"],
-  },
-  {
     files: ["src/server/services/**"],
-    message: "server/services hold business logic: use repositories, helpers, guardrails, shared and @/agent (public API), never controllers or frameworks.",
-    forbidden: [...FRAMEWORKS, "@/agent/*", "@/server/controllers/*", "@/ui/*", "@/app/*"],
+    message: "server/services hold business logic: use helpers, guardrails, @agri/shared and @agri/agent (public API), never controllers or frameworks.",
+    forbidden: [...FRAMEWORKS, ...DEEP_PACKAGE_IMPORTS, "@/server/controllers/*", "@/ui/*", "@/app/*"],
   },
   {
     files: ["src/server/controllers/**"],
-    message: "server/controllers handle HTTP only: delegate to services; use @/agent through its public API.",
-    forbidden: ["react", "react-dom", "@/agent/*", "@/server/repositories/*", "@/ui/*", "@/app/*"],
+    message: "server/controllers handle HTTP only: delegate to services; use @agri/agent through its public API.",
+    forbidden: ["react", "react-dom", ...DEEP_PACKAGE_IMPORTS, "@/ui/*", "@/app/*"],
   },
   {
     files: ["src/server/guardrails/**", "src/server/helpers/**"],
     message: "server/guardrails and server/helpers are leaf utilities: no controllers, services or UI.",
-    forbidden: ["react", "react-dom", "@/agent/*", "@/server/controllers/*", "@/server/services/*", "@/ui/*", "@/app/*"],
-  },
-  {
-    files: ["src/agent/**"],
-    message: "agent/ may use server/repositories, services that do not call the agent, and shared/; never HTTP code, UI or frameworks.",
-    forbidden: [...FRAMEWORKS, "@/server/controllers/*", "@/server/guardrails/*", "@/server/helpers/*", ...AGENT_CONSUMING_SERVICES, "@/ui/*", "@/app/*"],
+    forbidden: ["react", "react-dom", ...DEEP_PACKAGE_IMPORTS, "@/server/controllers/*", "@/server/services/*", "@/ui/*", "@/app/*"],
   },
   {
     files: ["src/ui/**"],
-    message: "ui/ uses @/agent for types only (import type), shared/ and its own folders.",
-    forbidden: ["@/agent/*", "@/server/*", "@/app/*"],
-    typeOnly: ["@/agent"],
+    message: "ui/ uses @agri/agent for types only (import type), @agri/shared and its own folders.",
+    forbidden: ["@agri/agent/*", "@agri/shared/*", "@/server/*", "@/app/*"],
+    typeOnly: ["@agri/agent"],
   },
   {
     files: ["src/app/**"],
     message: "app/ only wires routes: @/ui/pages/* for pages and @/server/controllers/* for API routes.",
-    forbidden: ["@/agent", "@/agent/*", "@/shared/*", "@/server/services/*", "@/server/repositories/*", "@/server/guardrails/*", "@/server/helpers/*", "@/ui/atoms/*", "@/ui/molecules/*", "@/ui/organisms/*", "@/ui/templates/*", "@/ui/hooks/*", "@/ui/helpers/*", "@/ui/schemas/*"],
+    forbidden: ["@agri/agent", "@agri/agent/*", "@agri/shared", "@agri/shared/*", "@/server/services/*", "@/server/guardrails/*", "@/server/helpers/*", "@/ui/atoms/*", "@/ui/molecules/*", "@/ui/organisms/*", "@/ui/templates/*", "@/ui/hooks/*", "@/ui/helpers/*", "@/ui/schemas/*"],
   },
 ];
 
