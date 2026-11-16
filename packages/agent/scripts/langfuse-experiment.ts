@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { flushAgentTelemetry, registerAgentTelemetry, runSprayCheck } from "@/index";
 import { CHAT_MODEL, chatModel, isMockMode } from "@/model";
@@ -14,19 +13,12 @@ import {
   type SprayCheckItemMetadata,
 } from "@tests/evals/experiment";
 import { requireLangfuseClient } from "@tests/evals/langfuse-client";
+import { promptVersion } from "@tests/evals/prompt-version";
 import type { SprayCheckExpected } from "@tests/evals/spray-check-cases";
 import { scenarioFetch } from "@tests/evals/weather-fixtures";
 
 const RETRIES_PER_CALL = 4;
 const TIMEOUT_MS = 180_000;
-
-function promptVersion(): string {
-  try {
-    return execSync("git log -1 --format=%h -- src/agent/instructions.ts", { encoding: "utf8" }).trim() || "uncommitted";
-  } catch {
-    return "unknown";
-  }
-}
 
 type TaskRunner = (input: SprayCheckItemInput) => Promise<SprayCheckExperimentOutput>;
 

@@ -4,7 +4,8 @@ import tseslint from "typescript-eslint";
 
 const FRAMEWORKS = ["next", "next/*", "react", "react-dom", "@nestjs/*"];
 const AI_SDK = ["ai", "ai/*", "@ai-sdk/*"];
-const AGENT_MODULES = ["@/tools/*", "@/rag/*", "@/spray-check/*", "@/guardrails/*", "@/mock/*", "@/agent", "@/model", "@/telemetry", "@/instructions", "@/index"];
+const AGENT_FOLDERS = ["tools", "rag", "spray-check", "guardrails", "mock"].flatMap((folder) => [`@/${folder}`, `@/${folder}/*`]);
+const AGENT_MODULES = [...AGENT_FOLDERS, "@/agent", "@/model", "@/telemetry", "@/instructions", "@/index"];
 
 function restrictedImports(message, group) {
   return {
@@ -26,11 +27,11 @@ export default tseslint.config(
   },
   {
     files: ["src/weather/**/*.ts", "src/docs/**/*.ts"],
-    rules: restrictedImports("weather/ and docs/ are data access: no AI SDK, agent modules or rules.", [...FRAMEWORKS, ...AI_SDK, ...AGENT_MODULES, "@/spray-window/*", "@agri/shared/testing"]),
+    rules: restrictedImports("weather/ and docs/ are data access: no AI SDK, agent modules or rules.", [...FRAMEWORKS, ...AI_SDK, ...AGENT_MODULES, "@/spray-window", "@/spray-window/*", "@agri/shared/testing"]),
   },
   {
     files: ["src/spray-window/**/*.ts"],
-    rules: restrictedImports("spray-window/ holds deterministic rules: it may use weather/ only.", [...FRAMEWORKS, ...AI_SDK, ...AGENT_MODULES, "@/docs/*", "@agri/shared/testing"]),
+    rules: restrictedImports("spray-window/ holds deterministic rules: it may use weather/ only.", [...FRAMEWORKS, ...AI_SDK, ...AGENT_MODULES, "@/docs", "@/docs/*", "@agri/shared/testing"]),
   },
   { ignores: ["dist/**"] },
 );

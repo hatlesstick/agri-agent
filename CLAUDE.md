@@ -255,7 +255,7 @@ packages/shared/                    @agri/shared
   src/server-env.ts                 @agri/shared/server-env: zod-validated server env
   src/testing/                      @agri/shared/testing: offline guard, envExampleFindings
 ```
-- RAG data location: `DATA_DIR` = `AGRI_DATA_DIR` (resolved against the working directory) or `packages/agent/data`. Next.js bundles workspace packages, so `apps/web/next.config.ts` sets `AGRI_DATA_DIR`.
+- RAG data location: `DATA_DIR` = `AGRI_DATA_DIR` (resolved against the working directory) or `packages/agent/data`. Next.js bundles workspace packages, so `apps/web/next.config.ts` fixes `AGRI_DATA_DIR` at build time (`../../packages/agent/data`): start `next dev` / `next start` from `apps/web` (the root `pnpm dev` and `pnpm --filter @agri/web start` do), and setting it in Vercel env has no effect.
 
 ### Where new code goes
 - New screen → `apps/web/src/ui/pages/<Name>` (+ template if the layout is new); new UI piece → the lowest atomic level that fits.

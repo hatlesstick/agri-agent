@@ -47,7 +47,7 @@ pnpm dev                                                 # http://localhost:3000
 
 All commands run from the repo root; Turborepo builds the packages before the apps. One workspace only: `pnpm --filter @agri/agent <script>`.
 
-Vercel: Root Directory `apps/web`, framework Next.js, install command `pnpm install`, "Include files outside the root directory" enabled (the API routes read `packages/agent/data`).
+Vercel: Root Directory `apps/web`, framework Next.js, install command `pnpm install`, build command `cd ../.. && pnpm turbo run build --filter=@agri/web` (builds `@agri/agent` and `@agri/shared` first; plain `next build` fails because the packages export only `dist`), "Include files outside the root directory" enabled (the API routes read `packages/agent/data`). `AGRI_DATA_DIR` is fixed at build time in `apps/web/next.config.ts` and resolved against the function's working directory (`apps/web`); after changing the deployment setup, check a practice question such as "What causes spray drift?" returns `searchDocs` sources.
 
 | Variable | Purpose |
 |---|---|
@@ -110,7 +110,7 @@ pnpm langfuse:experiment --model openai/gpt-5.4-nano
 AI_MOCK=1 pnpm langfuse:experiment --dry-run               # local check with the mock model, nothing is sent
 ```
 
-Each experiment run executes the spray-check agent on every item with the fixture weather and records item scores (`rule_consistency`, `tool_usage`, `steps`, `latency_ms`) and a run score (`pass_rate`); metadata includes the model and the prompt version (last commit of `src/agent/instructions.ts`, or `--prompt-version`).
+Each experiment run executes the spray-check agent on every item with the fixture weather and records item scores (`rule_consistency`, `tool_usage`, `steps`, `latency_ms`) and a run score (`pass_rate`); metadata includes the model and the prompt version (last commit of `packages/agent/src/instructions.ts`, or `--prompt-version`).
 
 To compare runs: Langfuse → Datasets → `agri-agent-spray-check` → Runs → select two runs → Compare. The view shows each item's output and scores side by side, plus average scores, latency and cost per run.
 
