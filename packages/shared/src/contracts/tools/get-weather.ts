@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { cityNameSchema } from "@/tools/shared/schemas";
+import { cityNameSchema } from "@/contracts/tools/shared";
 
 export const getWeatherInputSchema = z.object({
   city: cityNameSchema,

@@ -5,7 +5,7 @@ import {
   sprayWindowOutputSchema,
   type SprayWindowInput,
   type SprayWindowOutput,
-} from "@/tools/spray-window/schemas";
+} from "@agri/shared/contracts";
 import type { WeatherToolDeps } from "@/tools/shared/deps";
 import { clockContextSchema } from "@/tools/shared/schemas";
 import { currentLocalHour, resolveDay, todayIn } from "@agri/shared";

@@ -4,7 +4,7 @@ import nextTs from "eslint-config-next/typescript";
 
 const FRAMEWORKS = ["next", "next/*", "react", "react-dom"];
 const ATOMIC_LEVELS = ["atoms", "molecules", "organisms", "templates", "pages"];
-const DEEP_PACKAGE_IMPORTS = ["@agri/agent/*", "@agri/shared/*", "!@agri/shared/server-env"];
+const DEEP_PACKAGE_IMPORTS = ["@agri/agent/*", "@agri/shared/*", "!@agri/shared/server-env", "!@agri/shared/contracts"];
 
 const BOUNDARIES = [
   {
@@ -24,9 +24,8 @@ const BOUNDARIES = [
   },
   {
     files: ["src/ui/**"],
-    message: "ui/ uses @agri/agent for types only (import type), @agri/shared and its own folders.",
-    forbidden: ["@agri/agent/*", "@agri/shared/*", "@/server/*", "@/app/*"],
-    typeOnly: ["@agri/agent"],
+    message: "ui/ uses @agri/shared (contracts and limits) and its own folders; never backend code.",
+    forbidden: ["@agri/agent", "@agri/agent/*", "@agri/shared/*", "!@agri/shared/contracts", "@/server/*", "@/app/*"],
   },
   {
     files: ["src/app/**"],

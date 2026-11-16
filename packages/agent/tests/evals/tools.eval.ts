@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getWeather } from "@/tools/get-weather/tool";
-import { sprayWindowOutputSchema, type SprayWindowInput } from "@/tools/spray-window/schemas";
+import { sprayWindowOutputSchema, type SprayWindowInput } from "@agri/shared/contracts";
 import { sprayWindow } from "@/tools/spray-window/tool";
 import { sprayOutlook } from "@/tools/spray-outlook/tool";
 import { EVAL_NOW, UNKNOWN_CITY, stubWeatherScenario, type WeatherScenario } from "@tests/evals/scenarios";

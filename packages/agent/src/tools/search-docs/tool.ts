@@ -6,7 +6,7 @@ import {
   searchDocsOutputSchema,
   type SearchDocsInput,
   type SearchDocsOutput,
-} from "@/tools/search-docs/schemas";
+} from "@agri/shared/contracts";
 
 export async function runSearchDocs(input: SearchDocsInput, { rag }: { rag: RagEngine }): Promise<SearchDocsOutput> {
   try {

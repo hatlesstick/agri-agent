@@ -1,9 +1,9 @@
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 import { isToolPart, toolName, type ToolPart } from "@/ui/helpers/tool-parts";
 
 export type Activity = { icon: string; label: string; step: number };
 
-type MessagePart = AgriAgentUIMessage["parts"][number];
+type MessagePart = AgriChatMessage["parts"][number];
 
 export type StepSummary = { step: number; tools: Array<{ name: string; state: ToolPart["state"] }>; wroteText: boolean };
 
@@ -18,7 +18,7 @@ function countSteps(parts: MessagePart[]): number {
   return parts.filter((part) => part.type === "step-start").length;
 }
 
-export function currentActivity(message: AgriAgentUIMessage | undefined): Activity {
+export function currentActivity(message: AgriChatMessage | undefined): Activity {
   if (!message || message.role !== "assistant") return { icon: "💭", label: "Thinking…", step: 1 };
 
   const step = Math.max(1, countSteps(message.parts));
@@ -43,7 +43,7 @@ export function currentActivity(message: AgriAgentUIMessage | undefined): Activi
   return { icon: "💭", label: "Thinking…", step };
 }
 
-export function summarizeSteps(message: AgriAgentUIMessage): StepSummary[] {
+export function summarizeSteps(message: AgriChatMessage): StepSummary[] {
   const steps: StepSummary[] = [];
   for (const part of message.parts) {
     if (part.type === "step-start" || steps.length === 0) {

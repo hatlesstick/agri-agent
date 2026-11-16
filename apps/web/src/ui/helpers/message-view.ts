@@ -1,4 +1,4 @@
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 import { summarizeSteps, type StepSummary } from "@/ui/helpers/agent-activity";
 import { isToolPart } from "@/ui/helpers/tool-parts";
 
@@ -6,15 +6,15 @@ export const EMPTY_ANSWER_NOTICE = "The assistant returned no explanation. The t
 
 export type AssistantMessageView = { steps: StepSummary[]; showTimeline: boolean; showEmptyNotice: boolean };
 
-function hasVisibleText(message: AgriAgentUIMessage): boolean {
+function hasVisibleText(message: AgriChatMessage): boolean {
   return message.parts.some((part) => part.type === "text" && part.text.trim().length > 0);
 }
 
-function hasToolResult(message: AgriAgentUIMessage): boolean {
+function hasToolResult(message: AgriChatMessage): boolean {
   return message.parts.some((part) => isToolPart(part) && part.state === "output-available");
 }
 
-export function assistantMessageView(message: AgriAgentUIMessage, isComplete: boolean): AssistantMessageView {
+export function assistantMessageView(message: AgriChatMessage, isComplete: boolean): AssistantMessageView {
   const steps = summarizeSteps(message);
   return {
     steps,

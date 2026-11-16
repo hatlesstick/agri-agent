@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { cityNameSchema } from "@/tools/shared/schemas";
-import { sprayAssessmentSchema, sprayWindowErrorSchema } from "@/tools/spray-window/schemas";
+import { cityNameSchema } from "@/contracts/tools/shared";
+import { sprayAssessmentSchema, sprayWindowErrorSchema } from "@/contracts/tools/spray-window";
 
 export const sprayOutlookInputSchema = z.object({
   city: cityNameSchema,

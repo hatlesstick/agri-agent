@@ -2,13 +2,13 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 import { currentActivity } from "@/ui/helpers/agent-activity";
 import { friendlyChatError } from "@/ui/helpers/chat-errors";
 
 export function useAgentChat() {
   const [startedAt, setStartedAt] = useState(0);
-  const { messages, sendMessage, status, stop, error, regenerate } = useChat<AgriAgentUIMessage>();
+  const { messages, sendMessage, status, stop, error, regenerate } = useChat<AgriChatMessage>();
   const isBusy = status === "submitted" || status === "streaming";
 
   function send(text: string) {

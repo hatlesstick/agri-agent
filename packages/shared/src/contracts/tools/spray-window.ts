@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { cityNameSchema } from "@/tools/shared/schemas";
-import { RELATIVE_DAYS } from "@agri/shared";
+import { cityNameSchema } from "@/contracts/tools/shared";
+import { RELATIVE_DAYS } from "@/relative-day";
 
 const REJECTION_REASONS = [
   "wind_too_low",

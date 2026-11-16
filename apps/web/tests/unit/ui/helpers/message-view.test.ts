@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 import { assistantMessageView, stepLabel } from "@/ui/helpers/message-view";
 
-function assistant(parts: unknown[]): AgriAgentUIMessage {
-  return { id: "m1", role: "assistant", parts } as AgriAgentUIMessage;
+function assistant(parts: unknown[]): AgriChatMessage {
+  return { id: "m1", role: "assistant", parts } as AgriChatMessage;
 }
 
 const toolResult = { type: "tool-sprayWindow", toolCallId: "c1", state: "output-available", input: {}, output: {} };

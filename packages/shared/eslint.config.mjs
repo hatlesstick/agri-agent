@@ -18,10 +18,11 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ["next", "next/*", "react", "react-dom", "@nestjs/*", "ai", "ai/*", "@ai-sdk/*", "@agri/*"],
+              group: ["next", "next/*", "react", "react-dom", "@nestjs/*", "ai/*", "@ai-sdk/*", "@agri/*"],
               message: "@agri/shared is cross-cutting: no frameworks, no AI SDK, no other workspace package.",
             },
           ],
+          paths: [{ name: "ai", allowTypeImports: true, message: "@agri/shared may import only types from ai." }],
         },
       ],
     },

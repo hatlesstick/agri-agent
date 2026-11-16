@@ -2,7 +2,7 @@ import { isStepCount, streamText } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockChatModel } from "@/mock/model";
 import { MOCK_TOOL_MATCHERS } from "@/mock/tool-matchers";
-import { sprayWindowInputSchema, sprayWindowOutputSchema } from "@/tools/spray-window/schemas";
+import { sprayWindowInputSchema, sprayWindowOutputSchema } from "@agri/shared/contracts";
 import { createSprayWindowTool, sprayWindow } from "@/tools/spray-window/tool";
 import { assessSprayDay } from "@/spray-window/assess-spray-day";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";

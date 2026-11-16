@@ -1,7 +1,7 @@
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 
-export type ChatMessageProps = { message: AgriAgentUIMessage; isComplete: boolean };
+export type ChatMessageProps = { message: AgriChatMessage; isComplete: boolean };
 
-export type UserMessageProps = { message: AgriAgentUIMessage };
+export type UserMessageProps = { message: AgriChatMessage };
 
-export type AssistantMessageProps = { message: AgriAgentUIMessage; isComplete: boolean };
+export type AssistantMessageProps = { message: AgriChatMessage; isComplete: boolean };

@@ -2,7 +2,7 @@ import { isStepCount, streamText } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockChatModel } from "@/mock/model";
 import { MOCK_TOOL_MATCHERS } from "@/mock/tool-matchers";
-import { getWeatherInputSchema, getWeatherOutputSchema } from "@/tools/get-weather/schemas";
+import { getWeatherInputSchema, getWeatherOutputSchema } from "@agri/shared/contracts";
 import { createGetWeatherTool, getWeather, WEATHER_HOURS_FOR_MODEL } from "@/tools/get-weather/tool";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";

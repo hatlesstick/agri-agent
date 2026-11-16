@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sprayOutlook } from "@/tools/spray-outlook/tool";
-import { sprayOutlookOutputSchema } from "@/tools/spray-outlook/schemas";
+import { sprayOutlookOutputSchema } from "@agri/shared/contracts";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";

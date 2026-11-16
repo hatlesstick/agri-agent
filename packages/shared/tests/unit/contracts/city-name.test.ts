@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { cityNameSchema } from "@/tools/shared/schemas";
+import { cityNameSchema } from "@/contracts/tools/shared";
 
 describe("cityNameSchema", () => {
   it.each(["Lyon", "Kraków", "Saint-Étienne", "Bad Tölz", "L'Aquila", "Łódź", "Đà Nẵng", "Zürich"])("accepts the Latin-script name %s", (name) => {

@@ -7,7 +7,7 @@ import {
   sprayOutlookOutputSchema,
   type SprayOutlookInput,
   type SprayOutlookOutput,
-} from "@/tools/spray-outlook/schemas";
+} from "@agri/shared/contracts";
 import { currentLocalHour, todayIn } from "@agri/shared";
 import { assessSprayDay } from "@/spray-window/assess-spray-day";
 import { isWeatherError } from "@/weather/weather.types";

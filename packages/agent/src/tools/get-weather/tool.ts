@@ -5,7 +5,7 @@ import {
   getWeatherOutputSchema,
   type GetWeatherInput,
   type GetWeatherOutput,
-} from "@/tools/get-weather/schemas";
+} from "@agri/shared/contracts";
 import type { WeatherToolDeps } from "@/tools/shared/deps";
 import { clockContextSchema } from "@/tools/shared/schemas";
 import { currentLocalHour } from "@agri/shared";
