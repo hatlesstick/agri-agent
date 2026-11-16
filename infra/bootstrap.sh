@@ -75,7 +75,7 @@ if [ "$IN_CONTAINER" = "1" ]; then
   log "container mode: services not restarted, firewall not enabled"
 else
   systemctl enable --now docker >/dev/null
-  systemctl reload ssh
+  if systemctl is-active --quiet ssh; then systemctl reload ssh; fi
   ufw --force enable >/dev/null
   systemctl enable --now unattended-upgrades >/dev/null
 fi
