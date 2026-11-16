@@ -1,13 +1,14 @@
 import { tool } from "ai";
+import type { WeatherPort } from "@/ports";
 import {
   getWeatherInputSchema,
   getWeatherOutputSchema,
   type GetWeatherInput,
   type GetWeatherOutput,
 } from "@/tools/get-weather/schemas";
+import type { WeatherToolDeps } from "@/tools/shared/deps";
 import { clockContextSchema } from "@/tools/shared/schemas";
 import { currentLocalHour } from "@agri/shared";
-import { weatherRepository } from "@/weather/WeatherRepository";
 import { isWeatherError, type HourlyPoint } from "@/weather/weather.types";
 
 export const WEATHER_HOURS_FOR_MODEL = 48;
@@ -27,8 +28,8 @@ function roundPoint(point: HourlyPoint): HourlyPoint {
   };
 }
 
-export async function getWeather(input: GetWeatherInput, now: Date = new Date()): Promise<GetWeatherOutput> {
-  const forecast = await weatherRepository.getForecast(input.city);
+export async function getWeather(input: GetWeatherInput, { weather, now = new Date() }: WeatherToolDeps): Promise<GetWeatherOutput> {
+  const forecast = await weather.getForecast(input.city);
   if (isWeatherError(forecast)) return getWeatherOutputSchema.parse(forecast);
 
   const fromHour = currentLocalHour(forecast.timezone, now);
@@ -48,11 +49,13 @@ export async function getWeather(input: GetWeatherInput, now: Date = new Date())
   });
 }
 
-export const getWeatherTool = tool({
-  description:
-    "Get the hourly weather forecast (next 48 hours, city-local time) for a city: temperature °C, wind m/s, precipitation mm, precipitation probability %, relative humidity %.",
-  inputSchema: getWeatherInputSchema,
-  outputSchema: getWeatherOutputSchema,
-  contextSchema: clockContextSchema,
-  execute: (input, { context }) => getWeather(input, context.now),
-});
+export function createGetWeatherTool(weather: WeatherPort) {
+  return tool({
+    description:
+      "Get the hourly weather forecast (next 48 hours, city-local time) for a city: temperature °C, wind m/s, precipitation mm, precipitation probability %, relative humidity %.",
+    inputSchema: getWeatherInputSchema,
+    outputSchema: getWeatherOutputSchema,
+    contextSchema: clockContextSchema,
+    execute: (input, { context }) => getWeather(input, { weather, now: context.now }),
+  });
+}

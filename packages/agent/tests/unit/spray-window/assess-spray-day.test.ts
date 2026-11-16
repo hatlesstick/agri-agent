@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sprayWindowService } from "@/spray-window/SprayWindowService";
-import type { AssessmentOptions, SprayAssessment, SprayThresholds } from "@/spray-window/SprayWindowService.types";
+import { assessSprayDay } from "@/spray-window/assess-spray-day";
+import type { AssessmentOptions, SprayAssessment, SprayThresholds } from "@/spray-window/spray-window.types";
 import type { HourlyPoint } from "@/weather/weather.types";
 
 const DAYS = ["2026-11-11", "2026-11-12", "2026-11-13"];
@@ -32,9 +32,9 @@ function isSuitable(assessment: SprayAssessment, time: string): boolean {
 }
 
 const assessSprayWindows = (hourly: HourlyPoint[], date: string, thresholds: Partial<SprayThresholds> = {}, options: AssessmentOptions = {}) =>
-  sprayWindowService.assess({ hourly, date, thresholds, options });
+  assessSprayDay({ hourly, date, thresholds, options });
 
-describe("SprayWindowService.assess", () => {
+describe("assessSprayDay", () => {
   it("all-calm middle day yields one 24 h window from T00:00 to next day T00:00", () => {
     const assessment = assessSprayWindows(makeHours(), MIDDLE_DAY);
     expect(assessment.windows).toEqual([{ from: "2026-11-12T00:00", to: "2026-11-13T00:00", hours: 24 }]);

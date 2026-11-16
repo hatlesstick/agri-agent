@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { flushAgentTelemetry, registerAgentTelemetry, runSprayCheck } from "@/index";
+import { defaultAgentPorts, flushAgentTelemetry, registerAgentTelemetry, runSprayCheck } from "@/index";
 import { CHAT_MODEL, chatModel, isMockMode } from "@/model";
 import { weatherRepository } from "@/weather/WeatherRepository";
 import {
@@ -32,6 +32,7 @@ function createTaskRunner(modelId: string): TaskRunner {
     try {
       const outcome = await runSprayCheck({
         question,
+        ports: defaultAgentPorts(),
         model,
         now: new Date(now),
         maxRetries: RETRIES_PER_CALL,

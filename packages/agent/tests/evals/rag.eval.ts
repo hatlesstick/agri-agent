@@ -2,7 +2,8 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { printEvalReport, recordEval } from "@tests/evals/report";
 import { MOCK } from "@tests/evals/harness";
 import { docsRepository } from "@/docs/DocsRepository";
-import { REAL_MIN_SCORE, resetSearchIndexCache, searchDocs } from "@/rag/search";
+import { jsonRagEngine } from "@/rag/JsonRagEngine";
+import { REAL_MIN_SCORE, searchDocs } from "@/rag/search";
 import { cosineSimilarity, embed } from "ai";
 import { existsSync, readFileSync } from "node:fs";
 import { EMBEDDING_MODEL } from "@/model";
@@ -30,7 +31,7 @@ export const RETRIEVAL_CASES: Array<{ question: string; expectedId: string }> = 
 export const OFF_CORPUS_QUESTIONS = ["What is the price of glyphosate in France?", "Who won the football match yesterday?", "How do I bake bread?"];
 
 describe(SUITE, () => {
-  beforeEach(() => resetSearchIndexCache());
+  beforeEach(() => jsonRagEngine.reset());
   afterAll(() => printEvalReport(SUITE));
 
   it("chunks every corpus document by section with its source", () => {
@@ -83,7 +84,7 @@ describe(SUITE, () => {
     let found = 0;
     const misses: string[] = [];
     for (const testCase of RETRIEVAL_CASES) {
-      const hits = (await searchDocs(testCase.question)) ?? [];
+      const hits = (await searchDocs(jsonRagEngine, testCase.question)) ?? [];
       if (hits.some((hit) => hit.id === testCase.expectedId)) found += 1;
       else misses.push(testCase.expectedId);
     }

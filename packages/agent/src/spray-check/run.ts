@@ -1,6 +1,7 @@
 import { NoObjectGeneratedError, NoOutputGeneratedError, type LanguageModel } from "ai";
 import { createSprayCheckAgent } from "@/agent";
 import { AGENT_TIMEOUT_MS } from "@/model";
+import type { AgentPorts } from "@/ports";
 import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/spray-check/reconcile";
 import type { SprayCheckOutcome, SprayCheckTrace } from "@/spray-check/schemas";
 
@@ -8,6 +9,7 @@ const MAX_ATTEMPTS = 2;
 
 export type SprayCheckInput = {
   question: string;
+  ports: AgentPorts;
   model?: LanguageModel;
   now?: Date;
   maxRetries?: number;
@@ -28,6 +30,7 @@ function traceOf({ steps, inputTokens, outputTokens, toolCalls }: Collected): Sp
 
 export async function runSprayCheck({
   question,
+  ports,
   model,
   now = new Date(),
   maxRetries,
@@ -41,6 +44,7 @@ export async function runSprayCheck({
     const current = emptyCollected();
     try {
       const agent = createSprayCheckAgent({
+        ports,
         model,
         maxRetries,
         telemetryFunctionId: `${telemetryFunctionId}${attempt > 1 ? `:retry${attempt - 1}` : ""}`,

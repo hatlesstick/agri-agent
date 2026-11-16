@@ -74,7 +74,7 @@ describe(SUITE, () => {
 
   it.each(SPRAY_CASES)("sprayWindow: $id", async ({ id, scenario, input, expected }) => {
     stubWeatherScenario(scenario);
-    const output = await sprayWindow(input, EVAL_NOW);
+    const output = await sprayWindow(input, { weather: weatherRepository, now: EVAL_NOW });
     const failures: string[] = [];
     if (!sprayWindowOutputSchema.safeParse(output).success) failures.push("output schema");
     for (const [key, value] of Object.entries(expected)) {
@@ -86,7 +86,7 @@ describe(SUITE, () => {
 
   it("sprayOutlook: one call covers every remaining forecast day", async () => {
     stubWeatherScenario("windy");
-    const output = await sprayOutlook({ city: "Lyon" }, EVAL_NOW);
+    const output = await sprayOutlook({ city: "Lyon" }, { weather: weatherRepository, now: EVAL_NOW });
     const failures: string[] = [];
     if ("error" in output) failures.push(output.error);
     else {
@@ -100,7 +100,7 @@ describe(SUITE, () => {
 
   it("getWeather: 48 city-local hours starting at the current hour", async () => {
     stubWeatherScenario("calm");
-    const output = await getWeather({ city: "Lyon" }, EVAL_NOW);
+    const output = await getWeather({ city: "Lyon" }, { weather: weatherRepository, now: EVAL_NOW });
     const failures: string[] = [];
     if ("error" in output) failures.push(output.error);
     else {

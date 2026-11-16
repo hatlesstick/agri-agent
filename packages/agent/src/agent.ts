@@ -3,7 +3,8 @@ import { z } from "zod";
 import { buildInstructions, STRUCTURED_OUTPUT_INSTRUCTIONS } from "@/instructions";
 import { chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/model";
 import { sprayCheckSchema } from "@/spray-check/schemas";
-import { agentTools, agentToolsContext } from "@/tools";
+import type { AgentPorts } from "@/ports";
+import { agentToolsContext, createAgentTools } from "@/tools";
 
 export const agentCallOptionsSchema = z.object({
   now: z.date(),
@@ -12,15 +13,16 @@ export const agentCallOptionsSchema = z.object({
 export type AgentCallOptions = z.infer<typeof agentCallOptionsSchema>;
 
 export type AgentFactoryOptions = {
+  ports: AgentPorts;
   model?: LanguageModel;
   maxRetries?: number;
   telemetryFunctionId?: string;
 };
 
-export function createAgriAgent({ model = chatModel(), maxRetries, telemetryFunctionId = "chat" }: AgentFactoryOptions = {}) {
+export function createAgriAgent({ ports, model = chatModel(), maxRetries, telemetryFunctionId = "chat" }: AgentFactoryOptions) {
   return new ToolLoopAgent({
     model,
-    tools: agentTools,
+    tools: createAgentTools(ports),
     toolsContext: agentToolsContext(),
     callOptionsSchema: agentCallOptionsSchema,
     prepareCall: ({ options, ...settings }) => ({
@@ -36,13 +38,14 @@ export function createAgriAgent({ model = chatModel(), maxRetries, telemetryFunc
 }
 
 export function createSprayCheckAgent({
+  ports,
   model = chatModel(),
   maxRetries,
   telemetryFunctionId = "spray-check",
-}: AgentFactoryOptions = {}) {
+}: AgentFactoryOptions) {
   return new ToolLoopAgent({
     model,
-    tools: agentTools,
+    tools: createAgentTools(ports),
     toolsContext: agentToolsContext(),
     callOptionsSchema: agentCallOptionsSchema,
     prepareCall: ({ options, ...settings }) => ({

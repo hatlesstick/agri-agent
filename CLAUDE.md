@@ -24,7 +24,7 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 ## Core principle: code decides, the model explains
 - `canSpray` and `bestWindow` are computed by a **deterministic function** using the rules below.
 - The model **never recomputes or overrides** that decision: it picks which tools to call and phrases `reason` in human language.
-- **Large data never flows through the model.** The model passes only short parameters (`city`, `date`) to tools; tools fetch hourly data themselves through `WeatherRepository`.
+- **Large data never flows through the model.** The model passes only short parameters (`city`, `date`) to tools; tools fetch hourly data themselves through the `WeatherPort` (default adapter: `WeatherRepository`).
 - If the model and the rules disagree, the code wins.
 
 ## Architecture
@@ -34,14 +34,16 @@ pnpm + Turborepo monorepo. Packages are built to `dist` with tsup (ESM + `.d.ts`
                          │
                          ▼  /api/chat, /api/spray-check
                     server/controllers ─▶ server/services ─▶ @agri/agent (ToolLoopAgent: model, prompt, tools)
-                                                                 │ tools
-                                                                 ▼
-                                              weather/ (Open-Meteo + cache), docs/ (RAG corpus), spray-window/ (rules)
+                         │ agentPorts = defaultAgentPorts()             │ tools take ports
+                         └──────────────────────────────────▶ ports: WeatherPort, RagEngine
+                                                                         ▼ default adapters
+                                              weather/ WeatherRepository (Open-Meteo + cache), rag/ JsonRagEngine (JSON index)
+                                              spray-window/ assessSprayDay (rules, pure function)
  @agri/shared: chat limits, time helpers, server env schema, test support (used by web and agent)
 ```
 - **Frontend** (`apps/web/src/app`, `apps/web/src/ui`): renders the chat, never contains business rules.
 - **Backend API** (`apps/web/src/server`): controllers handle HTTP, services orchestrate the agent. Moves to a separate NestJS API in Stage 2.0b.
-- **Agent** (`packages/agent`, `@agri/agent`): framework-free core — model, prompt, tools, model guardrails, RAG, spray rules, weather client, evals — behind `packages/agent/src/index.ts`. Tools are thin wrappers over `weather/`, `docs/` and `spray-window/`.
+- **Agent** (`packages/agent`, `@agri/agent`): framework-free core — model, prompt, tools, model guardrails, RAG, spray rules, weather client, evals — behind `packages/agent/src/index.ts`. Tools are thin wrappers built by factories from ports (`createAgentTools(ports)`); they never import concrete adapters. `createAgriAgent`, `createSprayCheckAgent` and `runSprayCheck` require `ports`; the app wires `defaultAgentPorts()` once (`apps/web/src/server/services/agent-ports.ts`), so other adapters (NestJS DI, pgvector) plug in without touching tools.
 - **Shared** (`packages/shared`, `@agri/shared`): no framework, no AI SDK, no other workspace package.
 - **Channels** (web chat today, Telegram later) only pass messages to the agent and format the response.
 
@@ -54,9 +56,9 @@ pnpm + Turborepo monorepo. Packages are built to `dist` with tsup (ESM + `.d.ts`
 
 ### `sprayWindow`
 - Input: `{ city: string, date: string }` (`date` is `"YYYY-MM-DD"`, the city's local date).
-- Fetches weather itself via `WeatherRepository` (cached → no repeated Open-Meteo request).
+- Fetches weather itself via the `WeatherPort` (default `WeatherRepository`, cached → no repeated Open-Meteo request).
 - Output: `{ canSpray, bestWindow: { from, to } | null, windows: [...], rejectedReasons }`.
-- Rules live in `SprayWindowService.assess` (`packages/agent/src/spray-window`); thresholds are **parameters with defaults**:
+- Rules live in the pure function `assessSprayDay` (`packages/agent/src/spray-window/assess-spray-day.ts`); thresholds are **parameters with defaults**:
   - wind 1–4 m/s (lower bound: dead calm risks temperature inversion and drift);
   - no precipitation 3 h before and 3 h after the spraying hour (Open-Meteo `precipitation` at hour T is the sum of the preceding hour, so the check spans values from index i-2 to i+4);
   - hours that have already passed in the city are never offered;
@@ -180,7 +182,7 @@ apps/web/tests/
   evals/server/, evals/ui/      deterministic HTTP and UI evals
   support/                      setup files (offline guard from @agri/shared/testing)
 packages/agent/tests/
-  unit/<same path as src>/…     e.g. tests/unit/spray-window/SprayWindowService.test.ts
+  unit/<same path as src>/…     e.g. tests/unit/spray-window/assess-spray-day.test.ts
   evals/                        suites (*.eval.ts), harness, report, scores, tags, summary, setup, baselines/; shared case data (spray-check-cases, weather-fixtures) and experiment logic used by both evals and Langfuse scripts
   fixtures/                     shared JSON fixtures (weather/)
 packages/shared/tests/unit/     env schema, time helpers, test-support helpers
@@ -195,14 +197,14 @@ packages/shared/tests/unit/     env schema, time helpers, test-support helpers
 - **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does". Clarity comes from names and small functions; decisions are explained in chat. Exception: only when a comment is explicitly requested.
 - **Naming:**
   - React components: PascalCase folder and file (`ui/atoms/Button/Button.tsx`), one component per file.
-  - Classes (services, repositories, controllers, clients): PascalCase file named after the class (`SprayWindowService.ts`).
+  - Classes (services, repositories, controllers, clients): PascalCase file named after the class (`WeatherRepository.ts`).
   - Hooks: camelCase starting with `use` (`ui/hooks/useAgentChat.ts`).
   - Everything else (helpers, schemas, guardrails, tools): kebab-case (`agent-activity.ts`, `chat-message.schema.ts`).
 - **Types:** a component's props live in `<Component>.types.ts` next to it; a class's input/output types live in `<ClassName>.types.ts`. Shared domain types live with their owner (e.g. `packages/agent/src/weather/weather.types.ts`). Prefer `type` over `interface`.
 - **Components:** declared as `export const Name: React.FC<NameProps> = (…) => …` with `import type React from "react"`; named exports only (Next.js `page.tsx`/`layout.tsx` keep their default export). Each component folder has an `index.ts` re-export, so imports look like `@/ui/atoms/Button`. Inside a component folder use relative imports (`./Button.types`); across folders use `@/…`.
 - **Components only render.** State, effects and side effects go into custom hooks (`ui/hooks/`); pure computations and formatting go into `ui/helpers/`. A component may call one hook and pass data down.
 - **Forms:** `react-hook-form` + `zod` via `@hookform/resolvers/zod`. The schema lives in `ui/schemas/<name>.schema.ts` and exports both the schema and `z.infer` type; the form logic lives in a hook (`useXForm`) that returns registered fields, `onSubmit`, validity and errors. Limits shared with the server come from `@agri/shared` (e.g. `CHAT_LIMITS`), never duplicated.
-- **Backend classes:** services, repositories, controllers and clients are classes with dependencies passed through the constructor and a default singleton exported next to the class (`export const sprayWindowService = new SprayWindowService()`). Controllers expose `handle` as an arrow property so routes can do `export const POST = chatController.handle`. Module-private helpers stay plain functions in the same file.
+- **Backend classes:** services, repositories, controllers and clients are classes with dependencies passed through the constructor and a default singleton exported next to the class (`export const weatherRepository = new WeatherRepository()`). Deterministic business rules without dependencies may be pure functions (`assessSprayDay`). Ports are `type`s in `packages/agent/src/ports.ts`; adapters are classes implementing them. Controllers expose `handle` as an arrow property so routes can do `export const POST = chatController.handle`. Module-private helpers stay plain functions in the same file.
 - Errors from external services are returned as data (`{ error: "city_not_found" }`) at the repository/tool boundary; HTTP status mapping happens only in controllers and `server/helpers`.
 
 ## Commands
@@ -232,22 +234,24 @@ apps/web/                           Next.js app (@agri/web)
     hooks/ helpers/ schemas/        stateful logic, pure UI logic, form schemas
   src/server/                       HTTP backend (moves to apps/api in Stage 2.0b)
     controllers/<feature>/          HTTP in/out only: rate limit, body, request validation, status codes → service
-    services/<feature>/             ChatService, SprayCheckService (call @agri/agent)
+    services/<feature>/             ChatService, SprayCheckService (call @agri/agent); agent-ports.ts wires defaultAgentPorts()
     guardrails/                     chat-request (body size, message schema, history sanitising), rate-limit
     helpers/                        http-responses, agent-errors, refusal-stream
   src/instrumentation.ts            registers agent telemetry
   next.config.ts                    AGRI_DATA_DIR for the bundled agent, file tracing of packages/agent/data
 packages/agent/                     framework-free agent (@agri/agent)
   src/index.ts                      public API used by apps (and later Telegram, MCP)
+  src/ports.ts                      WeatherPort, RagEngine, AgentPorts
+  src/default-ports.ts              defaultAgentPorts(): shared WeatherRepository + JsonRagEngine
   src/agent.ts, model.ts, instructions.ts, telemetry.ts, paths.ts (DATA_DIR)
-  src/tools/<tool-name>/            tool.ts + schemas.ts; registry in tools/index.ts
+  src/tools/<tool-name>/            tool.ts (pure function + create<Name>Tool(port)) + schemas.ts; createAgentTools(ports) in tools/index.ts
   src/guardrails/                   input screen, label reminder, tool_code leak middleware
-  src/rag/                          searchDocs retrieval: search.ts, rank.ts
+  src/rag/                          search.ts (sort + threshold + top-k over any RagEngine), JsonRagEngine.ts (JSON index adapter), rank.ts
   src/spray-check/                  structured run + reconcile
   src/mock/                         scripted mock model, tool matchers, mock embeddings
   src/weather/                      WeatherRepository, OpenMeteoClient, response schemas, weather.types
   src/docs/                         DocsRepository, chunk-markdown, docs.types
-  src/spray-window/                 SprayWindowService (spray rules)
+  src/spray-window/                 assessSprayDay (spray rules), spray-window.types
   data/docs/, data/index.json       RAG corpus and index
   scripts/                          build-index, eval-summary, compare-models, promote-eval-baseline, langfuse-*
 packages/shared/                    @agri/shared
@@ -261,9 +265,9 @@ packages/shared/                    @agri/shared
 - New screen → `apps/web/src/ui/pages/<Name>` (+ template if the layout is new); new UI piece → the lowest atomic level that fits.
 - State, effects, data fetching in the UI → a hook in `ui/hooks/`; formatting and derived values → `ui/helpers/`; form validation → `ui/schemas/` + a `useXForm` hook.
 - New API endpoint → `app/api/<name>/route.ts` (one line) + `server/controllers/<name>/` + `server/services/<name>/` in `apps/web` (until Stage 2.0b).
-- Business rule (e.g. spraying thresholds, Delta T) → a class in `packages/agent/src/<feature>/` (today `spray-window/`).
-- New data source (API, files) → a repository class in `packages/agent/src/<source>/` with its types and response schemas.
-- New agent capability → `packages/agent/src/tools/<name>/` (`tool.ts`, `schemas.ts`) + one line in `tools/index.ts`; the tool calls rules/repositories and contains no business rules itself.
+- Business rule (e.g. spraying thresholds, Delta T) → a pure function in `packages/agent/src/<feature>/` (today `spray-window/assess-spray-day.ts`).
+- New data source (API, files, database) → a port `type` in `packages/agent/src/ports.ts` + an adapter class (in the agent package if framework-free, otherwise in the app); tools take the port, the app wires the adapter.
+- New agent capability → `packages/agent/src/tools/<name>/` (`tool.ts`, `schemas.ts`) + one line in `createAgentTools` (`tools/index.ts`); the tool calls rules and ports (never concrete adapters) and contains no business rules itself.
 - Code needed by more than one workspace and free of frameworks → `packages/shared`.
 - A new channel (Telegram) → its own controllers/services that call `@agri/agent`; nothing in `packages/agent` changes.
 
@@ -272,6 +276,7 @@ packages/shared/                    @agri/shared
 - `packages/agent/src` imports no Next.js, React, Nest or `@agri/web`, and not `@agri/shared/testing`.
 - `packages/agent/src/weather`, `src/docs` → `@agri/shared` and each other only; no AI SDK, agent modules or rules.
 - `packages/agent/src/spray-window` → `weather/` and `@agri/shared`; no AI SDK or agent modules.
+- `packages/agent/src/tools` → never concrete adapters or the package entry: `WeatherRepository`, `OpenMeteoClient`, `DocsRepository`, `JsonRagEngine`, `default-ports`, `index` (also via relative paths); data comes only through the ports passed to the tool factories.
 - `apps/web`: other workspaces only through `@agri/agent`, `@agri/shared` and `@agri/shared/server-env` (server code only); no deep imports.
 - `server/services` → guardrails, helpers, `@agri/shared`, `@agri/agent`; never controllers or frameworks.
 - `server/controllers` → services, guardrails, helpers, `@agri/agent`, Next.js (`after`).

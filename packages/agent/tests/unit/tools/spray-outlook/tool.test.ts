@@ -5,6 +5,7 @@ import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
 import { weatherRepository } from "@/weather/WeatherRepository";
+import { fakeWeather } from "@tests/support/fake-ports";
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 
@@ -18,7 +19,7 @@ describe("sprayOutlook", () => {
 
   it("returns one schema-valid entry per remaining forecast day", async () => {
     stubOpenMeteo();
-    const output = await sprayOutlook({ city: "Lyon" }, new Date("2026-11-11T08:30:00Z"));
+    const output = await sprayOutlook({ city: "Lyon" }, { weather: weatherRepository, now: new Date("2026-11-11T08:30:00Z") });
     expect(sprayOutlookOutputSchema.safeParse(output).success).toBe(true);
     if ("error" in output) throw new Error(output.error);
     expect(output.days.map((day) => day.date)).toEqual(["2026-11-11", "2026-11-12", "2026-11-13"]);
@@ -27,14 +28,14 @@ describe("sprayOutlook", () => {
 
   it("skips days that are already in the past in the city's time zone", async () => {
     stubOpenMeteo();
-    const output = await sprayOutlook({ city: "Lyon" }, new Date("2026-11-12T10:00:00Z"));
+    const output = await sprayOutlook({ city: "Lyon" }, { weather: weatherRepository, now: new Date("2026-11-12T10:00:00Z") });
     if ("error" in output) throw new Error(output.error);
     expect(output.days.map((day) => day.date)).toEqual(["2026-11-12", "2026-11-13"]);
   });
 
   it("ignores hours that have already passed on the first day", async () => {
     stubOpenMeteo();
-    const output = await sprayOutlook({ city: "Lyon" }, new Date("2026-11-11T18:30:00Z"));
+    const output = await sprayOutlook({ city: "Lyon" }, { weather: weatherRepository, now: new Date("2026-11-11T18:30:00Z") });
     if ("error" in output) throw new Error(output.error);
     const today = output.days[0];
     expect(today.date).toBe("2026-11-11");
@@ -44,6 +45,19 @@ describe("sprayOutlook", () => {
 
   it("propagates city_not_found", async () => {
     stubOpenMeteo(geocodingEmpty);
-    expect(await sprayOutlook({ city: "Xyzzyqwv" }, new Date("2026-11-11T08:30:00Z"))).toEqual({ error: "city_not_found" });
+    expect(await sprayOutlook({ city: "Xyzzyqwv" }, { weather: weatherRepository, now: new Date("2026-11-11T08:30:00Z") })).toEqual({ error: "city_not_found" });
+  });
+});
+
+describe("injected weather port", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads the forecast from the injected weather port", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new Error("fetch must not be called");
+    }));
+    const weather = fakeWeather({ error: "city_not_found" });
+    expect(await sprayOutlook({ city: "Atlantis" }, { weather, now: new Date("2026-11-11T08:30:00Z") })).toEqual({ error: "city_not_found" });
+    expect(weather.calls).toEqual(["Atlantis"]);
   });
 });
