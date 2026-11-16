@@ -1,0 +1,21 @@
+{$API_SITE_ADDRESS} {
+	header -Server
+
+	reverse_proxy api:4000 {
+		flush_interval -1
+	}
+
+	log {
+		output stdout
+		format filter {
+			request>headers>X-Proxy-Auth delete
+			request>headers>Authorization delete
+			request>headers>Cookie delete
+			request>remote_ip ip_mask 16 32
+			request>client_ip ip_mask 16 32
+			request>headers>X-Client-Ip delete
+			request>headers>X-Forwarded-For delete
+			wrap json
+		}
+	}
+}

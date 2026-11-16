@@ -60,7 +60,7 @@ docker compose --profile cache up         # plus Redis on 127.0.0.1:6379 (reserv
 
 All commands run from the repo root; Turborepo builds `@agri/shared` before the apps. One workspace only: `pnpm --filter @agri/api <script>`.
 
-Vercel (web only): Root Directory `apps/web`, install `pnpm install`, build `cd ../.. && pnpm turbo run build --filter=@agri/web`, env `API_ORIGIN` (read at build time by the rewrites) and `PROXY_AUTH_SECRET`. Until the API is deployed (Stage 2.2) the deployed web has no backend.
+Vercel (web only): Root Directory `apps/web`, install `pnpm install`, build `cd ../.. && pnpm turbo run build --filter=@agri/web`, env `API_ORIGIN` (read at build time by the rewrites) and `PROXY_AUTH_SECRET`. The API runs on a VPS behind Caddy and deploys automatically from `main`; see [docs/deploy.md](docs/deploy.md).
 
 | Variable (`apps/api`) | Purpose |
 |---|---|

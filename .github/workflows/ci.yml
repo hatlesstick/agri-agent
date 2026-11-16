@@ -128,6 +128,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  production-smoke:
+    name: Production stack smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Shell scripts are clean
+        run: shellcheck -x infra/deploy.sh infra/bootstrap.sh infra/smoke/*.sh
+      - name: Caddy, API and Postgres from the production Compose file
+        run: infra/smoke/run.sh
+      - name: Deploy, failed migration, failed readiness and rollback
+        run: SMOKE_SKIP_BUILD=1 infra/smoke/deploy-test.sh
+      - name: Server bootstrap on a clean Ubuntu 24.04 container
+        run: infra/smoke/bootstrap-test.sh
+      - name: Workflows are valid
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -no-color
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest

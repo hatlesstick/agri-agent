@@ -127,5 +127,6 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 ## Containers
 
 - `apps/api/Dockerfile`: multi-stage, `pnpm deploy --prod`, Node 22 slim, non-root, `HEALTHCHECK` on `/health/live`.
-- `docker-compose.yml` (repo root) services: `api`, `db` (`pgvector/pgvector:pg17`; credentials required from the root `.env`), `redis` (profile `cache`, off by default), and in production `caddy` (`docker-compose.prod.yml` override in 2.2). Ports of `db` / `redis` bound to `127.0.0.1` only. Named volumes for data.
+- `docker-compose.yml` (repo root) services: `api`, `db` (`pgvector/pgvector:pg17`; credentials required from the root `.env`), `redis` (profile `cache`, off by default), ports bound to `127.0.0.1` only, named volumes for data.
+- Production (2.2): one VPS (Ubuntu 24.04, bootstrapped by `infra/bootstrap.sh`) running `infra/docker-compose.prod.yml` — `caddy` (automatic HTTPS, the only public entry) → `api` (immutable GHCR image `sha-<7>`) → `db` (no published port). GitHub Actions deploys after green CI on `main` via `infra/deploy.sh`: pre-deploy `pg_dump` snapshot, one-off migration container, switch, readiness check, automatic rollback to the previous tag. Details: `docs/deploy.md`.
 - `docker compose up` runs the API with its dependencies locally; the web app runs with `pnpm --filter @agri/web dev` (or on Vercel) and points `API_ORIGIN` at it.

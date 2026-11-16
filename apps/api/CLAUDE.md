@@ -165,7 +165,9 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 
 ## Containers
 - `Dockerfile`: multi-stage, `pnpm deploy --prod`, Node 22 slim, non-root, `HEALTHCHECK` on `/health/live`, `data/` included.
-- Root `docker-compose.yml`: `api` + `db` (pgvector, from 2.1) + `redis` (profile `cache`); `docker-compose.prod.yml` adds `caddy` (2.2). `api`, `db` and `redis` ports are bound to `127.0.0.1` (Caddy is the only public entry in production).
+- Root `docker-compose.yml` (local): `api` + `db` + `redis` (profile `cache`), ports bound to `127.0.0.1`.
+- Production: `infra/docker-compose.prod.yml` (`caddy` → `api` → `db`; only Caddy publishes 80/443; `TRUSTED_PROXY_HOPS=1`; image `${API_IMAGE}:${API_TAG}` from GHCR), `infra/Caddyfile` (no response buffering, secrets/IPs stripped from access logs), `infra/deploy.sh <tag>` (snapshot → one-off migrate → up → readiness → auto-rollback). Guide: `docs/deploy.md`.
+- `infra/api.env.example` = `apps/api/.env.example` minus Compose-set keys (`NODE_ENV`, `PORT`, `DATABASE_URL`, `TRUSTED_PROXY_HOPS`, `TEST_DATABASE_URL`) — checked by `infra/smoke/run.sh`.
 
 ## Commands
 - `pnpm --filter @agri/api dev | build | start | test | test:db | eval | openapi | db:generate | db:check | db:verify | db:migrate | db:seed`
