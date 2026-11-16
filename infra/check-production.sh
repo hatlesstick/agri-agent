@@ -16,8 +16,8 @@ USAGE
 API="" WEB="" STREAM=0 SKIP_PORTS=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    --api) API="${2:-}"; shift 2 ;;
-    --web) WEB="${2:-}"; shift 2 ;;
+    --api) [ $# -ge 2 ] || usage; API="$2"; shift 2 ;;
+    --web) [ $# -ge 2 ] || usage; WEB="$2"; shift 2 ;;
     --stream) STREAM=1; shift ;;
     --skip-ports) SKIP_PORTS=1; shift ;;
     *) usage ;;

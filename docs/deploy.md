@@ -51,7 +51,8 @@ chmod 600 .env api.env
 
 ## 4. GitHub
 
-- Repository → Settings → Environments → `production`:
+- Repository → Settings → Environments → `production` → **Deployment branches and tags: Selected → `main`** (the workflow also refuses manual runs from other refs). The `deploy` user is in the `docker` group, which is root-equivalent on the host: a leaked CI key or a deploy from an unreviewed branch means a host compromise.
+- Same environment:
   - secrets `DEPLOY_HOST` (IP), `DEPLOY_USER` (`deploy`), `DEPLOY_SSH_KEY` (contents of `~/.ssh/agri-deploy-ci`), `DEPLOY_SSH_KNOWN_HOSTS` (the `ssh-keyscan` line);
   - variable `API_DOMAIN` (`api.<domain>`).
 - After the first image push: GitHub → Packages → `agri-api` → Package settings → visibility **Public** (the server pulls without credentials; the image contains no secrets).
@@ -64,7 +65,9 @@ chmod 600 .env api.env
 ## Deploying
 
 - Automatic: every green CI run on `main` triggers the **Deploy** workflow (build → push → `deploy.sh sha-<7>` → public readiness check). Deploys are serialized.
-- `deploy.sh <tag>`: refuses an unknown tag before touching anything → snapshot (`pg_dump -Fc`) → one-off migration container from the new image (a failed migration leaves the running API untouched) → `up -d` → readiness check through the container → on success records the tag; on failure starts the previous tag again and exits non-zero.
+- Deploys and manual rollbacks share one concurrency slot; GitHub keeps only one queued run, so a queued rollback can be replaced by a newer automatic deploy (and vice versa) — re-run it after the running one finishes.
+- The full log of the last run is `/opt/agri-agent/state/deploy.log`; the script ignores a dropped SSH session (it keeps going and still rolls back), so check that log when the workflow lost its connection.
+- `deploy.sh <tag>`: refuses an unknown tag or an invalid changed `Caddyfile` before touching anything → snapshot (`pg_dump -Fc`) → one-off migration container from the new image (a failed migration leaves the running API untouched) → `up -d` → readiness check through the container → on success records the tag; on failure starts the previous tag again and exits non-zero.
 
 ## Rollback
 
@@ -72,8 +75,14 @@ chmod 600 .env api.env
 - Or on the server: `/opt/agri-agent/deploy.sh "$(cat /opt/agri-agent/state/previous-tag)"`.
 - Migrations are forward-only; a rollback runs the old image against the new schema, which expand/contract migrations keep compatible. To undo data changes, restore the pre-deploy snapshot:
   ```bash
+  docker compose -f docker-compose.prod.yml stop api
   docker compose -f docker-compose.prod.yml exec -T db sh -c 'pg_restore --clean --if-exists -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < backups/pre-deploy-<timestamp>-<tag>.dump
+  docker compose -f docker-compose.prod.yml start api
   ```
+
+## Swagger
+
+Production serves Swagger UI at `/docs` and `/openapi.json` because `api.env` sets `SWAGGER_ENABLED=1` (developer decision: the same contract is already public in `apps/api/openapi.json`; browser routes still answer 403 without `X-Proxy-Auth`). Remove the line and redeploy to hide it.
 
 ## Checking production
 
@@ -87,6 +96,7 @@ It checks readiness, TLS (≥ 14 days left), HTTP→HTTPS, 403 on browser routes
 
 ## Troubleshooting
 
+- Compose commands need `API_TAG`, which `deploy.sh` writes into `.env` on the first successful deploy.
 - Status and logs: `docker compose -f docker-compose.prod.yml ps`, `… logs --tail 100 api`, `… logs caddy` (access logs drop `X-Proxy-Auth`, cookies and client IPs).
 - Readiness: `curl -fsS https://api.<domain>/health/ready` (`database: "down"` → check `db`).
 - Stale deploy lock after a killed run: `rm -rf /opt/agri-agent/state/deploy.lock`.

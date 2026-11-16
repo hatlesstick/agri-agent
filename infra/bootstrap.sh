@@ -12,7 +12,6 @@ die() { echo "[bootstrap] ERROR: $*" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || die "run as root: ssh ${KEYS_FROM}@<host> 'sudo bash -s' < infra/bootstrap.sh"
 # shellcheck source=/dev/null
-# shellcheck source=/dev/null
 . /etc/os-release
 [ "${ID:-}" = "ubuntu" ] || die "Ubuntu expected, found ${ID:-unknown}"
 SOURCE_KEYS="$(getent passwd "$KEYS_FROM" | cut -d: -f6)/.ssh/authorized_keys"
@@ -36,13 +35,22 @@ log "user $DEPLOY_USER"
 id "$DEPLOY_USER" >/dev/null 2>&1 || useradd --create-home --shell /bin/bash "$DEPLOY_USER"
 usermod -aG docker "$DEPLOY_USER"
 install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "/home/$DEPLOY_USER/.ssh"
-install -m 600 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$SOURCE_KEYS" "/home/$DEPLOY_USER/.ssh/authorized_keys"
+DEPLOY_KEYS="/home/$DEPLOY_USER/.ssh/authorized_keys"
+touch "$DEPLOY_KEYS"
+while IFS= read -r key || [ -n "$key" ]; do
+  [ -n "$key" ] || continue
+  grep -qxF "$key" "$DEPLOY_KEYS" || echo "$key" >> "$DEPLOY_KEYS"
+done < "$SOURCE_KEYS"
+chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_KEYS"
+chmod 600 "$DEPLOY_KEYS"
 
 log "app directory $APP_DIR"
 install -d -m 750 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$APP_DIR"
 install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$APP_DIR/state" "$APP_DIR/backups"
 
 log "ssh: keys only, no root"
+SSHD_BACKUP="$(mktemp -d)"
+cp -a /etc/ssh/sshd_config.d/. "$SSHD_BACKUP/"
 cat > /etc/ssh/sshd_config.d/10-agri-hardening.conf <<'SSHD'
 PasswordAuthentication no
 KbdInteractiveAuthentication no
@@ -55,7 +63,12 @@ for file in /etc/ssh/sshd_config.d/*.conf; do
   sed -i -E 's/^\s*(PasswordAuthentication|KbdInteractiveAuthentication|PermitRootLogin)\s+yes/# &/I' "$file"
 done
 mkdir -p /run/sshd
-sshd -t || die "sshd config is invalid; nothing reloaded"
+if ! sshd -t; then
+  rm -f /etc/ssh/sshd_config.d/*.conf
+  cp -a "$SSHD_BACKUP/." /etc/ssh/sshd_config.d/
+  die "sshd config is invalid; previous drop-ins restored, nothing reloaded"
+fi
+rm -rf "$SSHD_BACKUP"
 
 log "firewall: 22, 80, 443"
 ufw default deny incoming >/dev/null

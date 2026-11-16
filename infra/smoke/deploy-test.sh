@@ -15,7 +15,7 @@ printf 'FROM %s\nRUN echo "process.exit(1)" > dist/migrate.js\n' "$IMAGE:smoke" 
 
 prepare_stack ""
 cp "$ROOT/infra/deploy.sh" "$WORK/"
-deploy() { DEPLOY_SKIP_PULL=1 DEPLOY_READY_TIMEOUT=40 "$WORK/deploy.sh" "$@"; }
+deploy() { DEPLOY_SKIP_PULL=1 DEPLOY_PRUNE_DANGLING=0 DEPLOY_READY_TIMEOUT=40 "$WORK/deploy.sh" "$@"; }
 env_tag() { grep -E '^API_TAG=' "$WORK/.env" | cut -d= -f2; }
 running_image() { docker inspect --format '{{.Config.Image}}' "$(compose ps -q api)"; }
 snapshots() { find "$WORK/backups" -name 'pre-deploy-*' 2>/dev/null | wc -l | tr -d ' '; }
@@ -60,8 +60,39 @@ deploy "$(cat "$WORK/state/previous-tag")" || fail "rollback deploy"
 wait_ready || fail "not ready after rollback deploy"
 pass "rollback to the previous tag is a normal deploy"
 
+{ deploy deploy-b || true; } | true
+[ "$(running_image)" = "$IMAGE:deploy-b" ] || fail "deploy stopped when its output was closed (dropped SSH session)"
+[ "$(env_tag)" = "deploy-b" ] || fail "API_TAG not recorded when output was closed"
+wait_ready || fail "not ready after a deploy with closed output"
+[ "$(cat "$WORK/state/previous-tag")" = "deploy-a" ] || fail "state/previous-tag corrupted by a closed output: $(tr '\n' '|' < "$WORK/state/previous-tag")"
+pass "deploy finishes when its output pipe is closed"
+
+printf '\n(deploy_test_marker) {\n}\n' >> "$WORK/Caddyfile"
+perl -0pi -e 's/header -Server/header -Server\n\theader X-Deploy-Test caddy-reloaded/' "$WORK/Caddyfile"
+docker tag "$IMAGE:smoke" "$IMAGE:deploy-c"
+deploy deploy-c || fail "deploy-c"
+curl -sI "$BASE/health/live" | tr -d '\r' | grep -qi '^x-deploy-test: caddy-reloaded' || fail "Caddyfile change was not applied by deploy"
+pass "deploy reloads a changed Caddyfile"
+
+! docker image inspect "$IMAGE:deploy-a" >/dev/null 2>&1 || fail "image two deploys back (deploy-a) was not pruned"
+docker image inspect "$IMAGE:deploy-b" >/dev/null 2>&1 || fail "previous image (deploy-b) was pruned"
+pass "only current and previous images are kept"
+
+grep -v '^API_TAG=' "$WORK/.env" > "$WORK/.env.tmp" && mv "$WORK/.env.tmp" "$WORK/.env"
+out="$(deploy deploy-c 2>&1)" || fail "deploy without an API_TAG line: $out"
+[ "$(env_tag)" = "deploy-c" ] || fail "API_TAG line not added back"
+pass "missing API_TAG line is handled"
+
+cp "$WORK/Caddyfile" "$WORK/Caddyfile.good"
+printf 'this is not a caddyfile {\n' >> "$WORK/Caddyfile"
+if deploy deploy-b; then fail "invalid Caddyfile deployed"; fi
+[ "$(running_image)" = "$IMAGE:deploy-c" ] || fail "invalid Caddyfile switched the API"
+curl -sI "$BASE/health/live" | tr -d '\r' | grep -qi '^x-deploy-test: caddy-reloaded' || fail "invalid Caddyfile broke the running Caddy"
+mv "$WORK/Caddyfile.good" "$WORK/Caddyfile"
+pass "invalid Caddyfile is rejected before anything changes"
+
 if deploy 'bad tag;rm -rf /'; then fail "invalid tag accepted"; fi
 pass "invalid tag rejected"
 
-docker image rm -f "$IMAGE:deploy-a" "$IMAGE:deploy-b" "$IMAGE:deploy-crashes" "$IMAGE:deploy-bad-migration" >/dev/null 2>&1 || true
+docker image rm -f "$IMAGE:deploy-a" "$IMAGE:deploy-b" "$IMAGE:deploy-c" "$IMAGE:deploy-crashes" "$IMAGE:deploy-bad-migration" >/dev/null 2>&1 || true
 echo "deploy test passed"

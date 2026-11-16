@@ -47,5 +47,10 @@ pass "Caddy access log keeps proxy secrets out"
 pass "check-production passes against the smoke stack"
 if "$ROOT/infra/check-production.sh" --api "http://127.0.0.1:1" --skip-ports >/dev/null 2>&1; then fail "check-production passed against a dead API"; fi
 pass "check-production fails against a dead API"
+"$ROOT/infra/check-production.sh" --api >/dev/null 2>&1 &
+checker=$!
+sleep 3
+if kill -0 "$checker" 2>/dev/null; then kill "$checker"; fail "check-production hangs on an option without a value"; fi
+pass "check-production rejects an option without a value"
 
 echo "smoke passed"

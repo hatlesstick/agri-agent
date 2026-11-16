@@ -24,7 +24,7 @@ jobs:
     name: Build and push API image
     if: >-
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
-      || (github.event_name == 'workflow_dispatch' && inputs.tag == '')
+      || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.tag == '')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -63,7 +63,7 @@ jobs:
     needs: build
     if: >-
       always()
-      && (needs.build.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.tag != ''))
+      && (needs.build.result == 'success' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.tag != ''))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
