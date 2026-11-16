@@ -1,5 +1,6 @@
 import { afterAll, afterEach, describe, it, vi } from "vitest";
-import { agentTools, createAgriAgent } from "@/index";
+import { createAgriAgent, defaultAgentPorts } from "@/index";
+import type { AgentTools } from "@/tools";
 import { evalModel, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@tests/evals/harness";
 import { printEvalReport } from "@tests/evals/report";
 import { EVAL_NOW, EVAL_TOMORROW, stubWeatherScenario, type WeatherScenario } from "@tests/evals/scenarios";
@@ -8,7 +9,7 @@ import { weatherRepository } from "@/weather/WeatherRepository";
 
 const SUITE = "agent evals (tool selection)";
 
-type ExpectedCall = { toolName: keyof typeof agentTools; city?: string; date?: string };
+type ExpectedCall = { toolName: keyof AgentTools; city?: string; date?: string };
 
 type AgentCase = {
   id: string;
@@ -174,7 +175,7 @@ function runOnce(testCase: AgentCase, attempt: number): Promise<RunOutcome> {
   return tracedRun(`eval:${testCase.id}`, { evalCase: testCase.id, run: attempt, scenario: testCase.scenario }, async (traceId) => {
     weatherRepository.clearCache();
     stubWeatherScenario(testCase.scenario);
-    const agent = createAgriAgent({ model: evalModel(), maxRetries: RETRIES_PER_CALL, telemetryFunctionId: `eval:${testCase.id}` });
+    const agent = createAgriAgent({ ports: defaultAgentPorts(), model: evalModel(), maxRetries: RETRIES_PER_CALL, telemetryFunctionId: `eval:${testCase.id}` });
     const result = await agent.generate({
       messages: [...(testCase.history ?? []), { role: "user" as const, content: testCase.prompt }],
       options: { now: EVAL_NOW },

@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runSprayCheck } from "@/spray-check/run";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
-import { weatherRepository } from "@/weather/WeatherRepository";
+import { WeatherRepository, weatherRepository } from "@/weather/WeatherRepository";
+import { fakeRag, fakeWeather } from "@tests/support/fake-ports";
+import { defaultAgentPorts } from "@/default-ports";
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 const USAGE = {
@@ -38,7 +40,24 @@ describe("runSprayCheck", () => {
       question: "Can I spray in Lyon tomorrow?",
       model: modelThatNeverStopsCallingTools(),
       now: new Date("2026-11-11T08:30:00Z"),
+      ports: defaultAgentPorts(),
     });
+    expect(outcome).toMatchObject({ ok: true, reasonSource: "rules", result: { city: "Lyon" } });
+  });
+
+  it("answers from the injected weather port without touching fetch", async () => {
+    const forecast = await new WeatherRepository().getForecast("Lyon");
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new Error("fetch must not be called");
+    }));
+    const weather = fakeWeather(forecast);
+    const outcome = await runSprayCheck({
+      question: "Can I spray in Lyon tomorrow?",
+      model: modelThatNeverStopsCallingTools(),
+      now: new Date("2026-11-11T08:30:00Z"),
+      ports: { weather, rag: fakeRag([]) },
+    });
+    expect(weather.calls).toContain("Lyon");
     expect(outcome).toMatchObject({ ok: true, reasonSource: "rules", result: { city: "Lyon" } });
   });
 });

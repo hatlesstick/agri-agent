@@ -1,4 +1,5 @@
 import { runSprayCheck, screenInput } from "@agri/agent";
+import { agentPorts } from "@/server/services/agent-ports";
 import type { SprayCheckInput, SprayCheckOutcome } from "@/server/services/spray-check/SprayCheckService.types";
 
 export class SprayCheckService {
@@ -8,7 +9,7 @@ export class SprayCheckService {
       console.warn("guardrail: spray-check input blocked", { reason: screen.reason });
       return { ok: false, error: "blocked_input" };
     }
-    return runSprayCheck({ question, abortSignal });
+    return runSprayCheck({ question, abortSignal, ports: agentPorts });
   }
 }
 
