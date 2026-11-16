@@ -12,8 +12,8 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["tests/evals/**/*.eval.ts"],
-    setupFiles: ["tests/support/setup.ts", "tests/evals/setup.ts"],
+    include: ["tests/evals/suites/**/*.eval.ts"],
+    setupFiles: ["tests/support/setup.ts", "tests/evals/support/setup.ts"],
     env: { NODE_ENV: "test", LOG_LEVEL: "silent", ...loadEnv("", process.cwd(), ""), EVAL_RUN_ID: runId },
     testTimeout: 120_000,
     fileParallelism: false,

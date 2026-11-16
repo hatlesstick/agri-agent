@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { DocsRepository } from "@/modules/rag/DocsRepository";
-import { JsonRagEngine } from "@/modules/rag/JsonRagEngine";
+import { DocsRepository } from "@/modules/rag/adapters/DocsRepository";
+import { JsonRagEngine } from "@/modules/rag/adapters/JsonRagEngine";
 import { RAG_ENGINE } from "@/modules/rag/rag.tokens";
 
 @Module({

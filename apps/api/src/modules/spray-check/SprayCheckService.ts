@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AGENT_PORTS, runSprayCheck, screenInput, type AgentPorts } from "@/modules/agent";
 import { CLOCK, type Clock } from "@/common/clock";
-import type { SprayCheckInput, SprayCheckOutcome } from "@/modules/spray-check/SprayCheckService.types";
+import type { SprayCheckInput, SprayCheckOutcome } from "@/modules/spray-check/spray-check.types";
 
 @Injectable()
 export class SprayCheckService {

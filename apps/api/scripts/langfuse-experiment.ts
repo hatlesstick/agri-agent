@@ -12,11 +12,11 @@ import {
   type SprayCheckExperimentOutput,
   type SprayCheckItemInput,
   type SprayCheckItemMetadata,
-} from "@tests/evals/experiment";
-import { requireLangfuseClient } from "@tests/evals/langfuse-client";
-import { promptVersion } from "@tests/evals/prompt-version";
-import type { SprayCheckExpected } from "@tests/evals/spray-check-cases";
-import { scenarioFetch } from "@tests/evals/weather-fixtures";
+} from "@tests/evals/support/experiment";
+import { requireLangfuseClient } from "@tests/evals/support/langfuse-client";
+import { promptVersion } from "@tests/evals/support/prompt-version";
+import type { SprayCheckExpected } from "@tests/evals/support/spray-check-cases";
+import { scenarioFetch } from "@tests/evals/support/weather-fixtures";
 
 const ports = createAgentPorts();
 const weatherRepository = ports.weather;

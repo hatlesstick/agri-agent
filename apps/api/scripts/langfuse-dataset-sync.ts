@@ -1,5 +1,5 @@
-import { SPRAY_CHECK_DATASET, sprayCheckDatasetItems } from "@tests/evals/experiment";
-import { requireLangfuseClient } from "@tests/evals/langfuse-client";
+import { SPRAY_CHECK_DATASET, sprayCheckDatasetItems } from "@tests/evals/support/experiment";
+import { requireLangfuseClient } from "@tests/evals/support/langfuse-client";
 
 const DESCRIPTION = "Spray-check questions with fixed weather scenarios and the rule-based expected decision.";
 

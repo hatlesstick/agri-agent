@@ -1,0 +1,57 @@
+import { afterAll, afterEach, describe, it, vi } from "vitest";
+import { createAgentPorts, runSprayCheck } from "@/modules/agent";
+import { EVAL_TIMEOUT_MS, evalModel, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@tests/evals/support/harness";
+import { printEvalReport } from "@tests/evals/support/report";
+import { EVAL_NOW, stubWeatherScenario } from "@tests/evals/support/scenarios";
+import { decisionFailures, toExperimentOutput } from "@tests/evals/support/experiment";
+import { SPRAY_CHECK_CASES, SPRAY_CHECK_SUITE, type SprayCheckCase } from "@tests/evals/support/spray-check-cases";
+import { recordScores } from "@tests/evals/support/scores";
+import { sprayCheckSchema } from "@/modules/agent/workflows/spray-check/schemas";
+
+const ports = createAgentPorts();
+const weatherRepository = ports.weather;
+
+
+const SUITE = SPRAY_CHECK_SUITE;
+
+function runOnce(testCase: SprayCheckCase, attempt: number): Promise<RunOutcome> {
+  return tracedRun(`eval:spray-check:${testCase.id}`, { evalCase: testCase.id, run: attempt, scenario: testCase.scenario }, async (traceId) => {
+    weatherRepository.clearCache();
+    stubWeatherScenario(testCase.scenario);
+    const outcome = await runSprayCheck({
+      question: testCase.question,
+      ports: ports,
+      model: evalModel(),
+      now: EVAL_NOW,
+      maxRetries: RETRIES_PER_CALL,
+      timeoutMs: EVAL_TIMEOUT_MS,
+      telemetryFunctionId: `eval:spray-check:${testCase.id}`,
+    });
+
+    const failures = decisionFailures(toExperimentOutput(outcome, 0), testCase.expected);
+
+    recordScores(
+      traceId,
+      {
+        eval_passed: failures.length === 0,
+        schema_valid: outcome.ok ? sprayCheckSchema.safeParse(outcome.result).success : null,
+        decision_overridden: outcome.ok ? outcome.overridden : null,
+        reason_from_rules: outcome.ok ? outcome.reasonSource === "rules" : null,
+        steps: outcome.trace.steps,
+      },
+      failures.join("; "),
+    );
+    const metrics = { steps: outcome.trace.steps, inputTokens: outcome.trace.inputTokens, outputTokens: outcome.trace.outputTokens };
+    return failures.length === 0 ? { kind: "passed", metrics } : { kind: "failed", failures, metrics };
+  });
+}
+
+describe(SUITE, () => {
+  afterEach(() => vi.unstubAllGlobals());
+  afterAll(() => printEvalReport(SUITE));
+
+  it.each(SPRAY_CHECK_CASES)("$id", async (testCase) => {
+    if (MOCK && !testCase.runsOnMock) return skipOnMock(SUITE, testCase.id);
+    await evaluateCase(SUITE, testCase.id, (attempt) => runOnce(testCase, attempt));
+  });
+});

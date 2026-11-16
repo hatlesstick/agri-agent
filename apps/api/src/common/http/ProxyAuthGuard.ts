@@ -1,7 +1,7 @@
 import { Inject, Injectable, type CanActivate, type ExecutionContext } from "@nestjs/common";
 import type { Request } from "express";
 import { proxySecretMatches } from "@/common/http/client-key";
-import { problem } from "@/common/http/problem";
+import { problem } from "@/common/errors";
 import { API_ENV, type ApiEnv } from "@/config";
 
 @Injectable()

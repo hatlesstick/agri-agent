@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assessSprayDay } from "@/modules/spray-rules/assess-spray-day";
-import type { AssessmentOptions, SprayAssessment, SprayThresholds } from "@/modules/spray-rules/spray-window.types";
+import type { AssessmentOptions, SprayAssessment, SprayThresholds } from "@/modules/spray-rules/spray-rules.types";
 import type { HourlyPoint } from "@/modules/weather/weather.types";
 
 const DAYS = ["2026-11-11", "2026-11-12", "2026-11-13"];

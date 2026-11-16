@@ -2,9 +2,8 @@ import { Inject, Injectable, type CanActivate, type ExecutionContext } from "@ne
 import { Reflector } from "@nestjs/core";
 import type { Request } from "express";
 import { clientKey } from "@/common/http/client-key";
-import { RATE_LIMITERS } from "@/common/http/http.tokens";
-import { problem } from "@/common/http/problem";
-import { checkLimits, GLOBAL_KEY, type RateLimitedRoute, type RateLimiters } from "@/common/http/rate-limit";
+import { problem } from "@/common/errors";
+import { checkLimits, GLOBAL_KEY, RATE_LIMITERS, type RateLimitedRoute, type RateLimiters } from "@/common/rate-limit";
 import { RATE_LIMITED_ROUTE } from "@/common/http/rate-limited.decorator";
 import { API_ENV, type ApiEnv } from "@/config";
 

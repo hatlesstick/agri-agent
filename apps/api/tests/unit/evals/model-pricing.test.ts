@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPARISON_MODELS, estimateCostUsd, MODEL_PRICES } from "@tests/evals/model-pricing";
+import { COMPARISON_MODELS, estimateCostUsd, MODEL_PRICES } from "@tests/evals/support/model-pricing";
 
 describe("estimateCostUsd", () => {
   it("multiplies tokens by the per-token price of the model", () => {

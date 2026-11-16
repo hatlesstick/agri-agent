@@ -1,11 +1,6 @@
 export { abortOnClose } from "@/common/http/abort-on-close";
-export { agentFailure, chatErrorMessage, classifyAgentError } from "@/common/http/agent-errors";
 export { clientKey, proxySecretMatches } from "@/common/http/client-key";
-export { RATE_LIMITERS } from "@/common/http/http.tokens";
 export { HttpModule } from "@/common/http/HttpModule";
-export { ProblemDetailsFilter } from "@/common/http/ProblemDetailsFilter";
-export { codeForStatus, problem, ProblemException } from "@/common/http/problem";
 export { ProxyAuthGuard } from "@/common/http/ProxyAuthGuard";
-export { checkLimits, createRateLimiter, createRateLimiters, GLOBAL_KEY, type RateLimiter, type RateLimiters } from "@/common/http/rate-limit";
 export { RateLimited } from "@/common/http/rate-limited.decorator";
 export { RateLimitGuard } from "@/common/http/RateLimitGuard";

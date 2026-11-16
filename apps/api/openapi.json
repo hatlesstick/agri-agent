@@ -181,6 +181,16 @@
             },
             "description": "invalid_request"
           },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "forbidden"
+          },
           "413": {
             "content": {
               "application/problem+json": {
@@ -189,7 +199,7 @@
                 }
               }
             },
-            "description": "payload_too_large, part_too_large, message_too_long or conversation_too_long"
+            "description": "payload_too_large, part_too_large, message_too_long, conversation_too_long"
           },
           "429": {
             "content": {
@@ -322,6 +332,16 @@
             },
             "description": "invalid_request"
           },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "forbidden"
+          },
           "422": {
             "content": {
               "application/problem+json": {
@@ -330,7 +350,7 @@
                 }
               }
             },
-            "description": "blocked_input or spray_window_not_called"
+            "description": "blocked_input, spray_window_not_called"
           },
           "429": {
             "content": {
@@ -341,6 +361,16 @@
               }
             },
             "description": "rate_limited"
+          },
+          "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "internal_error"
           },
           "502": {
             "content": {
@@ -361,6 +391,16 @@
               }
             },
             "description": "model_busy"
+          },
+          "504": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "model_timeout"
           }
         },
         "tags": [

@@ -66,9 +66,9 @@ jobs:
         run: |
           case "$EVAL_SUITE" in
             all) files="" ;;
-            agent) files="tests/evals/agent.eval.ts" ;;
-            spray-check) files="tests/evals/spray-check.eval.ts" ;;
-            rag) files="tests/evals/rag.eval.ts" ;;
+            agent) files="tests/evals/suites/agent.eval.ts" ;;
+            spray-check) files="tests/evals/suites/spray-check.eval.ts" ;;
+            rag) files="tests/evals/suites/rag.eval.ts" ;;
             *) echo "::error::Unknown suite: $EVAL_SUITE"; exit 1 ;;
           esac
           pnpm eval:real $files

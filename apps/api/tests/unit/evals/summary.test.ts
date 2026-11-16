@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { SuiteResult } from "@tests/evals/report";
-import { renderRunSummary } from "@tests/evals/summary";
+import type { SuiteResult } from "@tests/evals/support/report";
+import { renderRunSummary } from "@tests/evals/support/summary";
 
 const result = (suite: string, rows: SuiteResult["rows"]): SuiteResult => ({
   runId: "ci-42",

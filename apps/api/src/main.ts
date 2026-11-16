@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { registerAgentTelemetry } from "@/observability";
 import { loadApiEnv } from "@/config";
-import { createApp } from "@/create-app";
+import { createApp } from "@/bootstrap/create-app";
 
 registerAgentTelemetry();
 const env = loadApiEnv();

@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { embedMany } from "ai";
 import { EMBEDDING_MODEL } from "@/modules/rag";
 import { DocsRepository, INDEX_FILE } from "@/modules/rag";
-import type { RagIndex } from "@/modules/rag/docs.types";
+import type { RagIndex } from "@/modules/rag/rag.types";
 
 async function main(): Promise<void> {
   const chunks = new DocsRepository().readCorpusChunks();

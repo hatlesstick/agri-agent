@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { renderComparison } from "@tests/evals/comparison";
-import type { SuiteResult } from "@tests/evals/report";
+import { renderComparison } from "@tests/evals/support/comparison";
+import type { SuiteResult } from "@tests/evals/support/report";
 
 const RESULTS_DIR = join(process.cwd(), ".evals", "results");
 const DOCS_DIR = join(process.cwd(), "..", "..", "docs");

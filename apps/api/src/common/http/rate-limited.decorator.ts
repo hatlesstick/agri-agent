@@ -1,5 +1,5 @@
 import { SetMetadata } from "@nestjs/common";
-import type { RateLimitedRoute } from "@/common/http/rate-limit";
+import type { RateLimitedRoute } from "@/common/rate-limit";
 
 export const RATE_LIMITED_ROUTE = "agri:rate-limited-route";
 

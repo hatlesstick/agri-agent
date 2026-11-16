@@ -1,12 +1,11 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { ServerResponse } from "node:http";
 import { pipeAgentUIStreamToResponse, pipeUIMessageStreamToResponse } from "ai";
-import { AGENT_PORTS, AGENT_TIMEOUT_MS, createAgriAgent, SCREEN_REFUSAL, screenInput, type AgentPorts } from "@/modules/agent";
+import { AGENT_PORTS, AGENT_TIMEOUT_MS, chatErrorMessage, createAgriAgent, SCREEN_REFUSAL, screenInput, type AgentPorts } from "@/modules/agent";
 import { CLOCK, type Clock } from "@/common/clock";
-import { chatErrorMessage } from "@/common/http";
-import { dropBlockedHistory, latestUserText } from "@/modules/chat/chat-request";
-import type { ChatReplyInput } from "@/modules/chat/ChatService.types";
-import { refusalStream } from "@/modules/chat/refusal-stream";
+import { dropBlockedHistory, latestUserText } from "@/modules/chat/validation/chat-request";
+import type { ChatReplyInput } from "@/modules/chat/chat.types";
+import { refusalStream } from "@/modules/chat/streams/refusal-stream";
 
 const isBlocked = (text: string) => screenInput(text).verdict === "block";
 

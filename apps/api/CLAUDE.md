@@ -6,30 +6,50 @@ NestJS 12 (native ESM, Node 22), Express adapter, Vercel AI SDK 7 (the single mo
 ```
 src/
   main.ts                 bootstrap: telemetry → env → createApp() → listen → shutdown hooks
-  create-app.ts           builds the Nest app (used by main and tests)
-  AppModule.ts
-  config/                 ConfigModule: zod env schema, API_ENV token; app does not start on invalid env
-  common/
-    http/                 ProxyAuthGuard, RateLimitGuard (+ @RateLimited), ProblemDetailsFilter, request id, abort-on-close
-    cache/                CacheStore port + InMemoryCacheStore (RedisCacheStore later)
-    validation/           zod contract → request validation + OpenAPI glue
-  observability/          JSON logger with request id, Langfuse telemetry + TelemetryFlushInterceptor, health (live/ready)
+  AppModule.ts            imports config, common and feature modules
+  bootstrap/              create-app.ts (Express setup, body limit, filter, validation pipe, Swagger, shutdown hooks)
+  config/                 ConfigModule, zod env schema (API_ENV), data-dir (RAG data lookup), mock-mode
+  common/                 cross-cutting, no business or agent logic
+    errors/               ProblemException + problem(), ProblemDetailsFilter (RFC 9457)
+    http/                 ProxyAuthGuard, RateLimitGuard + @RateLimited, client-key, abort-on-close, HttpModule
+    rate-limit/           rate limiter + RATE_LIMITERS port, RateLimitModule
+    cache/                CacheStore port, InMemoryCacheStore, CacheModule (CACHE_DRIVER)
+    clock/                Clock + CLOCK token, ClockModule
+    openapi/              openApiSchema (zod → OpenAPI), ApiProblemResponses, document builder, Swagger setup
+  observability/          ObservabilityModule; logging/ (pino options), telemetry/ (Langfuse + flush interceptor), health/ (live/ready)
   modules/
-    agent/                ToolLoopAgent factories, instructions, model, tool registry, model guardrails, mock model, spray-check run + reconcile; graphs/ (Step 3): LangGraph subagent graphs
-    weather/              WeatherPort adapter: OpenMeteoClient + forecast cache (CacheStore)
-    rag/                  RagEngine port, JsonRagEngine (until 2.4) → LangChain adapter (2.4: textsplitters + PGVectorStore / MemoryVectorStore + AiSdkEmbeddings), searchDocs (sort + threshold + top-k), DocsRepository
-    spray-rules/          assessSprayDay (pure)
-    chat/                 POST /chat (UI message stream)
-    spray-check/          POST /spray-check
+    agent/                AgentModule, agent.tokens, agent.types, index
+      core/               agent factories, instructions, model, createAgentPorts (standalone wiring for evals/scripts)
+      tools/              one folder per tool (tool.ts) + shared/ (deps, clock context) + registry (index.ts)
+      guardrails/         input screen, label reminder, tool_code leak middleware
+      workflows/          spray-check/ (structured run + reconcile + schemas); later LangGraph graphs/
+      errors/             classify agent errors → chat message / problem
+      mock/               scripted mock model + tool matchers (AI_MOCK)
+    rag/                  RagModule, rag.tokens, rag.types, index
+      domain/             searchDocs (sort + threshold + top-k), rank, chunk-markdown
+      adapters/           JsonRagEngine, DocsRepository (LangChain adapter in 2.4)
+      embeddings/         embedding model id, mock embeddings
+    weather/              WeatherModule, weather.tokens, weather.types (incl. WeatherPort), index
+      adapters/           OpenMeteoClient, open-meteo.schemas, WeatherRepository (forecast cache via CacheStore)
+    spray-rules/          assessSprayDay (pure), spray-rules.types, index
+    chat/                 ChatController, ChatService, ChatModule, chat.types, index; validation/ (chat-request), streams/ (refusal stream)
+    spray-check/          SprayCheckController, SprayCheckService, SprayCheckModule, spray-check.types, index
     (later) database/ identity/ fields/ actions/ telegram/ jobs/ mcp/
 data/                     RAG corpus (docs/*.md) + index.json (until 2.4)
-scripts/                  build-index, eval summary/compare/baseline, langfuse-* (tsx; must not import vitest)
-tests/                    unit/ e2e/ evals/ support/ fixtures/
+scripts/                  generate-openapi, build-index, eval summary/compare/baseline, langfuse-*
+tests/
+  unit/<same path as src>/…
+  e2e/<feature>.e2e.test.ts
+  evals/suites/*.eval.ts, evals/support/ (harness, report, scores, scenarios, fixtures logic), evals/baselines/
+  support/ (setup, create-test-app, fake ports, Open-Meteo stub), fixtures/
 openapi.json              generated contract, committed; CI fails when stale
 Dockerfile
 ```
-- A module folder holds `<Name>Module.ts`, PascalCase class files (`ChatController.ts`, `ChatService.ts`, `JsonRagEngine.ts`), `<name>.tokens.ts`, `<name>.types.ts` and **`index.ts` — its public API** (module class, exported service types, tokens, port types).
-- Another module is imported only through `@/modules/<name>`; never deep imports into another module.
+- **Module root** holds only `<Name>Module.ts`, its controller(s) and service(s), `<name>.tokens.ts`, one `<name>.types.ts` (ports included) and `index.ts` (the public API). Everything else lives in a role folder: `core/`, `domain/` (pure logic), `adapters/` (classes talking to the outside world), `tools/`, `guardrails/`, `workflows/`, `validation/`, `streams/`, `embeddings/`, `errors/`, `mock/`.
+- Adapters live only in `adapters/`; pure logic in `domain/` (or `spray-rules/`); `common/` never contains agent or feature logic.
+- One types file per module; ports are types in it.
+- Other modules import a module only through `@/modules/<name>` (its `index.ts`).
+- Tests mirror `src` paths; e2e tests are named after the feature.
 
 ## Layers
 - **Controller:** HTTP only — route, guards, validation against the shared zod contract, status codes, OpenAPI metadata. Calls one service method. Never imports repositories or adapters.
@@ -90,9 +110,9 @@ Input screen (fixed refusal without a model call) → history sanitising (client
 ### Models and AI SDK
 - **AI stack:**
   - **Vercel AI SDK is the only way to call models and embeddings** (agent, tools, structured output, streaming, `embed`/`embedMany`, AI Gateway, mock model, guardrail middleware, Langfuse telemetry).
-  - **LangGraph.js** (Step 3) orchestrates subagents in `modules/agent/graphs`: state, routing, `interrupt` for human approval, Postgres checkpointer. Graph nodes call models through the AI SDK (`generateText` / `ToolLoopAgent`), never LangChain chat models. Stream to the UI with `@ai-sdk/langchain`.
+  - **LangGraph.js** (Step 3) orchestrates subagents in `modules/agent/workflows`: state, routing, `interrupt` for human approval, Postgres checkpointer. Graph nodes call models through the AI SDK (`generateText` / `ToolLoopAgent`), never LangChain chat models. Stream to the UI with `@ai-sdk/langchain`.
   - **LangChain.js** (2.4) only for RAG building blocks in `modules/rag`: `@langchain/textsplitters`, `PGVectorStore` / `MemoryVectorStore`, retriever wrapped as the `RagEngine` adapter, embeddings via `AiSdkEmbeddings` (LangChain `Embeddings` backed by AI SDK `embedMany`).
-  - Import `langchain`, `@langchain/*` only in `modules/rag` and `modules/agent/graphs`. Upgrade `ai` together with `@ai-sdk/langchain` (it pins an exact `ai` version).
+  - Import `langchain`, `@langchain/*` only in `modules/rag` and `modules/agent/workflows`. Upgrade `ai` together with `@ai-sdk/langchain` (it pins an exact `ai` version).
 - Models via Vercel AI Gateway (`AI_GATEWAY_API_KEY`, `"provider/model"` strings). Default `google/gemini-2.5-flash-lite`, fallback `openai/gpt-5.4-nano`; comparison candidates `deepseek/deepseek-v4-flash`, `amazon/nova-lite`, `amazon/nova-2-lite` (paid credits). `anthropic/claude-haiku-5.5` not on the Free Tier. Model name constants in `modules/agent/model.ts`; prices with their read date in `tests/evals/model-pricing.ts`.
 - Embeddings `google/gemini-embedding-001`.
 - Tool input schemas stay portable: no `\p{…}` regex escapes (OpenAI rejects them).
@@ -107,7 +127,7 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 ## Testing
 - **Unit** (`tests/unit/**`): services, pure rules, adapters with stubbed HTTP, guards, filter, pipes; ports replaced by fakes from `tests/support`.
 - **E2E** (`tests/e2e/**`): every controller through `createApp()` + supertest with fake ports and the mock model; success, validation errors, problem-details shape, guards.
-- **Evals** (`tests/evals/*.eval.ts`, `pnpm eval`): mock model in CI; results in `.evals/results`, baselines in `tests/evals/baselines/`; real model (`pnpm eval:real`) only when asked. Weather in evals comes from fixtures through the real Open-Meteo client.
+- **Evals** (`tests/evals/suites/*.eval.ts`, `pnpm eval`): mock model in CI; results in `.evals/results`, baselines in `tests/evals/baselines/`; real model (`pnpm eval:real`) only when asked. Weather in evals comes from fixtures through the real Open-Meteo client.
 - **Contract:** generated `openapi.json` equals the committed one.
 - Test files must be covered by a tsconfig with `experimentalDecorators` (oxc fails on decorators otherwise); the build uses `tsconfig.build.json` (`rootDir: src`).
 
@@ -115,8 +135,8 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 - New endpoint → controller + service in `modules/<feature>/`, contract schemas in `@agri/shared/contracts`, e2e test, regenerated `openapi.json`.
 - New external dependency → port type + adapter class + token in the owning module; tests with a fake.
 - New business rule → pure function in the owning module (`modules/spray-rules/` for spraying).
-- New agent capability → tool in `modules/agent/tools/<name>/` taking ports, schemas in `@agri/shared/contracts/tools`, one line in the tool registry, eval cases.
-- New multi-step / multi-agent flow → a LangGraph graph in `modules/agent/graphs/<name>/` whose nodes use AI SDK calls and existing tools/services; checkpoints in Postgres; eval cases per path.
+- New agent capability → tool in `modules/agent/tools/<name>/tool.ts` taking ports, schemas in `@agri/shared/contracts/tools`, one line in the tool registry, eval cases.
+- New multi-step / multi-agent flow → a LangGraph graph in `modules/agent/workflows/<name>/` whose nodes use AI SDK calls and existing tools/services; checkpoints in Postgres; eval cases per path.
 - New retrieval capability → inside `modules/rag` behind `RagEngine` (LangChain building blocks allowed there).
 - New channel (Telegram, MCP) → its own module calling `modules/agent` services through DI.
 
@@ -125,7 +145,7 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 - Modules import other modules only via `@/modules/<name>`.
 - Controllers never import repositories or adapters; tools and services import ports/tokens, never adapter classes.
 - No `next`, `react`, `react-dom` anywhere in `apps/api`.
-- `langchain`, `@langchain/*` only in `modules/rag/**` and `modules/agent/graphs/**`; no LangChain chat-model classes anywhere (`@langchain/openai`, `@langchain/anthropic`, `@langchain/google-*`).
+- `langchain`, `@langchain/*` only in `modules/rag/**` and `modules/agent/workflows/**`; no LangChain chat-model classes anywhere (`@langchain/openai`, `@langchain/anthropic`, `@langchain/google-*`).
 
 ## Containers
 - `Dockerfile`: multi-stage, `pnpm deploy --prod`, Node 22 slim, non-root, `HEALTHCHECK` on `/health/live`, `data/` included.

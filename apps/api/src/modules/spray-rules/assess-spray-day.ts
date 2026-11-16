@@ -5,7 +5,7 @@ import type {
   SprayThresholds,
   SprayWindow,
   SprayWindowInput,
-} from "@/modules/spray-rules/spray-window.types";
+} from "@/modules/spray-rules/spray-rules.types";
 
 export const DEFAULT_SPRAY_THRESHOLDS: SprayThresholds = {
   minWindSpeed: 1,

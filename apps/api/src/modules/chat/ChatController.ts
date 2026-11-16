@@ -2,13 +2,13 @@ import { Body, Controller, Inject, Post, Req, Res, UseGuards, UseInterceptors } 
 import { ApiBody, ApiProduces, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { Request, Response } from "express";
 import { chatRequestSchema } from "@agri/shared/contracts";
-import { abortOnClose, problem, ProxyAuthGuard, RateLimited, RateLimitGuard } from "@/common/http";
-import { openApiSchema } from "@/common/validation";
+import { problem } from "@/common/errors";
+import { abortOnClose, ProxyAuthGuard, RateLimited, RateLimitGuard } from "@/common/http";
+import { ApiProblemResponses, openApiSchema } from "@/common/openapi";
 import { TelemetryFlushInterceptor } from "@/observability";
-import { parseChatRequest } from "@/modules/chat/chat-request";
+import { parseChatRequest } from "@/modules/chat/validation/chat-request";
 import { ChatService } from "@/modules/chat/ChatService";
 
-const problemResponse = { content: { "application/problem+json": { schema: { $ref: "#/components/schemas/ProblemDetails" } } } };
 
 @ApiTags("chat")
 @Controller("chat")
@@ -22,9 +22,7 @@ export class ChatController {
   @ApiBody({ schema: openApiSchema(chatRequestSchema) })
   @ApiProduces("text/event-stream")
   @ApiResponse({ status: 200, description: "AI SDK UI message stream (server-sent events). A blocked input is answered with a refusal stream." })
-  @ApiResponse({ status: 400, description: "invalid_request", ...problemResponse })
-  @ApiResponse({ status: 413, description: "payload_too_large, part_too_large, message_too_long or conversation_too_long", ...problemResponse })
-  @ApiResponse({ status: 429, description: "rate_limited", ...problemResponse })
+  @ApiProblemResponses({ 400: ["invalid_request"], 403: ["forbidden"], 413: ["payload_too_large", "part_too_large", "message_too_long", "conversation_too_long"], 429: ["rate_limited"] })
   async reply(@Body() body: unknown, @Req() req: Request, @Res() res: Response): Promise<void> {
     const request = await parseChatRequest(body);
     if (!request.ok) throw problem(request.error, request.status);

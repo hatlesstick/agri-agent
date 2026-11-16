@@ -19,9 +19,9 @@ This document is the source of truth for how the system is split and how code is
 ## AI stack
 
 - **Vercel AI SDK is the single model layer.** Every model and embedding call in the backend goes through it: `ToolLoopAgent`, `generateText` / `Output.object`, tools, `embed` / `embedMany`, AI Gateway, the scripted mock model, guardrail middleware and Langfuse telemetry. Streaming to the UI uses the AI SDK UI message stream (`@ai-sdk/react` on the web side). Model ids and limits come from one place (`modules/agent/model.ts`).
-- **LangGraph.js orchestrates subagents** (Step 3): a graph in `modules/agent/graphs` holds state, routing between subagents, human-in-the-loop `interrupt` and a Postgres checkpointer (`@langchain/langgraph-checkpoint-postgres`). **Nodes call models only through the AI SDK** (`generateText` / `ToolLoopAgent` inside a node); no LangChain chat models. Graph runs stream to the UI through `@ai-sdk/langchain`, so the web client keeps `useChat`.
+- **LangGraph.js orchestrates subagents** (Step 3): a graph in `modules/agent/workflows` holds state, routing between subagents, human-in-the-loop `interrupt` and a Postgres checkpointer (`@langchain/langgraph-checkpoint-postgres`). **Nodes call models only through the AI SDK** (`generateText` / `ToolLoopAgent` inside a node); no LangChain chat models. Graph runs stream to the UI through `@ai-sdk/langchain`, so the web client keeps `useChat`.
 - **LangChain.js provides RAG building blocks** (Stage 2.4): `@langchain/textsplitters` for chunking, `PGVectorStore` (`@langchain/community`) on pgvector in production and `MemoryVectorStore` in mock mode / offline CI, a retriever wrapped as the `RagEngine` adapter. Embeddings are an `AiSdkEmbeddings` class (LangChain `Embeddings` implemented with AI SDK `embedMany`), so AI Gateway, mock embeddings and telemetry stay in the single model layer. Threshold, top-k and the `searchDocs` tool contract stay ours.
-- **Containment:** LangChain / LangGraph packages are imported only in `modules/rag` (adapters) and `modules/agent/graphs`; tools, controllers and other modules see only our ports and services. `@ai-sdk/langchain` pins an exact `ai` version — upgrade `ai` together with it so only one copy is installed.
+- **Containment:** LangChain / LangGraph packages are imported only in `modules/rag` (adapters) and `modules/agent/workflows`; tools, controllers and other modules see only our ports and services. `@ai-sdk/langchain` pins an exact `ai` version — upgrade `ai` together with it so only one copy is installed.
 - Why these libraries: LangChain.js and LangGraph.js are the most used JS options for RAG and agent graphs (npm, Nov 2026: `@langchain/core` ~8.5 M/week, `langchain` ~4 M, `@langchain/langgraph` ~5 M, vs `llamaindex` ~0.2 M), with an official AI SDK bridge and Langfuse integration.
 
 ## Non-goals
@@ -46,34 +46,9 @@ There is no `packages/agent`: the agent is part of `apps/api`.
 
 ### Module layout
 
-```
-apps/api/
-  src/
-    main.ts                 bootstrap: telemetry, env, app, listen, shutdown hooks
-    create-app.ts           builds the Nest app (used by main and tests)
-    AppModule.ts
-    config/                 ConfigModule: zod-validated env (API_ENV token); fails fast at startup
-    common/                 cross-cutting, no business logic
-      http/                 ProxyAuthGuard, RateLimitGuard, ProblemDetailsFilter, request id, abort-on-close
-      cache/                CacheStore port + InMemoryCacheStore (Redis adapter later)
-      validation/           zod → DTO / pipe glue
-    observability/          logger (structured JSON with request id), Langfuse telemetry + flush interceptor, health (live/ready)
-    modules/
-      agent/                ToolLoopAgent, instructions, model, tool registry, model guardrails, mock model
-      weather/              WeatherPort adapter: Open-Meteo client + forecast cache (via CacheStore)
-      rag/                  RagEngine port, JsonRagEngine (→ pgvector in 2.4), searchDocs threshold/top-k
-      spray-rules/          assessSprayDay (pure)
-      spray-check/          POST /spray-check
-      chat/                 POST /chat (UI message stream)
-      (later) database/ identity/ fields/ actions/ telegram/ jobs/ mcp/
-  data/                     RAG corpus + JSON index (until 2.4)
-  scripts/                  index build, eval summary/compare/baseline, Langfuse scripts
-  tests/{unit,e2e,evals,support,fixtures}/
-  openapi.json              generated contract, committed, checked in CI
-  Dockerfile
-```
+See `apps/api/CLAUDE.md` → "Module layout" for the full tree; in short: `bootstrap/`, `config/`, `common/{errors,http,rate-limit,cache,clock,openapi}`, `observability/{logging,telemetry,health}`, `modules/<feature>/` with role subfolders (`core/`, `domain/`, `adapters/`, `tools/`, `guardrails/`, `workflows/`, `validation/`, `streams/`, `embeddings/`, `errors/`, `mock/`).
 
-Each module folder contains `<Name>Module.ts`, its controllers / services / repositories as PascalCase class files, `<name>.tokens.ts` for DI tokens, `<name>.types.ts`, and `index.ts` — the module's **public API** (the module class, its exported services' types, tokens). Other modules import a module only through `@/modules/<name>` (its `index.ts`).
+A module's root contains only `<Name>Module.ts`, its controllers and services (PascalCase class files), `<name>.tokens.ts` for DI tokens, one `<name>.types.ts` (ports included) and `index.ts` — the module's **public API**; everything else sits in a role subfolder (the module class, its exported services' types, tokens). Other modules import a module only through `@/modules/<name>` (its `index.ts`).
 
 ### Layers inside a module
 

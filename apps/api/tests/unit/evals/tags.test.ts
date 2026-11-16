@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evalTags } from "@tests/evals/tags";
+import { evalTags } from "@tests/evals/support/tags";
 
 describe("evalTags", () => {
   it("returns no tags when the variable is missing or empty", () => {

@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { writeFileSync } from "node:fs";
-import { buildOpenApiDocument } from "@/common/validation";
+import { buildOpenApiDocument } from "@/common/openapi";
 import { loadApiEnv } from "@/config";
-import { createApp } from "@/create-app";
+import { createApp } from "@/bootstrap/create-app";
 
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);

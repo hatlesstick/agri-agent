@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { latestPerModelAndSuite, renderComparison } from "@tests/evals/comparison";
-import type { EvalRow, SuiteResult } from "@tests/evals/report";
+import { latestPerModelAndSuite, renderComparison } from "@tests/evals/support/comparison";
+import type { EvalRow, SuiteResult } from "@tests/evals/support/report";
 
 const row = (model: string, caseId: string, passed: number, runs: number, extra: Partial<EvalRow> = {}): EvalRow => ({
   suite: "agent",

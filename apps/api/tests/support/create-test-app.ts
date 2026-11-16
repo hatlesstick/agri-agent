@@ -2,7 +2,7 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "@/AppModule";
 import { loadApiEnv, type ApiEnv } from "@/config";
-import { configureApp } from "@/create-app";
+import { configureApp } from "@/bootstrap/create-app";
 
 export type ProviderOverride = { token: unknown; useValue: unknown };
 

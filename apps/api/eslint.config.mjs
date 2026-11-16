@@ -34,7 +34,7 @@ export default tseslint.config(
   },
   {
     files: ["src/**/*.ts"],
-    rules: restrictedImports("apps/api has no UI frameworks; LangChain only in modules/rag and modules/agent/graphs, never its chat models.", [...FRAMEWORKS, ...LANGCHAIN, "@agri/web", "@agri/web/*"]),
+    rules: restrictedImports("apps/api has no UI frameworks; LangChain only in modules/rag and modules/agent/workflows, never its chat models.", [...FRAMEWORKS, ...LANGCHAIN, "@agri/web", "@agri/web/*"]),
   },
   {
     files: ["src/common/**/*.ts", "src/config/**/*.ts", "src/observability/**/*.ts"],
@@ -53,10 +53,10 @@ export default tseslint.config(
   })),
   {
     files: ["src/modules/agent/tools/**/*.ts"],
-    rules: restrictedImports(ADAPTER_MESSAGE, [...FRAMEWORKS, ...LANGCHAIN, ...DEEP_MODULE_IMPORTS, "!@/modules/agent/**", "@/modules/agent/create-agent-ports", "@/modules/agent/AgentModule", "@agri/web", "@agri/web/*"], TOOL_FORBIDDEN_NAMES),
+    rules: restrictedImports(ADAPTER_MESSAGE, [...FRAMEWORKS, ...LANGCHAIN, ...DEEP_MODULE_IMPORTS, "!@/modules/agent/**", "@/modules/agent/core/create-agent-ports", "@/modules/agent/AgentModule", "@agri/web", "@agri/web/*"], TOOL_FORBIDDEN_NAMES),
   },
   {
-    files: ["src/modules/agent/graphs/**/*.ts"],
+    files: ["src/modules/agent/workflows/**/*.ts"],
     rules: restrictedImports("LangGraph is allowed here, but never LangChain chat models: call models through the AI SDK.", [...FRAMEWORKS, ...LANGCHAIN_CHAT_MODELS, ...DEEP_MODULE_IMPORTS, "!@/modules/agent/**"]),
   },
   { ignores: ["dist/**"] },

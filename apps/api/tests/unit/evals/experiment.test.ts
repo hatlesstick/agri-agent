@@ -7,8 +7,8 @@ import {
   SPRAY_CHECK_DATASET,
   sprayCheckDatasetItems,
   toExperimentOutput,
-} from "@tests/evals/experiment";
-import { SPRAY_CHECK_CASES } from "@tests/evals/spray-check-cases";
+} from "@tests/evals/support/experiment";
+import { SPRAY_CHECK_CASES } from "@tests/evals/support/spray-check-cases";
 
 const trace = { steps: 2, inputTokens: 1200, outputTokens: 90, toolCalls: [{ toolName: "sprayWindow", input: { city: "Lyon" } }] };
 
