@@ -18,9 +18,9 @@ time window, and the model only chooses tools and explains the result in the use
 
 ## Knowledge base (RAG)
 
-`data/docs/*.md` holds a small learning corpus on spraying practice (drift, inversions, rainfastness, Delta T,
-labels and buffer zones), each document with a `Source:` line. `npm run index` splits it by section, embeds the
-chunks with `google/gemini-embedding-001` and writes `data/index.json`. `searchDocs` returns the top 3 passages
+`packages/agent/data/docs/*.md` holds a small learning corpus on spraying practice (drift, inversions, rainfastness, Delta T,
+labels and buffer zones), each document with a `Source:` line. `pnpm index` splits it by section, embeds the
+chunks with `google/gemini-embedding-001` and writes `packages/agent/data/index.json`. `searchDocs` returns the top 3 passages
 above a calibrated similarity threshold (0.64); the agent answers only from them and cites the source, or says it
 has no reliable information. No vector database is needed at this size; a pgvector-backed store can replace the
 JSON index later without changing the tool.
@@ -35,11 +35,19 @@ longest one (earliest on a tie). Relative days (`today`, `tomorrow`) are resolve
 
 Requirements: Node.js 22+, an AI Gateway API key (Vercel), optionally Langfuse keys.
 
+pnpm + Turborepo monorepo: `apps/web` (Next.js), `packages/agent` (`@agri/agent`), `packages/shared` (`@agri/shared`).
+
 ```bash
-npm install
-cp .env.example .env.local   # fill in the keys
-npm run dev                  # http://localhost:3000
+corepack enable
+pnpm install
+cp apps/web/.env.example apps/web/.env.local             # the app; fill in the keys
+cp packages/agent/.env.example packages/agent/.env.local # evals and scripts
+pnpm dev                                                 # http://localhost:3000
 ```
+
+All commands run from the repo root; Turborepo builds the packages before the apps. One workspace only: `pnpm --filter @agri/agent <script>`.
+
+Vercel: Root Directory `apps/web`, framework Next.js, install command `pnpm install`, "Include files outside the root directory" enabled (the API routes read `packages/agent/data`).
 
 | Variable | Purpose |
 |---|---|
@@ -54,29 +62,29 @@ npm run dev                  # http://localhost:3000
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint, including layer boundary rules |
-| `npm test` | Unit and component tests |
-| `npm run typecheck` | Next.js route types and `tsc --noEmit` |
-| `npm run eval` | Deterministic and mock-model evals (free) |
-| `npm run eval:real` | Real-model evals (costs tokens, shares the Gateway rate limit; `EVAL_RUNS=1` for a quick run) |
-| `npm run eval:baseline` | Promote the latest eval results to the committed baseline |
-| `npm run eval:summary` | Markdown summary of the latest eval run |
-| `npm run eval:compare` | Writes [`docs/model-comparison.md`](docs/model-comparison.md) from the latest real-model run per model |
-| `npm run index` | Rebuild `data/index.json` embeddings from `data/docs/` (then recalibrate the RAG threshold) |
+| `pnpm dev` | Development server |
+| `pnpm build` | Production build |
+| `pnpm lint` | ESLint per workspace, including import boundary rules |
+| `pnpm test` | Unit and component tests |
+| `pnpm typecheck` | Next.js route types and `tsc --noEmit` |
+| `pnpm eval` | Deterministic and mock-model evals (free) |
+| `pnpm eval:real` | Real-model evals (costs tokens, shares the Gateway rate limit; `EVAL_RUNS=1` for a quick run) |
+| `pnpm eval:baseline` | Promote the latest eval results to the committed baseline |
+| `pnpm eval:summary` | Markdown summary of the latest eval run |
+| `pnpm eval:compare` | Writes [`docs/model-comparison.md`](docs/model-comparison.md) from the latest real-model run per model |
+| `pnpm index` | Rebuild `packages/agent/data/index.json` embeddings from `data/docs/` (then recalibrate the RAG threshold) |
 
 ## Quality gates and CI
 
 | Layer | Command | Where it runs | Cost |
 |---|---|---|---|
-| Lint, types, unit and component tests | `npm run lint`, `npm run typecheck`, `npm test` | every PR and push to `main` | free |
-| Deterministic and mock-model evals | `npm run eval` | every PR and push to `main` (offline: any unstubbed network call fails) | free |
-| Production build | `npm run build` | every PR and push to `main` | free |
+| Lint, types, unit and component tests | `pnpm lint`, `pnpm typecheck`, `pnpm test` | every PR and push to `main` | free |
+| Deterministic and mock-model evals | `pnpm eval` | every PR and push to `main` (offline: any unstubbed network call fails) | free |
+| Production build | `pnpm build` | every PR and push to `main` | free |
 | Secret scan | gitleaks | every PR and push to `main` | free |
-| Real-model evals | `npm run eval:real` or GitHub Actions → Real-model evals (manual, one run at a time) | on demand | tokens |
-| Model comparison | `npm run eval:compare` | on demand, after real runs | free |
-| Langfuse experiments | `npm run langfuse:experiment` | on demand | tokens |
+| Real-model evals | `pnpm eval:real` or GitHub Actions → Real-model evals (manual, one run at a time) | on demand | tokens |
+| Model comparison | `pnpm eval:compare` | on demand, after real runs | free |
+| Langfuse experiments | `pnpm langfuse:experiment` | on demand | tokens |
 
 CI needs no secrets except the Open-Meteo URLs; the manual real-model workflow reads `AI_GATEWAY_API_KEY` and `LANGFUSE_*` from repository secrets and tags traces with `ci`.
 
@@ -85,8 +93,8 @@ CI needs no secrets except the Open-Meteo URLs; the manual real-model workflow r
 Candidates: `google/gemini-2.5-flash-lite` (default), `openai/gpt-5.4-nano` (fallback) and `deepseek/deepseek-v4-flash`, all through AI Gateway. On the Gateway Free Tier only Gemini and GPT are available; DeepSeek and Amazon Bedrock models (`amazon/nova-lite`, `amazon/nova-2-lite`, priced in `tests/evals/model-pricing.ts`) need paid credits. Every model runs the same eval cases with fixed weather fixtures, so the expected answer is known.
 
 ```
-EVAL_MODEL=openai/gpt-5.4-nano npm run eval:real
-npm run eval:compare
+EVAL_MODEL=openai/gpt-5.4-nano pnpm eval:real
+pnpm eval:compare
 ```
 
 The table reports pass rate per suite, average estimated cost per case (tokens × Gateway list prices), p50/p95 latency and infrastructure errors; each run's traces and scores are in Langfuse (tag = model). Real runs can also be started from GitHub Actions → Real-model evals.
@@ -96,10 +104,10 @@ The table reports pass rate per suite, average estimated cost per case (tokens �
 The spray-check eval cases are also a Langfuse dataset (`agri-agent-spray-check`): each item has the question, the weather scenario, a fixed clock and the rule-based expected decision.
 
 ```
-npm run langfuse:dataset                                         # create the dataset and upsert its items (safe to re-run)
-npm run langfuse:experiment -- --model google/gemini-2.5-flash-lite
-npm run langfuse:experiment -- --model openai/gpt-5.4-nano
-AI_MOCK=1 npm run langfuse:experiment -- --dry-run               # local check with the mock model, nothing is sent
+pnpm langfuse:dataset                                         # create the dataset and upsert its items (safe to re-run)
+pnpm langfuse:experiment --model google/gemini-2.5-flash-lite
+pnpm langfuse:experiment --model openai/gpt-5.4-nano
+AI_MOCK=1 pnpm langfuse:experiment --dry-run               # local check with the mock model, nothing is sent
 ```
 
 Each experiment run executes the spray-check agent on every item with the fixture weather and records item scores (`rule_consistency`, `tool_usage`, `steps`, `latency_ms`) and a run score (`pass_rate`); metadata includes the model and the prompt version (last commit of `src/agent/instructions.ts`, or `--prompt-version`).
@@ -141,17 +149,18 @@ curl -s localhost:3000/api/spray-check \
 ## Architecture
 
 ```
-src/
-  app/        Next.js routes only (pages and one-line API route re-exports)
-  ui/         frontend, atomic design: atoms, molecules, organisms, templates, pages, hooks, helpers, schemas
-  server/     backend API: controllers, services, repositories, guardrails, helpers
-  agent/      ToolLoopAgent, instructions, tools, model guardrails, RAG search, spray-check, mock model, telemetry
-  shared/     zod-validated env, shared limits, time helpers
-tests/
-  unit/       unit and component tests mirroring src/
-  evals/      deterministic and real-model eval suites, harness, baselines
-  fixtures/   shared test fixtures
-  support/    test setup (offline guard, DOM cleanup)
+apps/web/              Next.js app
+  src/app/             routes only (pages and one-line API route re-exports)
+  src/ui/              atomic design: atoms, molecules, organisms, templates, pages, hooks, helpers, schemas
+  src/server/          HTTP backend: controllers, services, guardrails, helpers
+  tests/               unit, component and deterministic HTTP/UI evals
+packages/agent/        @agri/agent, framework-free
+  src/                 ToolLoopAgent, instructions, tools, model guardrails, RAG, spray-check, mock model, telemetry,
+                       weather (Open-Meteo), docs (RAG corpus), spray-window (rules)
+  data/                RAG corpus and index
+  scripts/             index, eval summary/compare/baseline, Langfuse scripts
+  tests/               unit tests, eval suites, harness, baselines, fixtures
+packages/shared/       @agri/shared: chat limits, time helpers, server env, test support
 ```
 
 - Frontend, backend and agent are separate parts with one-way imports, enforced by ESLint.
