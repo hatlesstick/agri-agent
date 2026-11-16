@@ -9,11 +9,13 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["tests/unit/**/*.test.ts", "tests/e2e/**/*.e2e.test.ts"],
+    include: ["tests/unit/**/*.test.ts", "tests/e2e/**/*.e2e.test.ts", "tests/db/**/*.db.test.ts"],
     environment: "node",
+    fileParallelism: !process.env.TEST_DATABASE_URL,
     setupFiles: ["tests/support/setup.ts"],
     env: {
       NODE_ENV: "test",
+      DATABASE_URL: "postgres://agri:agri@127.0.0.1:5432/agri",
       AI_MOCK: "1",
       LOG_LEVEL: "silent",
       OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",

@@ -41,9 +41,12 @@ pnpm + Turborepo monorepo: `apps/web` (Next.js UI), `apps/api` (NestJS API with 
 ```bash
 corepack enable
 pnpm install
-cp apps/api/.env.example apps/api/.env              # API, evals and scripts; fill in values
+cp .env.example .env                                # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB for the Compose database
+cp apps/api/.env.example apps/api/.env              # API, evals and scripts; DATABASE_URL=postgres://USER:PASSWORD@127.0.0.1:5432/DB
 cp apps/web/.env.example apps/web/.env.local        # API_ORIGIN=http://localhost:4000 and the same PROXY_AUTH_SECRET
-pnpm dev                                            # API on http://localhost:4000 (Swagger: /docs), web on http://localhost:3000
+pnpm db:up && pnpm --filter @agri/api db:migrate    # start Postgres and apply migrations
+pnpm --filter @agri/api db:seed                     # optional demo user with two fields
+pnpm dev                                            # starts the db if needed; API on http://localhost:4000 (Swagger: /docs), web on http://localhost:3000
 ```
 
 The `.env.example` files list every key with empty values; CI takes the values from GitHub secrets, locally you fill them in. Minimal local API values: `AI_MOCK=1`, the two Open-Meteo URLs (`https://geocoding-api.open-meteo.com/v1/search`, `https://api.open-meteo.com/v1/forecast`), `PROXY_AUTH_SECRET` (≥ 32 chars, optional outside production).
@@ -68,6 +71,7 @@ Vercel (web only): Root Directory `apps/web`, install `pnpm install`, build `cd 
 | `RATE_LIMIT_PER_MINUTE`, `GLOBAL_RATE_LIMIT_PER_MINUTE` | Per-client and global request limits |
 | `TRUSTED_PROXY_HOPS` | Proxies in front of the API (`0` locally, `1` behind Caddy); required in production |
 | `PROXY_AUTH_SECRET` | Shared secret the web proxy sends as `x-proxy-auth`; required in production |
+| `DATABASE_URL` | Postgres connection string (required) |
 | `PORT`, `LOG_LEVEL`, `SWAGGER_ENABLED`, `CACHE_DRIVER`, `REDIS_URL` | Port (4000), pino level, Swagger in production, cache driver (`memory`; `redis` reserved) |
 
 | Variable (`apps/web`) | Purpose |
@@ -173,7 +177,7 @@ Errors are RFC 9457 problem details (`application/problem+json`) with a stable `
 | 502 | `invalid_model_output` (no valid answer and no rule result to fall back to) |
 | 503 / 504 / 500 | `model_busy` / `model_timeout` / `internal_error` |
 
-`GET /health/live` and `GET /health/ready` report liveness and readiness.
+`GET /health/live` reports liveness; `GET /health/ready` checks the database and answers 503 (`database: "down"`) when it is unreachable.
 
 ## Architecture
 

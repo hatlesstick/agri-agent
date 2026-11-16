@@ -255,6 +255,9 @@
         "responses": {
           "200": {
             "description": "Dependencies are ready to serve traffic."
+          },
+          "503": {
+            "description": "A dependency (database) is down."
           }
         },
         "tags": [

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { loadApiEnv } from "@/config";
+import { loadApiEnv, loadDatabaseUrl } from "@/config";
 
 const BASE = {
   OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",
   OPEN_METEO_FORECAST_URL: "https://api.open-meteo.com/v1/forecast",
+  DATABASE_URL: "postgres://agri:agri@127.0.0.1:5432/agri",
 };
 
 describe("loadApiEnv", () => {
@@ -31,5 +32,16 @@ describe("loadApiEnv", () => {
     expect(() => loadApiEnv(production)).toThrow(/AI_GATEWAY_API_KEY/);
     expect(loadApiEnv({ ...production, AI_GATEWAY_API_KEY: "gw-key" }).AI_GATEWAY_API_KEY).toBe("gw-key");
     expect(loadApiEnv({ ...production, AI_MOCK: "1" }).AI_MOCK).toBe(true);
+  });
+
+  it("requires a Postgres DATABASE_URL", () => {
+    expect(() => loadApiEnv({ ...BASE, DATABASE_URL: undefined })).toThrow(/DATABASE_URL/);
+    expect(() => loadApiEnv({ ...BASE, DATABASE_URL: "mysql://agri@localhost/agri" })).toThrow(/DATABASE_URL/);
+    expect(loadApiEnv({ ...BASE, DATABASE_URL: "postgresql://agri@db:5432/agri" }).DATABASE_URL).toBe("postgresql://agri@db:5432/agri");
+  });
+
+  it("reads only the database URL for migrations and seeding", () => {
+    expect(loadDatabaseUrl({ DATABASE_URL: "postgres://agri@db/agri" })).toBe("postgres://agri@db/agri");
+    expect(() => loadDatabaseUrl({})).toThrow(/DATABASE_URL/);
   });
 });

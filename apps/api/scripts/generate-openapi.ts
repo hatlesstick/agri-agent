@@ -15,6 +15,7 @@ function sortKeys(value: unknown): unknown {
 const env = loadApiEnv({
   ...process.env,
   NODE_ENV: "test",
+  DATABASE_URL: process.env.DATABASE_URL ?? "postgres://openapi:openapi@127.0.0.1:5432/openapi",
   LOG_LEVEL: "silent",
   OPEN_METEO_GEOCODING_URL: process.env.OPEN_METEO_GEOCODING_URL ?? "https://geocoding-api.open-meteo.com/v1/search",
   OPEN_METEO_FORECAST_URL: process.env.OPEN_METEO_FORECAST_URL ?? "https://api.open-meteo.com/v1/forecast",
