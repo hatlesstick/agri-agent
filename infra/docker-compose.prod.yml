@@ -1,0 +1,62 @@
+name: agri-agent
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    environment:
+      API_SITE_ADDRESS: ${API_SITE_ADDRESS:?set API_SITE_ADDRESS in .env}
+    ports:
+      - ${CADDY_HTTP_BIND:-80}:80
+      - ${CADDY_HTTPS_BIND:-443}:443
+      - ${CADDY_HTTPS_BIND:-443}:443/udp
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+    logging: *logging
+    restart: unless-stopped
+
+  api:
+    image: ${API_IMAGE:?set API_IMAGE in .env}:${API_TAG:?set API_TAG in .env}
+    env_file:
+      - path: api.env
+        required: true
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      TRUSTED_PROXY_HOPS: "1"
+      DATABASE_URL: postgres://${POSTGRES_USER:?set POSTGRES_USER in .env}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:?set POSTGRES_DB in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *logging
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
+  db-data:

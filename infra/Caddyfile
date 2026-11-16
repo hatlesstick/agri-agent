@@ -1,0 +1,12 @@
+{$API_SITE_ADDRESS} {
+	header -Server
+
+	reverse_proxy api:4000 {
+		flush_interval -1
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
