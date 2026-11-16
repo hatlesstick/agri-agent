@@ -30,6 +30,7 @@ The core is built first. Backlog items are not started until the core is done, e
 - **Knowledge base:** RAG on Postgres + pgvector, hybrid search (vector + full text), answers cite sources.
 - **Telegram bot:** the same agent, conversation history, inline approve / reject, rate limits.
 - **Background processing (Inngest):** reliable Telegram handling (deduplication, retries), approval expiry.
+- **Amazon Bedrock:** a second model provider behind the same agent (Claude and Nova on Bedrock, compared on evals), Bedrock embeddings for the knowledge base, Bedrock Guardrails for dose claims, personal data and grounding of answers in their sources.
 - **Limits and safety:** per-user rate limit and daily usage budget, guardrails, hard spend limit on the model gateway, off-site backups.
 - **Then:** MCP server (tools, resources, prompts; writes only through approval); observability (OpenTelemetry + Langfuse).
 
@@ -44,7 +45,8 @@ The core is built first. Backlog items are not started until the core is done, e
 - A second implementation of the same background agent on Vercel eve, connected to the API through the MCP server, compared in the README.
 
 ### Step 5 — Production hardening and pilot users
-- Full authentication, distributed rate limiting, budgets and alerts; an optional AWS deployment (ECS Fargate, RDS, S3, Bedrock with Guardrails, CDK).
+- Full authentication (own sessions and OAuth sign-in), distributed rate limiting, budgets and alerts; infrastructure stays on the VPS.
+- Amazon Bedrock as the only AWS platform: vision models for photo diagnosis, Knowledge Bases as a managed-RAG comparison with our pgvector RAG, Intelligent Prompt Routing for cost-based routing, batch inference for nightly jobs.
 - Pilot farms as real users; 👍 / 👎 feedback → Langfuse → new eval cases.
 - Agronomist review queue in an admin view.
 - Photo diagnosis (vision) with evals.
