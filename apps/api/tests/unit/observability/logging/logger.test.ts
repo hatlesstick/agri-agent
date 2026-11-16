@@ -6,6 +6,7 @@ import { pinoHttpOptions } from "@/observability/logging/logger";
 const env = loadApiEnv({
   OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",
   OPEN_METEO_FORECAST_URL: "https://api.open-meteo.com/v1/forecast",
+  DATABASE_URL: "postgres://agri:agri@127.0.0.1:5432/agri",
   NODE_ENV: "test",
 });
 

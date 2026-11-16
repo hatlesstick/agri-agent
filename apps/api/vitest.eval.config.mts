@@ -14,7 +14,8 @@ export default defineConfig({
   test: {
     include: ["tests/evals/suites/**/*.eval.ts"],
     setupFiles: ["tests/support/setup.ts", "tests/evals/support/setup.ts"],
-    env: { NODE_ENV: "test", LOG_LEVEL: "silent", ...loadEnv("", process.cwd(), ""), EVAL_RUN_ID: runId },
+    env: { NODE_ENV: "test",
+      DATABASE_URL: "postgres://agri:agri@127.0.0.1:5432/agri", LOG_LEVEL: "silent", ...loadEnv("", process.cwd(), ""), EVAL_RUN_ID: runId },
     testTimeout: 120_000,
     fileParallelism: false,
     silent: false,

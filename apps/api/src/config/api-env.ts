@@ -11,6 +11,7 @@ const apiEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65_535).default(4000),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
+  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   OPEN_METEO_GEOCODING_URL: httpsUrl,
   OPEN_METEO_FORECAST_URL: httpsUrl,
   AI_MOCK: flag,

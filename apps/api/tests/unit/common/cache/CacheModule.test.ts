@@ -5,6 +5,7 @@ import { loadApiEnv } from "@/config";
 const BASE = {
   OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",
   OPEN_METEO_FORECAST_URL: "https://api.open-meteo.com/v1/forecast",
+  DATABASE_URL: "postgres://agri:agri@127.0.0.1:5432/agri",
 };
 
 describe("createCacheStore", () => {

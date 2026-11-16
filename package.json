@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "pnpm db:up && turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
@@ -19,7 +19,8 @@
     "langfuse:dataset": "turbo run build --filter=@agri/api^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/api langfuse:dataset",
     "langfuse:experiment": "turbo run build --filter=@agri/api^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/api langfuse:experiment",
     "index": "turbo run build --filter=@agri/api^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/api index",
-    "openapi": "turbo run build --filter=@agri/api^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/api openapi"
+    "openapi": "turbo run build --filter=@agri/api^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/api openapi",
+    "db:up": "docker compose up -d db --wait"
   },
   "devDependencies": {
     "turbo": "^2.11.11"

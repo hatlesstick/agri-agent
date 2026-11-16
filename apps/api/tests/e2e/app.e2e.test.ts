@@ -46,7 +46,7 @@ describe("API skeleton", () => {
 
   it("reports liveness and readiness", async () => {
     expect((await request(app.getHttpServer()).get("/health/live")).body).toEqual({ status: "ok" });
-    expect((await request(app.getHttpServer()).get("/health/ready")).body).toEqual({ status: "ok", checks: { config: "ok" } });
+    expect((await request(app.getHttpServer()).get("/health/ready")).body).toEqual({ status: "ok", checks: { config: "ok", database: "ok" } });
   });
 
   it("sends baseline security headers", async () => {

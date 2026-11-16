@@ -13,8 +13,29 @@ services:
       NODE_ENV: production
       PORT: "4000"
       TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
+      DATABASE_URL: postgres://${POSTGRES_USER:-agri}:${POSTGRES_PASSWORD:-agri}@db:5432/${POSTGRES_DB:-agri}
     ports:
       - "127.0.0.1:4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agri}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agri}
+      POSTGRES_DB: ${POSTGRES_DB:-agri}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
 
   redis:
@@ -33,4 +54,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  db-data:
   redis-data:

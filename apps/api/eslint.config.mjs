@@ -42,8 +42,8 @@ export default tseslint.config(
     rules: restrictedImports("apps/api has no UI frameworks and no LangChain outside modules/rag and modules/agent/workflows.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB]),
   },
   {
-    files: ["src/common/**/*.ts", "src/config/**/*.ts", "src/observability/**/*.ts"],
-    rules: restrictedImports("common/, config/ and observability/ are cross-cutting: they never import feature modules.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, "@/modules", "@/modules/**"]),
+    files: ["src/common/**/*.ts", "src/config/**/*.ts", "src/observability/**/*.ts", "src/database/**/*.ts"],
+    rules: restrictedImports("common/, config/, database/ and observability/ are cross-cutting: they never import feature modules.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, "@/modules", "@/modules/**"]),
   },
   {
     files: ["src/*.ts", "src/bootstrap/**/*.ts"],
