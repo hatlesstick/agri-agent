@@ -8,7 +8,9 @@ src/
   main.ts                 bootstrap: telemetry → env → createApp() → listen → shutdown hooks
   AppModule.ts            imports config, common and feature modules
   bootstrap/              create-app.ts (Express setup, body limit, filter, validation pipe, Swagger, shutdown hooks)
-  config/                 ConfigModule, zod env schema (API_ENV), data-dir (RAG data lookup), mock-mode
+  config/                 ConfigModule, zod env schema (API_ENV), data-dir (findUp for data/ and drizzle/), mock-mode
+  database/               DatabaseModule (LazyDatabase, DATABASE token), schema/, migrations, errors
+  migrate.ts              one-off migration entry (dist/migrate.js)
   common/                 cross-cutting, no business or agent logic
     errors/               ProblemException + problem(), ProblemDetailsFilter (RFC 9457)
     http/                 ProxyAuthGuard, RateLimitGuard + @RateLimited, client-key, abort-on-close, HttpModule
@@ -34,8 +36,11 @@ src/
     spray-rules/          assessSprayDay (pure), spray-rules.types, index
     chat/                 ChatController, ChatService, ChatModule, chat.types, index; validation/ (chat-request), streams/ (refusal stream)
     spray-check/          SprayCheckController, SprayCheckService, SprayCheckModule, spray-check.types, index
-    (later) database/ identity/ fields/ actions/ telegram/ jobs/ mcp/
+    identity/             IdentityModule; repositories/ (UsersRepository, IdentitiesRepository.findOrCreateUser)
+    fields/               FieldsModule; repositories/ (FieldsRepository, user-scoped CRUD)
+    (later) actions/ conversations/ telegram/ jobs/ mcp/
 data/                     RAG corpus (docs/*.md) + index.json (until 2.4)
+drizzle/                  generated SQL migrations + meta (committed)
 scripts/                  generate-openapi, build-index, eval summary/compare/baseline, langfuse-*
 tests/
   unit/<same path as src>/…
@@ -81,6 +86,15 @@ Dockerfile
 - One zod env schema in `config/`, validated once at startup; modules receive config through the `API_ENV` token (e.g. Open-Meteo URLs injected into `OpenMeteoClient` by `WeatherModule`). The only exception is `AI_MOCK`, a process-wide switch read by `isMockMode()` (`config/mock-mode.ts`) so evals can toggle it per test. Production also requires `AI_GATEWAY_API_KEY` unless `AI_MOCK=1`. Production requires `PROXY_AUTH_SECRET` (≥ 32 chars) and `TRUSTED_PROXY_HOPS`.
 - `TRUSTED_PROXY_HOPS` = proxies in front of the API (Caddy = 1, local = 0) → Express `trust proxy`. `X-Client-IP` is trusted only with a valid `X-Proxy-Auth`.
 - `.env.example` lists every key read in code (checked by a test); local env in `apps/api/.env`.
+
+## Database
+- Postgres 17 (`pgvector/pgvector:pg17`) via Drizzle ORM. `DATABASE_URL` is required everywhere; the connection is lazy (`LazyDatabase` behind the `DATABASE` token opens the `pg` pool on first use, with connection/statement/ping timeouts, an idle-error handler and close on shutdown).
+- `src/database/`: connection, `DATABASE` token, `Database` type (shared by node-postgres and PGlite), schema, migrations runner, `isUniqueViolation`. It never imports feature modules.
+- **Schema** lives centrally in `src/database/schema/` (one file per table group; enums in `enums.ts`). Timestamps are `timestamptz`; UUID primary keys (`gen_random_uuid()`); `updated_at` is set by repositories.
+- **Repositories** live in the owning module's `repositories/` folder, are injectable classes with `@Inject(DATABASE)`, take `userId` as the first argument for user data and filter every query by it; another user's rows behave as "not found". Only `repositories/` and `src/database` import table objects (type-only imports elsewhere are fine) — lint-enforced. Unique-constraint violations become typed domain errors (`FieldNameTakenError`).
+- **Migrations:** change the schema → `pnpm --filter @agri/api db:generate` → commit `apps/api/drizzle/`. CI fails when `db:check` fails or generating leaves changes. Apply with `pnpm --filter @agri/api db:migrate` locally and `node dist/migrate.js` in the image; the API never migrates on startup. Forward-only; expand/contract for breaking changes.
+- **Tests:** `testDatabase()` (`tests/support/test-database.ts`) gives PGlite with migrations by default and real Postgres when `TEST_DATABASE_URL` is set (`pnpm --filter @agri/api test:db`, CI job "Postgres integration"). DB tests live in `tests/db/**/*.db.test.ts`; e2e tests get a `NO_DATABASE` stub unless they override `DATABASE`.
+- **Local:** `pnpm db:up` (root) starts the Compose `db` with credentials from the root `.env` (`POSTGRES_USER/PASSWORD/DB`, required); `pnpm --filter @agri/api db:seed` creates the demo user and two fields idempotently.
 
 ## Caching and state
 - `CacheStore` port (`get`, `set` with TTL, `delete`, `clear` — a Redis adapter clears only its key prefix); adapter `InMemoryCacheStore` (bounded LRU) now, `RedisCacheStore` later via `CACHE_DRIVER=memory|redis` + `REDIS_URL`. The weather forecast cache uses it.
@@ -154,6 +168,6 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 - Root `docker-compose.yml`: `api` + `db` (pgvector, from 2.1) + `redis` (profile `cache`); `docker-compose.prod.yml` adds `caddy` (2.2). `api`, `db` and `redis` ports are bound to `127.0.0.1` (Caddy is the only public entry in production).
 
 ## Commands
-- `pnpm --filter @agri/api dev | build | start | test | eval | openapi`
+- `pnpm --filter @agri/api dev | build | start | test | test:db | eval | openapi | db:generate | db:check | db:migrate | db:seed`
 - From the root: `pnpm eval:real [files]`, `pnpm eval:summary`, `pnpm eval:compare`, `pnpm eval:baseline <runId>`, `pnpm langfuse:dataset`, `pnpm langfuse:experiment --model <id>` (`AI_MOCK=1 … --dry-run` locally), `pnpm index` — real-model runs and Langfuse writes only when the developer asks.
-- `docker compose up` (API), `docker compose --profile cache up` (with Redis).
+- `pnpm db:up` (Compose Postgres), `docker compose up` (API + db), `docker compose --profile cache up` (with Redis), `docker compose exec api node dist/migrate.js`.

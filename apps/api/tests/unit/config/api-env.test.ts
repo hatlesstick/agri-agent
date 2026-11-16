@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadApiEnv } from "@/config";
+import { loadApiEnv, loadDatabaseUrl } from "@/config";
 
 const BASE = {
   OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",
@@ -38,5 +38,10 @@ describe("loadApiEnv", () => {
     expect(() => loadApiEnv({ ...BASE, DATABASE_URL: undefined })).toThrow(/DATABASE_URL/);
     expect(() => loadApiEnv({ ...BASE, DATABASE_URL: "mysql://agri@localhost/agri" })).toThrow(/DATABASE_URL/);
     expect(loadApiEnv({ ...BASE, DATABASE_URL: "postgresql://agri@db:5432/agri" }).DATABASE_URL).toBe("postgresql://agri@db:5432/agri");
+  });
+
+  it("reads only the database URL for migrations and seeding", () => {
+    expect(loadDatabaseUrl({ DATABASE_URL: "postgres://agri@db/agri" })).toBe("postgres://agri@db/agri");
+    expect(() => loadDatabaseUrl({})).toThrow(/DATABASE_URL/);
   });
 });

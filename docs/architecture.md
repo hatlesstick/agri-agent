@@ -54,7 +54,7 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 
 - **Controller:** HTTP only — route, guards, validation of the request against the shared zod contract, status codes, Swagger metadata. Calls one service method. No business rules, no repositories.
 - **Service:** business logic and orchestration; opens transactions (from 2.1); calls repositories, ports and other modules' exported services.
-- **Repository (from 2.1):** data access only; every method takes `userId` for user data; accepts an optional transaction.
+- **Repository:** data access only (Drizzle, `@Inject(DATABASE)`), in the owning module's `repositories/`; every method for user data takes `userId` and filters by it. Tables are declared centrally in `src/database/schema/`; only repositories import them.
 - **Ports and adapters:** anything external (weather API, RAG storage, cache, model gateway, Telegram, job queue) is a `type` port with an adapter class provided under a DI token. Business code depends on the token, never on the adapter class.
 - **Pure rules** (spray thresholds, reconciliation) are plain functions without DI.
 
@@ -127,5 +127,5 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 ## Containers
 
 - `apps/api/Dockerfile`: multi-stage, `pnpm deploy --prod`, Node 22 slim, non-root, `HEALTHCHECK` on `/health/live`.
-- `docker-compose.yml` (repo root) services: `api`, `db` (`pgvector/pgvector`, from 2.1), `redis` (profile `cache`, off by default), and in production `caddy` (`docker-compose.prod.yml` override in 2.2). Ports of `db` / `redis` bound to `127.0.0.1` only. Named volumes for data.
+- `docker-compose.yml` (repo root) services: `api`, `db` (`pgvector/pgvector:pg17`; credentials required from the root `.env`), `redis` (profile `cache`, off by default), and in production `caddy` (`docker-compose.prod.yml` override in 2.2). Ports of `db` / `redis` bound to `127.0.0.1` only. Named volumes for data.
 - `docker compose up` runs the API with its dependencies locally; the web app runs with `pnpm --filter @agri/web dev` (or on Vercel) and points `API_ORIGIN` at it.

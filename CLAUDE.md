@@ -53,4 +53,5 @@ packages/shared   contracts only: zod request/response/error schemas, chat messa
 - `pnpm dev`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm eval` (mock, never cached)
 - `pnpm eval:real [files]`, `pnpm eval:summary`, `pnpm eval:compare`, `pnpm eval:baseline <runId>`, `pnpm langfuse:dataset`, `pnpm langfuse:experiment --model <id>`, `pnpm index` — backend tooling (see apps/api/CLAUDE.md; real-model / Langfuse writes only when asked)
 - One workspace: `pnpm --filter @agri/api <script>` (or `@agri/web`, `@agri/shared`)
-- Containers: `docker compose up` (API + its services; see apps/api/CLAUDE.md)
+- Database: `pnpm db:up` (Compose Postgres; `pnpm dev` runs it first), `pnpm --filter @agri/api db:migrate | db:seed | test:db`
+- Containers: `docker compose up` (API + db; see apps/api/CLAUDE.md)

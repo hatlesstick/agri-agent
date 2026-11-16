@@ -58,3 +58,9 @@ export function loadApiEnv(source: Record<string, string | undefined> = process.
   }
   return parsed.data;
 }
+
+export function loadDatabaseUrl(source: Record<string, string | undefined> = process.env): string {
+  const parsed = apiEnvSchema.pick({ DATABASE_URL: true }).safeParse({ DATABASE_URL: emptyToUndefined(source.DATABASE_URL) });
+  if (!parsed.success) throw new Error("Invalid API environment: DATABASE_URL");
+  return parsed.data.DATABASE_URL;
+}

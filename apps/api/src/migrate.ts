@@ -1,5 +1,5 @@
-import { loadApiEnv } from "@/config";
+import { loadDatabaseUrl } from "@/config";
 import { migrateDatabase } from "@/database/migrations";
 
-await migrateDatabase(loadApiEnv().DATABASE_URL);
+await migrateDatabase(loadDatabaseUrl());
 process.stdout.write("migrations applied\n");

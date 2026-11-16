@@ -78,6 +78,43 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
+  database:
+    name: Postgres integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: agri
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: agri_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agri -d agri_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://agri:ci-only-password@localhost:5432/agri_test
+      TEST_DATABASE_URL: postgres://agri:ci-only-password@localhost:5432/agri_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@agri/api^...
+      - name: Migrations apply and are idempotent
+        run: |
+          pnpm --filter @agri/api db:migrate
+          pnpm --filter @agri/api db:migrate
+      - name: Repository and schema tests on Postgres
+        run: pnpm --filter @agri/api test:db
+
   docker:
     name: API image
     runs-on: ubuntu-latest
