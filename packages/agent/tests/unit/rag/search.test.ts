@@ -44,6 +44,11 @@ describe("searchDocs", () => {
     expect(rag.calls).toEqual([{ query: "drift", topK: 3 }]);
   });
 
+  it("orders candidates by score even when the engine does not", async () => {
+    const rag = fakeRag([hit("low", 0.7), hit("high", 0.95), hit("mid", 0.8), hit("top", 0.99)]);
+    expect((await searchDocs(rag, "drift", { topK: 3 }))?.map((candidate) => candidate.id)).toEqual(["top", "high", "mid"]);
+  });
+
   it("drops candidates below the threshold", async () => {
     const rag = fakeRag([hit("a", 0.9), hit("b", REAL_MIN_SCORE - 0.01)]);
     expect((await searchDocs(rag, "drift", { topK: 2 }))?.map((candidate) => candidate.id)).toEqual(["a"]);

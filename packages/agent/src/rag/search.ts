@@ -10,5 +10,8 @@ export async function searchDocs(rag: RagEngine, query: string, { topK = DEFAULT
   const candidates = await rag.search(query, { topK });
   if (!candidates) return null;
   const minScore = isMockMode() ? MOCK_MIN_SCORE : REAL_MIN_SCORE;
-  return candidates.filter((candidate) => candidate.score >= minScore).slice(0, topK);
+  return candidates
+    .filter((candidate) => candidate.score >= minScore)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, topK);
 }

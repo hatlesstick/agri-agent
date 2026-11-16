@@ -35,7 +35,7 @@ export default tseslint.config(
   },
   {
     files: ["src/tools/**/*.ts"],
-    rules: restrictedImports("tools receive ports; concrete adapters are wired in default-ports.ts or by the app.", [...FRAMEWORKS, "@agri/web", "@agri/web/*", "@agri/shared/testing", "@/weather/WeatherRepository", "@/weather/OpenMeteoClient", "@/docs/DocsRepository", "@/rag/JsonRagEngine", "@/default-ports"]),
+    rules: restrictedImports("tools receive ports; concrete adapters are wired in default-ports.ts or by the app.", [...FRAMEWORKS, "@agri/web", "@agri/web/*", "@agri/shared/testing", "@/weather/WeatherRepository", "@/weather/OpenMeteoClient", "@/docs/DocsRepository", "@/rag/JsonRagEngine", "@/default-ports", "@/index", "**/WeatherRepository", "**/OpenMeteoClient", "**/DocsRepository", "**/JsonRagEngine", "**/default-ports", "../../index", "../index"]),
   },
   { ignores: ["dist/**"] },
 );

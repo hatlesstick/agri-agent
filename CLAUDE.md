@@ -246,7 +246,7 @@ packages/agent/                     framework-free agent (@agri/agent)
   src/agent.ts, model.ts, instructions.ts, telemetry.ts, paths.ts (DATA_DIR)
   src/tools/<tool-name>/            tool.ts (pure function + create<Name>Tool(port)) + schemas.ts; createAgentTools(ports) in tools/index.ts
   src/guardrails/                   input screen, label reminder, tool_code leak middleware
-  src/rag/                          search.ts (threshold + top-k over a RagEngine), JsonRagEngine.ts (JSON index adapter), rank.ts
+  src/rag/                          search.ts (sort + threshold + top-k over any RagEngine), JsonRagEngine.ts (JSON index adapter), rank.ts
   src/spray-check/                  structured run + reconcile
   src/mock/                         scripted mock model, tool matchers, mock embeddings
   src/weather/                      WeatherRepository, OpenMeteoClient, response schemas, weather.types
@@ -267,7 +267,7 @@ packages/shared/                    @agri/shared
 - New API endpoint → `app/api/<name>/route.ts` (one line) + `server/controllers/<name>/` + `server/services/<name>/` in `apps/web` (until Stage 2.0b).
 - Business rule (e.g. spraying thresholds, Delta T) → a pure function in `packages/agent/src/<feature>/` (today `spray-window/assess-spray-day.ts`).
 - New data source (API, files, database) → a port `type` in `packages/agent/src/ports.ts` + an adapter class (in the agent package if framework-free, otherwise in the app); tools take the port, the app wires the adapter.
-- New agent capability → `packages/agent/src/tools/<name>/` (`tool.ts`, `schemas.ts`) + one line in `tools/index.ts`; the tool calls rules/repositories and contains no business rules itself.
+- New agent capability → `packages/agent/src/tools/<name>/` (`tool.ts`, `schemas.ts`) + one line in `createAgentTools` (`tools/index.ts`); the tool calls rules and ports (never concrete adapters) and contains no business rules itself.
 - Code needed by more than one workspace and free of frameworks → `packages/shared`.
 - A new channel (Telegram) → its own controllers/services that call `@agri/agent`; nothing in `packages/agent` changes.
 
@@ -276,7 +276,7 @@ packages/shared/                    @agri/shared
 - `packages/agent/src` imports no Next.js, React, Nest or `@agri/web`, and not `@agri/shared/testing`.
 - `packages/agent/src/weather`, `src/docs` → `@agri/shared` and each other only; no AI SDK, agent modules or rules.
 - `packages/agent/src/spray-window` → `weather/` and `@agri/shared`; no AI SDK or agent modules.
-- `packages/agent/src/tools` → ports and types only; never `WeatherRepository`, `OpenMeteoClient`, `DocsRepository`, `JsonRagEngine` or `default-ports`.
+- `packages/agent/src/tools` → never concrete adapters or the package entry: `WeatherRepository`, `OpenMeteoClient`, `DocsRepository`, `JsonRagEngine`, `default-ports`, `index` (also via relative paths); data comes only through the ports passed to the tool factories.
 - `apps/web`: other workspaces only through `@agri/agent`, `@agri/shared` and `@agri/shared/server-env` (server code only); no deep imports.
 - `server/services` → guardrails, helpers, `@agri/shared`, `@agri/agent`; never controllers or frameworks.
 - `server/controllers` → services, guardrails, helpers, `@agri/agent`, Next.js (`after`).
