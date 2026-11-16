@@ -55,4 +55,25 @@ describe("FieldsRepository", () => {
     await expect(fields.create(alice, { ...WHEAT, name: "wheat NEAR lyon" })).rejects.toBeInstanceOf(FieldNameTakenError);
     await expect(fields.create(bob, WHEAT)).resolves.toMatchObject({ userId: bob });
   });
+
+  it("ignores ownership and key columns smuggled into create and update", async () => {
+    const smuggled = { ...WHEAT, id: "00000000-0000-0000-0000-000000000001", userId: bob, createdAt: new Date(0) } as unknown as Parameters<FieldsRepository["create"]>[1];
+    const field = await fields.create(alice, smuggled);
+    expect(field.userId).toBe(alice);
+    expect(field.id).not.toBe("00000000-0000-0000-0000-000000000001");
+    expect(field.createdAt.getTime()).toBeGreaterThan(0);
+    const patch = { crop: "barley", userId: bob, id: "00000000-0000-0000-0000-000000000002" } as unknown as Parameters<FieldsRepository["update"]>[2];
+    const updated = await fields.update(alice, field.id, patch);
+    expect(updated).toMatchObject({ id: field.id, userId: alice, crop: "barley" });
+    expect(await fields.list(bob)).toEqual([]);
+  });
+
+  it("trims names on write so spacing cannot create duplicates", async () => {
+    const field = await fields.create(alice, { ...WHEAT, name: "  Wheat  " });
+    expect(field.name).toBe("Wheat");
+    expect(await fields.findByName(alice, "wheat ")).toMatchObject({ id: field.id });
+    await expect(fields.create(alice, { ...WHEAT, name: "Wheat" })).rejects.toBeInstanceOf(FieldNameTakenError);
+    const renamed = await fields.update(alice, field.id, { name: " Barley " });
+    expect(renamed?.name).toBe("Barley");
+  });
 });

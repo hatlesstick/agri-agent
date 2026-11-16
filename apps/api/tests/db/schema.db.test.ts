@@ -68,4 +68,16 @@ describe("database schema", () => {
     expect(audit).toHaveLength(1);
     expect(audit[0]).toMatchObject({ userId: null, pendingActionId: null, action: "field.created" });
   });
+
+  it("rejects impossible coordinates and negative areas", async () => {
+    const userId = await newUser();
+    await expect(test.db.insert(fields).values({ userId, name: "North", lat: 91, lon: 0 })).rejects.toThrow();
+    await expect(test.db.insert(fields).values({ userId, name: "East", lat: 0, lon: 181 })).rejects.toThrow();
+    await expect(test.db.insert(fields).values({ userId, name: "Negative", lat: 0, lon: 0, areaHa: "-1" })).rejects.toThrow();
+  });
+
+  it("indexes the foreign keys that cascades and /forget walk", async () => {
+    const result = (await test.db.execute(sql`select indexname from pg_indexes where schemaname = 'public'`)) as unknown as { rows: Array<{ indexname: string }> };
+    expect(result.rows.map((row) => row.indexname)).toEqual(expect.arrayContaining(["audit_log_pending_action_id_idx", "pending_actions_field_id_idx", "messages_conversation_created_idx", "fields_user_id_name_unique"]));
+  });
 });

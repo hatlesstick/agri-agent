@@ -58,8 +58,8 @@ Dockerfile
 
 ## Layers
 - **Controller:** HTTP only — route, guards, validation against the shared zod contract, status codes, OpenAPI metadata. Calls one service method. Never imports repositories or adapters.
-- **Service:** business logic and orchestration; owns transaction boundaries (from 2.1); uses repositories, ports and other modules' exported services.
-- **Repository (from 2.1):** data access only; every method for user data takes `userId`; accepts an optional transaction.
+- **Service:** business logic and orchestration; owns transaction boundaries (from 2.5); uses repositories, ports and other modules' exported services.
+- **Repository:** data access only; every method for user data takes `userId`. Multi-repository transactions (a `tx` parameter or unit-of-work helper) arrive with their first user in 2.5.
 - **Ports and adapters:** every external dependency (weather API, RAG storage, cache, rate-limit store, model gateway, Telegram, job queue) is a `type` port with an adapter class provided under a DI token. Business code and tools depend on the port, never on the adapter class.
 - **Pure rules** (spray thresholds, spray-check reconciliation) are plain functions without DI.
 
@@ -91,10 +91,10 @@ Dockerfile
 - Postgres 17 (`pgvector/pgvector:pg17`) via Drizzle ORM. `DATABASE_URL` is required everywhere; the connection is lazy (`LazyDatabase` behind the `DATABASE` token opens the `pg` pool on first use, with connection/statement/ping timeouts, an idle-error handler and close on shutdown).
 - `src/database/`: connection, `DATABASE` token, `Database` type (shared by node-postgres and PGlite), schema, migrations runner, `isUniqueViolation`. It never imports feature modules.
 - **Schema** lives centrally in `src/database/schema/` (one file per table group; enums in `enums.ts`). Timestamps are `timestamptz`; UUID primary keys (`gen_random_uuid()`); `updated_at` is set by repositories.
-- **Repositories** live in the owning module's `repositories/` folder, are injectable classes with `@Inject(DATABASE)`, take `userId` as the first argument for user data and filter every query by it; another user's rows behave as "not found". Only `repositories/` and `src/database` import table objects (type-only imports elsewhere are fine) — lint-enforced. Unique-constraint violations become typed domain errors (`FieldNameTakenError`).
-- **Migrations:** change the schema → `pnpm --filter @agri/api db:generate` → commit `apps/api/drizzle/`. CI fails when `db:check` fails or generating leaves changes. Apply with `pnpm --filter @agri/api db:migrate` locally and `node dist/migrate.js` in the image; the API never migrates on startup. Forward-only; expand/contract for breaking changes.
-- **Tests:** `testDatabase()` (`tests/support/test-database.ts`) gives PGlite with migrations by default and real Postgres when `TEST_DATABASE_URL` is set (`pnpm --filter @agri/api test:db`, CI job "Postgres integration"). DB tests live in `tests/db/**/*.db.test.ts`; e2e tests get a `NO_DATABASE` stub unless they override `DATABASE`.
-- **Local:** `pnpm db:up` (root) starts the Compose `db` with credentials from the root `.env` (`POSTGRES_USER/PASSWORD/DB`, required); `pnpm --filter @agri/api db:seed` creates the demo user and two fields idempotently.
+- **Repositories** live in the owning module's `repositories/` folder, are injectable classes with `@Inject(DATABASE)`, take `userId` as the first argument for user data and filter every query by it; another user's rows behave as "not found". Only `repositories/` and `src/database` import table objects (type-only imports elsewhere are fine), and inside modules only `repositories/` import the `DATABASE` token — lint-enforced. Repositories copy only writable columns from input (never `id`/`userId`/timestamps) and trim names. Unique-constraint violations become typed domain errors (`FieldNameTakenError`).
+- **Migrations:** change the schema → `pnpm --filter @agri/api db:generate` (interactive for renames) → commit `apps/api/drizzle/`. CI runs `db:verify` (`scripts/check-migrations.sh`): fails when `db:check` fails, generating needs a prompt, or generating leaves changes. Apply with `pnpm --filter @agri/api db:migrate` locally and `node dist/migrate.js` in the image; the API never migrates on startup. Forward-only; expand/contract for breaking changes.
+- **Tests:** `testDatabase()` (`tests/support/test-database.ts`) gives PGlite with migrations by default and real Postgres when `TEST_DATABASE_URL` is set (`pnpm --filter @agri/api test:db`, CI job "Postgres integration"; test files then run sequentially). DB tests live in `tests/db/**/*.db.test.ts`; e2e tests get a `NO_DATABASE` stub unless they override `DATABASE`.
+- **Local:** `pnpm db:up` (root) starts the Compose `db` with credentials from the root `.env` (`POSTGRES_USER/PASSWORD/DB`, required; keep the password URL-safe, it is embedded in `DATABASE_URL`); `pnpm --filter @agri/api db:seed` creates the demo user and two fields idempotently.
 
 ## Caching and state
 - `CacheStore` port (`get`, `set` with TTL, `delete`, `clear` — a Redis adapter clears only its key prefix); adapter `InMemoryCacheStore` (bounded LRU) now, `RedisCacheStore` later via `CACHE_DRIVER=memory|redis` + `REDIS_URL`. The weather forecast cache uses it.
@@ -168,6 +168,6 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 - Root `docker-compose.yml`: `api` + `db` (pgvector, from 2.1) + `redis` (profile `cache`); `docker-compose.prod.yml` adds `caddy` (2.2). `api`, `db` and `redis` ports are bound to `127.0.0.1` (Caddy is the only public entry in production).
 
 ## Commands
-- `pnpm --filter @agri/api dev | build | start | test | test:db | eval | openapi | db:generate | db:check | db:migrate | db:seed`
+- `pnpm --filter @agri/api dev | build | start | test | test:db | eval | openapi | db:generate | db:check | db:verify | db:migrate | db:seed`
 - From the root: `pnpm eval:real [files]`, `pnpm eval:summary`, `pnpm eval:compare`, `pnpm eval:baseline <runId>`, `pnpm langfuse:dataset`, `pnpm langfuse:experiment --model <id>` (`AI_MOCK=1 … --dry-run` locally), `pnpm index` — real-model runs and Langfuse writes only when the developer asks.
 - `pnpm db:up` (Compose Postgres), `docker compose up` (API + db), `docker compose --profile cache up` (with Redis), `docker compose exec api node dist/migrate.js`.

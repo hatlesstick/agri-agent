@@ -44,10 +44,7 @@ jobs:
       - name: OpenAPI contract is up to date
         run: pnpm openapi && git diff --exit-code apps/api/openapi.json
       - name: Database migrations match the schema
-        run: |
-          pnpm --filter @agri/api db:check
-          pnpm --filter @agri/api db:generate
-          test -z "$(git status --porcelain apps/api/drizzle)"
+        run: pnpm --filter @agri/api db:verify
       - name: Upload eval results
         if: always()
         uses: actions/upload-artifact@v7

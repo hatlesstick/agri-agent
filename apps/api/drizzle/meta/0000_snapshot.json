@@ -1,5 +1,5 @@
 {
-  "id": "e23594f3-0812-4496-8dab-5ec0eb9c6c5f",
+  "id": "04b4b6ec-9697-4627-921b-a192156432bd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -75,6 +75,21 @@
           "columns": [
             {
               "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "audit_log_pending_action_id_idx": {
+          "name": "audit_log_pending_action_id_idx",
+          "columns": [
+            {
+              "expression": "pending_action_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -248,6 +263,21 @@
             },
             {
               "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "pending_actions_field_id_idx": {
+          "name": "pending_actions_field_id_idx",
+          "columns": [
+            {
+              "expression": "field_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -567,7 +597,7 @@
               "nulls": "last"
             },
             {
-              "expression": "lower(\"name\")",
+              "expression": "lower(btrim(\"name\"))",
               "asc": true,
               "isExpression": true,
               "nulls": "last"
@@ -597,7 +627,20 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "fields_lat_range": {
+          "name": "fields_lat_range",
+          "value": "\"fields\".\"lat\" between -90 and 90"
+        },
+        "fields_lon_range": {
+          "name": "fields_lon_range",
+          "value": "\"fields\".\"lon\" between -180 and 180"
+        },
+        "fields_area_non_negative": {
+          "name": "fields_area_non_negative",
+          "value": "\"fields\".\"area_ha\" is null or \"fields\".\"area_ha\" >= 0"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.identities": {

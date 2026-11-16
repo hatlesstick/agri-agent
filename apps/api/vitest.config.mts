@@ -11,6 +11,7 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.ts", "tests/e2e/**/*.e2e.test.ts", "tests/db/**/*.db.test.ts"],
     environment: "node",
+    fileParallelism: !process.env.TEST_DATABASE_URL,
     setupFiles: ["tests/support/setup.ts"],
     env: {
       NODE_ENV: "test",

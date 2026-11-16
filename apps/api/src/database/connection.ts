@@ -9,6 +9,7 @@ export type PoolLike = Pick<Pool, "query" | "end">;
 export const PING_TIMEOUT_MS = 2000;
 const CONNECTION_TIMEOUT_MS = 3000;
 const STATEMENT_TIMEOUT_MS = 10_000;
+const QUERY_TIMEOUT_MS = 12_000;
 
 const logger = new Logger("Database");
 
@@ -22,6 +23,8 @@ export function createPgPool(url: string): PoolLike {
     idleTimeoutMillis: IDLE_TIMEOUT_MS,
     connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
     statement_timeout: STATEMENT_TIMEOUT_MS,
+    query_timeout: QUERY_TIMEOUT_MS,
+    keepAlive: true,
   });
   pool.on("error", (error) => logger.warn(`idle database client error: ${error.message}`));
   return pool;
@@ -38,6 +41,7 @@ function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
 export class LazyDatabase implements DatabaseHandle {
   private pool: PoolLike | null = null;
   private database: Database | null = null;
+  private closed = false;
 
   constructor(
     private readonly url: string,
@@ -45,6 +49,7 @@ export class LazyDatabase implements DatabaseHandle {
   ) {}
 
   get(): Database {
+    if (this.closed) throw new Error("Database connection is closed");
     if (!this.database) {
       this.pool = this.createPool(this.url);
       this.database = drizzle({ client: this.pool as Pool, schema });
@@ -63,6 +68,7 @@ export class LazyDatabase implements DatabaseHandle {
   }
 
   async close(): Promise<void> {
+    this.closed = true;
     const pool = this.pool;
     this.pool = null;
     this.database = null;

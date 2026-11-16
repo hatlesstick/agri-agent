@@ -53,7 +53,7 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 ### Layers inside a module
 
 - **Controller:** HTTP only — route, guards, validation of the request against the shared zod contract, status codes, Swagger metadata. Calls one service method. No business rules, no repositories.
-- **Service:** business logic and orchestration; opens transactions (from 2.1); calls repositories, ports and other modules' exported services.
+- **Service:** business logic and orchestration; opens transactions (from 2.5, via a repository `tx` parameter or unit-of-work helper); calls repositories, ports and other modules' exported services.
 - **Repository:** data access only (Drizzle, `@Inject(DATABASE)`), in the owning module's `repositories/`; every method for user data takes `userId` and filters by it. Tables are declared centrally in `src/database/schema/`; only repositories import them.
 - **Ports and adapters:** anything external (weather API, RAG storage, cache, model gateway, Telegram, job queue) is a `type` port with an adapter class provided under a DI token. Business code depends on the token, never on the adapter class.
 - **Pure rules** (spray thresholds, reconciliation) are plain functions without DI.

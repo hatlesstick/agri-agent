@@ -57,7 +57,10 @@ CREATE TABLE "fields" (
 	"area_ha" numeric(10, 2),
 	"notes" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "fields_lat_range" CHECK ("fields"."lat" between -90 and 90),
+	CONSTRAINT "fields_lon_range" CHECK ("fields"."lon" between -180 and 180),
+	CONSTRAINT "fields_area_non_negative" CHECK ("fields"."area_ha" is null or "fields"."area_ha" >= 0)
 );
 --> statement-breakpoint
 CREATE TABLE "identities" (
@@ -97,10 +100,12 @@ ALTER TABLE "identities" ADD CONSTRAINT "identities_user_id_users_id_fk" FOREIGN
 ALTER TABLE "usage_daily" ADD CONSTRAINT "usage_daily_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "audit_log_user_id_idx" ON "audit_log" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "audit_log_created_at_idx" ON "audit_log" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "audit_log_pending_action_id_idx" ON "audit_log" USING btree ("pending_action_id");--> statement-breakpoint
 CREATE INDEX "pending_actions_user_status_idx" ON "pending_actions" USING btree ("user_id","status");--> statement-breakpoint
 CREATE INDEX "pending_actions_status_expires_idx" ON "pending_actions" USING btree ("status","expires_at");--> statement-breakpoint
+CREATE INDEX "pending_actions_field_id_idx" ON "pending_actions" USING btree ("field_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "conversations_channel_external_chat_unique" ON "conversations" USING btree ("channel","external_chat_id") WHERE "conversations"."external_chat_id" is not null;--> statement-breakpoint
 CREATE INDEX "conversations_user_id_idx" ON "conversations" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "messages_conversation_created_idx" ON "messages" USING btree ("conversation_id","created_at");--> statement-breakpoint
-CREATE UNIQUE INDEX "fields_user_id_name_unique" ON "fields" USING btree ("user_id",lower("name"));--> statement-breakpoint
+CREATE UNIQUE INDEX "fields_user_id_name_unique" ON "fields" USING btree ("user_id",lower(btrim("name")));--> statement-breakpoint
 CREATE INDEX "identities_user_id_idx" ON "identities" USING btree ("user_id");

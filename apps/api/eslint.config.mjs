@@ -22,6 +22,7 @@ function adapterPaths(ownModule) {
     .map(([name, importNames]) => ({ name: `@/modules/${name}`, importNames, message: ADAPTER_MESSAGE }));
 }
 
+const DATABASE_OUTSIDE_REPOSITORIES = { name: "@/database", importNames: ["DATABASE", "LazyDatabase", "createPgPool"], message: "Only repositories query the database; services and controllers go through a repository." };
 const TABLES_OUTSIDE_REPOSITORIES = { group: ["@/database/schema", "@/database/schema/*"], allowTypeImports: true, message: "Only repositories (and src/database) work with tables; everything else goes through a repository." };
 
 function restrictedImports(message, group, paths = [], extraPatterns = []) {
@@ -44,8 +45,12 @@ export default tseslint.config(
     rules: restrictedImports("apps/api has no UI frameworks and no LangChain outside modules/rag and modules/agent/workflows.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB]),
   },
   {
-    files: ["src/common/**/*.ts", "src/config/**/*.ts", "src/observability/**/*.ts", "src/database/**/*.ts"],
-    rules: restrictedImports("common/, config/, database/ and observability/ are cross-cutting: they never import feature modules.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, "@/modules", "@/modules/**"]),
+    files: ["src/common/**/*.ts", "src/config/**/*.ts", "src/observability/**/*.ts"],
+    rules: restrictedImports("common/, config/ and observability/ are cross-cutting: they never import feature modules.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, "@/modules", "@/modules/**"], [], [TABLES_OUTSIDE_REPOSITORIES]),
+  },
+  {
+    files: ["src/database/**/*.ts"],
+    rules: restrictedImports("database/ is cross-cutting: it never imports feature modules.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, "@/modules", "@/modules/**"]),
   },
   {
     files: ["src/*.ts", "src/bootstrap/**/*.ts"],
@@ -55,7 +60,7 @@ export default tseslint.config(
     const message = `modules/${name} may import other modules only through their public API (@/modules/<name>).`;
     const group = [...FRAMEWORKS, ...(name === "rag" ? LANGCHAIN_CHAT_MODELS : LANGCHAIN), ...WEB, ...DEEP_MODULE_IMPORTS, `!@/modules/${name}/**`];
     return [
-      { files: [`src/modules/${name}/**/*.ts`], rules: restrictedImports(message, group, adapterPaths(name), [TABLES_OUTSIDE_REPOSITORIES]) },
+      { files: [`src/modules/${name}/**/*.ts`], rules: restrictedImports(message, group, [...adapterPaths(name), DATABASE_OUTSIDE_REPOSITORIES], [TABLES_OUTSIDE_REPOSITORIES]) },
       { files: [`src/modules/${name}/repositories/**/*.ts`], rules: restrictedImports(message, group, adapterPaths(name)) },
     ];
   }),

@@ -12,7 +12,7 @@ export async function runMigrations(db: NodePgDatabase<DatabaseSchema>): Promise
 }
 
 export async function migrateDatabase(url: string): Promise<void> {
-  const pool = new Pool({ connectionString: url, max: 1 });
+  const pool = new Pool({ connectionString: url, max: 1, connectionTimeoutMillis: 10_000 });
   try {
     await runMigrations(drizzle({ client: pool, schema }));
   } finally {

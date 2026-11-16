@@ -48,10 +48,22 @@ describe("LazyDatabase", () => {
   });
 });
 
+describe("LazyDatabase after close", () => {
+  it("refuses to reopen a pool once closed", async () => {
+    const createPool = vi.fn(fakePool);
+    const database = new LazyDatabase("postgres://agri@localhost/agri", createPool);
+    database.get();
+    await database.close();
+    expect(() => database.get()).toThrow(/closed/);
+    expect(await database.ping()).toBe(false);
+    expect(createPool).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("createPgPool", () => {
   it("sets connection and statement timeouts and handles idle client errors", () => {
     const pool = createPgPool("postgres://agri:secret@localhost/agri") as unknown as import("pg").Pool & { options: Record<string, unknown> };
-    expect(pool.options).toMatchObject({ connectionTimeoutMillis: 3000, statement_timeout: 10_000 });
+    expect(pool.options).toMatchObject({ connectionTimeoutMillis: 3000, statement_timeout: 10_000, query_timeout: 12_000, keepAlive: true });
     expect(pool.listenerCount("error")).toBe(1);
     expect(() => pool.emit("error", new Error("terminating connection"))).not.toThrow();
     void pool.end();

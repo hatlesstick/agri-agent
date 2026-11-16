@@ -23,7 +23,11 @@ export const pendingActions = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("pending_actions_user_status_idx").on(table.userId, table.status), index("pending_actions_status_expires_idx").on(table.status, table.expiresAt)],
+  (table) => [
+    index("pending_actions_user_status_idx").on(table.userId, table.status),
+    index("pending_actions_status_expires_idx").on(table.status, table.expiresAt),
+    index("pending_actions_field_id_idx").on(table.fieldId),
+  ],
 );
 
 export const auditLog = pgTable(
@@ -37,5 +41,9 @@ export const auditLog = pgTable(
     pendingActionId: uuid("pending_action_id").references(() => pendingActions.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("audit_log_user_id_idx").on(table.userId), index("audit_log_created_at_idx").on(table.createdAt)],
+  (table) => [
+    index("audit_log_user_id_idx").on(table.userId),
+    index("audit_log_created_at_idx").on(table.createdAt),
+    index("audit_log_pending_action_id_idx").on(table.pendingActionId),
+  ],
 );
