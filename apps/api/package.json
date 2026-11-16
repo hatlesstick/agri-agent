@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "test": "vitest run",
-    "openapi": "tsx scripts/generate-openapi.ts"
+    "openapi": "tsx scripts/generate-openapi.ts",
+    "eval": "vitest run --config vitest.eval.config.mts"
   },
   "dependencies": {
     "@agri/agent": "workspace:*",

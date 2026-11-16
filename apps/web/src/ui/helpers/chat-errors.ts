@@ -15,7 +15,7 @@ export function friendlyChatError(message: string): string {
   if (!trimmed.startsWith("{")) return trimmed;
   try {
     const parsed: unknown = JSON.parse(trimmed);
-    const code = parsed && typeof parsed === "object" && "error" in parsed ? String(parsed.error) : "";
+    const code = parsed && typeof parsed === "object" && "code" in parsed ? String(parsed.code) : "";
     return MESSAGES[code] ?? FALLBACK;
   } catch {
     return FALLBACK;

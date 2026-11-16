@@ -14,6 +14,7 @@ export default defineConfig({
     setupFiles: ["tests/support/setup.ts"],
     env: {
       NODE_ENV: "test",
+      AI_MOCK: "1",
       LOG_LEVEL: "silent",
       OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",
       OPEN_METEO_FORECAST_URL: "https://api.open-meteo.com/v1/forecast",

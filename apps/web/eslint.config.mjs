@@ -2,35 +2,23 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
-const FRAMEWORKS = ["next", "next/*", "react", "react-dom"];
 const ATOMIC_LEVELS = ["atoms", "molecules", "organisms", "templates", "pages"];
-const DEEP_PACKAGE_IMPORTS = ["@agri/agent/*", "@agri/shared/*", "!@agri/shared/server-env", "!@agri/shared/contracts"];
 
 const BOUNDARIES = [
   {
-    files: ["src/server/services/**"],
-    message: "server/services hold business logic: use helpers, guardrails, @agri/shared and @agri/agent (public API), never controllers or frameworks.",
-    forbidden: [...FRAMEWORKS, ...DEEP_PACKAGE_IMPORTS, "@/server/controllers/*", "@/ui/*", "@/app/*"],
-  },
-  {
-    files: ["src/server/controllers/**"],
-    message: "server/controllers handle HTTP only: delegate to services; use @agri/agent through its public API.",
-    forbidden: ["react", "react-dom", ...DEEP_PACKAGE_IMPORTS, "@/ui/*", "@/app/*"],
-  },
-  {
-    files: ["src/server/guardrails/**", "src/server/helpers/**"],
-    message: "server/guardrails and server/helpers are leaf utilities: no controllers, services or UI.",
-    forbidden: ["react", "react-dom", ...DEEP_PACKAGE_IMPORTS, "@/server/controllers/*", "@/server/services/*", "@/ui/*", "@/app/*"],
-  },
-  {
     files: ["src/ui/**"],
     message: "ui/ uses @agri/shared (contracts and limits) and its own folders; never backend code.",
-    forbidden: ["@agri/agent", "@agri/agent/*", "@agri/shared/*", "!@agri/shared/contracts", "@/server/*", "@/app/*"],
+    forbidden: ["@agri/agent", "@agri/agent/*", "@agri/api", "@agri/api/*", "@agri/shared/*", "!@agri/shared/contracts", "@/app/*", "@/proxy"],
   },
   {
     files: ["src/app/**"],
-    message: "app/ only wires routes: @/ui/pages/* for pages and @/server/controllers/* for API routes.",
-    forbidden: ["@agri/agent", "@agri/agent/*", "@agri/shared", "@agri/shared/*", "@/server/services/*", "@/server/guardrails/*", "@/server/helpers/*", "@/ui/atoms/*", "@/ui/molecules/*", "@/ui/organisms/*", "@/ui/templates/*", "@/ui/hooks/*", "@/ui/helpers/*", "@/ui/schemas/*"],
+    message: "app/ only wires pages: @/ui/pages/*.",
+    forbidden: ["@agri/*", "@/ui/atoms/*", "@/ui/molecules/*", "@/ui/organisms/*", "@/ui/templates/*", "@/ui/hooks/*", "@/ui/helpers/*", "@/ui/schemas/*"],
+  },
+  {
+    files: ["src/proxy.ts"],
+    message: "proxy.ts only adds proxy headers; no UI or backend code.",
+    forbidden: ["@agri/*", "@/ui/*", "@/app/*"],
   },
 ];
 
