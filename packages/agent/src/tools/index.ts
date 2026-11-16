@@ -1,12 +1,13 @@
-import { getWeatherTool } from "@/tools/get-weather/tool";
+import { createGetWeatherTool } from "@/tools/get-weather/tool";
 import { searchDocsTool } from "@/tools/search-docs/tool";
-import { sprayOutlookTool } from "@/tools/spray-outlook/tool";
-import { sprayWindowTool } from "@/tools/spray-window/tool";
+import { createSprayOutlookTool } from "@/tools/spray-outlook/tool";
+import { createSprayWindowTool } from "@/tools/spray-window/tool";
+import { weatherRepository } from "@/weather/WeatherRepository";
 
 export const agentTools = {
-  getWeather: getWeatherTool,
-  sprayWindow: sprayWindowTool,
-  sprayOutlook: sprayOutlookTool,
+  getWeather: createGetWeatherTool(weatherRepository),
+  sprayWindow: createSprayWindowTool(weatherRepository),
+  sprayOutlook: createSprayOutlookTool(weatherRepository),
   searchDocs: searchDocsTool,
 };
 

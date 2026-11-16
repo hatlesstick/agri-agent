@@ -1,18 +1,19 @@
 import { tool } from "ai";
+import type { WeatherPort } from "@/ports";
 import {
   sprayWindowInputSchema,
   sprayWindowOutputSchema,
   type SprayWindowInput,
   type SprayWindowOutput,
 } from "@/tools/spray-window/schemas";
+import type { WeatherToolDeps } from "@/tools/shared/deps";
 import { clockContextSchema } from "@/tools/shared/schemas";
 import { currentLocalHour, resolveDay, todayIn } from "@agri/shared";
 import { sprayWindowService } from "@/spray-window/SprayWindowService";
-import { weatherRepository } from "@/weather/WeatherRepository";
 import { isWeatherError } from "@/weather/weather.types";
 
-export async function sprayWindow(input: SprayWindowInput, now: Date = new Date()): Promise<SprayWindowOutput> {
-  const forecast = await weatherRepository.getForecast(input.city);
+export async function sprayWindow(input: SprayWindowInput, { weather, now = new Date() }: WeatherToolDeps): Promise<SprayWindowOutput> {
+  const forecast = await weather.getForecast(input.city);
   if (isWeatherError(forecast)) return sprayWindowOutputSchema.parse(forecast);
 
   const date = resolveDay(input.date, forecast.timezone, now);
@@ -31,11 +32,13 @@ export async function sprayWindow(input: SprayWindowInput, now: Date = new Date(
   });
 }
 
-export const sprayWindowTool = tool({
-  description:
-    "Decide whether a field can be sprayed on a given day in a city. Applies fixed agronomic rules (wind 1–4 m/s, 10–25 °C, no rain 3 h before and after) to the hourly forecast and returns canSpray, the best window and all suitable windows in city-local time. This result is final: report it, never override it.",
-  inputSchema: sprayWindowInputSchema,
-  outputSchema: sprayWindowOutputSchema,
-  contextSchema: clockContextSchema,
-  execute: (input, { context }) => sprayWindow(input, context.now),
-});
+export function createSprayWindowTool(weather: WeatherPort) {
+  return tool({
+    description:
+      "Decide whether a field can be sprayed on a given day in a city. Applies fixed agronomic rules (wind 1–4 m/s, 10–25 °C, no rain 3 h before and after) to the hourly forecast and returns canSpray, the best window and all suitable windows in city-local time. This result is final: report it, never override it.",
+    inputSchema: sprayWindowInputSchema,
+    outputSchema: sprayWindowOutputSchema,
+    contextSchema: clockContextSchema,
+    execute: (input, { context }) => sprayWindow(input, { weather, now: context.now }),
+  });
+}
