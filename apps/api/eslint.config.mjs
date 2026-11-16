@@ -22,11 +22,13 @@ function adapterPaths(ownModule) {
     .map(([name, importNames]) => ({ name: `@/modules/${name}`, importNames, message: ADAPTER_MESSAGE }));
 }
 
-function restrictedImports(message, group, paths = []) {
+const TABLES_OUTSIDE_REPOSITORIES = { group: ["@/database/schema", "@/database/schema/*"], allowTypeImports: true, message: "Only repositories (and src/database) work with tables; everything else goes through a repository." };
+
+function restrictedImports(message, group, paths = [], extraPatterns = []) {
   return {
     "no-restricted-imports": "off",
     "no-console": "error",
-    "@typescript-eslint/no-restricted-imports": ["error", { paths, patterns: [{ group, message }, RELATIVE_IMPORTS] }],
+    "@typescript-eslint/no-restricted-imports": ["error", { paths, patterns: [{ group, message }, RELATIVE_IMPORTS, ...extraPatterns] }],
   };
 }
 
@@ -47,16 +49,16 @@ export default tseslint.config(
   },
   {
     files: ["src/*.ts", "src/bootstrap/**/*.ts"],
-    rules: restrictedImports("Import a feature module only through its public API: @/modules/<name>.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, ...DEEP_MODULE_IMPORTS], adapterPaths(null)),
+    rules: restrictedImports("Import a feature module only through its public API: @/modules/<name>.", [...FRAMEWORKS, ...LANGCHAIN, ...WEB, ...DEEP_MODULE_IMPORTS], adapterPaths(null), [TABLES_OUTSIDE_REPOSITORIES]),
   },
-  ...MODULES.map((name) => ({
-    files: [`src/modules/${name}/**/*.ts`],
-    rules: restrictedImports(
-      `modules/${name} may import other modules only through their public API (@/modules/<name>).`,
-      [...FRAMEWORKS, ...(name === "rag" ? LANGCHAIN_CHAT_MODELS : LANGCHAIN), ...WEB, ...DEEP_MODULE_IMPORTS, `!@/modules/${name}/**`],
-      adapterPaths(name),
-    ),
-  })),
+  ...MODULES.flatMap((name) => {
+    const message = `modules/${name} may import other modules only through their public API (@/modules/<name>).`;
+    const group = [...FRAMEWORKS, ...(name === "rag" ? LANGCHAIN_CHAT_MODELS : LANGCHAIN), ...WEB, ...DEEP_MODULE_IMPORTS, `!@/modules/${name}/**`];
+    return [
+      { files: [`src/modules/${name}/**/*.ts`], rules: restrictedImports(message, group, adapterPaths(name), [TABLES_OUTSIDE_REPOSITORIES]) },
+      { files: [`src/modules/${name}/repositories/**/*.ts`], rules: restrictedImports(message, group, adapterPaths(name)) },
+    ];
+  }),
   {
     files: ["src/modules/agent/tools/**/*.ts"],
     rules: restrictedImports(

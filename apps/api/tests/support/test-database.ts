@@ -4,7 +4,7 @@ import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 import { drizzle as drizzleNodePg } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import type { Database } from "@/database";
+import type { Database, DatabaseHandle } from "@/database";
 import { MIGRATIONS_DIR, runMigrations } from "@/database/migrations";
 import * as schema from "@/database/schema";
 
@@ -41,4 +41,8 @@ async function onPglite(): Promise<TestDatabase> {
 export function testDatabase(): Promise<TestDatabase> {
   const url = process.env.TEST_DATABASE_URL;
   return url ? onPostgres(url) : onPglite();
+}
+
+export function databaseHandle(db: Database): DatabaseHandle {
+  return { get: () => db, ping: async () => true, close: async () => {} };
 }
