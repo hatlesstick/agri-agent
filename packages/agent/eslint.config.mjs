@@ -33,5 +33,9 @@ export default tseslint.config(
     files: ["src/spray-window/**/*.ts"],
     rules: restrictedImports("spray-window/ holds deterministic rules: it may use weather/ only.", [...FRAMEWORKS, ...AI_SDK, ...AGENT_MODULES, "@/docs", "@/docs/*", "@agri/shared/testing"]),
   },
+  {
+    files: ["src/tools/**/*.ts"],
+    rules: restrictedImports("tools receive ports; concrete adapters are wired in default-ports.ts or by the app.", [...FRAMEWORKS, "@agri/web", "@agri/web/*", "@agri/shared/testing", "@/weather/WeatherRepository", "@/weather/OpenMeteoClient", "@/docs/DocsRepository", "@/rag/JsonRagEngine", "@/default-ports"]),
+  },
   { ignores: ["dist/**"] },
 );

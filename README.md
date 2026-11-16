@@ -164,7 +164,8 @@ packages/shared/       @agri/shared: chat limits, time helpers, server env, test
 ```
 
 - Frontend, backend and agent are separate parts with one-way imports, enforced by ESLint.
-- Spraying rules live in `SprayWindowService`; the model only explains the result.
+- Spraying rules live in the pure function `assessSprayDay`; the model only explains the result.
+- Tools read weather and documents through ports (`WeatherPort`, `RagEngine`); the app wires the default adapters with `defaultAgentPorts()`.
 - Forms use `react-hook-form` with `zod` schemas; UI logic lives in custom hooks, components only render.
 
 See `CLAUDE.md` for the full conventions: folder rules, naming, component and class patterns, and where new code goes.
