@@ -23,11 +23,11 @@ Any Ubuntu 24.04 VPS with ≥ 2 GB RAM works. Current server: OVHcloud VPS-1 (2 
    ssh ubuntu@<ip> 'sudo bash -s' < infra/bootstrap.sh
    ssh deploy@<ip> 'docker version --format "{{.Server.Version}}"'
    ```
-   The script is idempotent and is tested in CI on a clean Ubuntu 24.04 container (`infra/smoke/bootstrap-test.sh`). Docker publishes container ports past `ufw`; only Caddy publishes ports (80/443), so this matches the firewall.
+   `~deploy/.ssh/authorized_keys` is managed: every run copies `ubuntu`'s keys over it, so removing a key from `ubuntu` and re-running revokes it for `deploy` too. CI keys live in `~deploy/.ssh/authorized_keys_ci`, which the script never touches (sshd reads both files). The script is idempotent and is tested in CI on a clean Ubuntu 24.04 container (`infra/smoke/bootstrap-test.sh`). Docker publishes container ports past `ufw`; only Caddy publishes ports (80/443), so this matches the firewall.
 3. A separate key for GitHub Actions (never your personal key):
    ```bash
    ssh-keygen -t ed25519 -N "" -C agri-deploy-ci -f ~/.ssh/agri-deploy-ci
-   ssh deploy@<ip> 'cat >> ~/.ssh/authorized_keys' < ~/.ssh/agri-deploy-ci.pub
+   ssh deploy@<ip> 'cat >> ~/.ssh/authorized_keys_ci' < ~/.ssh/agri-deploy-ci.pub
    ssh-keyscan -t ed25519 <ip>          # value for DEPLOY_SSH_KNOWN_HOSTS
    ```
 

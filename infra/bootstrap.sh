@@ -35,14 +35,8 @@ log "user $DEPLOY_USER"
 id "$DEPLOY_USER" >/dev/null 2>&1 || useradd --create-home --shell /bin/bash "$DEPLOY_USER"
 usermod -aG docker "$DEPLOY_USER"
 install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "/home/$DEPLOY_USER/.ssh"
-DEPLOY_KEYS="/home/$DEPLOY_USER/.ssh/authorized_keys"
-touch "$DEPLOY_KEYS"
-while IFS= read -r key || [ -n "$key" ]; do
-  [ -n "$key" ] || continue
-  grep -qxF "$key" "$DEPLOY_KEYS" || echo "$key" >> "$DEPLOY_KEYS"
-done < "$SOURCE_KEYS"
-chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_KEYS"
-chmod 600 "$DEPLOY_KEYS"
+install -m 600 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$SOURCE_KEYS" "/home/$DEPLOY_USER/.ssh/authorized_keys"
+[ -f "/home/$DEPLOY_USER/.ssh/authorized_keys_ci" ] || install -m 600 -o "$DEPLOY_USER" -g "$DEPLOY_USER" /dev/null "/home/$DEPLOY_USER/.ssh/authorized_keys_ci"
 
 log "app directory $APP_DIR"
 install -d -m 750 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$APP_DIR"
@@ -56,6 +50,7 @@ PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin no
 PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys_ci
 MaxAuthTries 4
 SSHD
 for file in /etc/ssh/sshd_config.d/*.conf; do

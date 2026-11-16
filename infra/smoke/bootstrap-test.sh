@@ -15,15 +15,15 @@ on_host 'id ubuntu >/dev/null 2>&1 || useradd -m -s /bin/bash ubuntu; mkdir -p /
 
 on_host 'BOOTSTRAP_IN_CONTAINER=1 bash /root/bootstrap.sh' > /dev/null || fail "first run"
 pass "first run completes"
-on_host 'echo "ssh-ed25519 AAAAEXTRA ci@example" >> /home/deploy/.ssh/authorized_keys'
+on_host 'echo "ssh-ed25519 AAAAEXTRA ci@example" > /home/deploy/.ssh/authorized_keys_ci && echo "ssh-ed25519 AAAAREVOKED old@example" >> /home/ubuntu/.ssh/authorized_keys && BOOTSTRAP_IN_CONTAINER=1 bash /root/bootstrap.sh >/dev/null && sed -i "/AAAAREVOKED/d" /home/ubuntu/.ssh/authorized_keys'
 on_host 'BOOTSTRAP_IN_CONTAINER=1 bash /root/bootstrap.sh' > /dev/null || fail "second run"
 pass "second run is idempotent"
 
 on_host 'id deploy | grep -q "(docker)"' || fail "deploy is not in the docker group"
-# shellcheck disable=SC2016
-on_host 'while read -r key; do grep -qxF "$key" /home/deploy/.ssh/authorized_keys || exit 1; done < /home/ubuntu/.ssh/authorized_keys' || fail "deploy is missing a key from ubuntu"
-on_host 'grep -qxF "ssh-ed25519 AAAAEXTRA ci@example" /home/deploy/.ssh/authorized_keys' || fail "re-running bootstrap removed an extra deploy key (CI key)"
-[ "$(on_host 'grep -c . /home/deploy/.ssh/authorized_keys')" = "2" ] || fail "authorized_keys has duplicates"
+on_host 'cmp /home/ubuntu/.ssh/authorized_keys /home/deploy/.ssh/authorized_keys' || fail "deploy authorized_keys is not managed from ubuntu"
+on_host '! grep -q AAAAREVOKED /home/deploy/.ssh/authorized_keys' || fail "a key removed from ubuntu still works for deploy"
+on_host 'grep -qxF "ssh-ed25519 AAAAEXTRA ci@example" /home/deploy/.ssh/authorized_keys_ci' || fail "re-running bootstrap touched the CI key file"
+on_host 'sshd -T | grep -qx "authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys_ci"' || fail "sshd does not read authorized_keys_ci"
 [ "$(on_host 'stat -c "%U %a" /home/deploy/.ssh/authorized_keys')" = "deploy 600" ] || fail "authorized_keys owner/mode"
 pass "deploy user with the same SSH key and docker group"
 
