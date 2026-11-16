@@ -1,5 +1,5 @@
 import { sprayAssessmentSchema, sprayWindowErrorSchema } from "@agri/shared/contracts";
-import type { SprayCheck } from "@/spray-check/schemas";
+import type { SprayCheck } from "@/modules/agent/spray-check/schemas";
 
 export type ToolResult = { toolName: string; output: unknown };
 

@@ -1,4 +1,4 @@
-import type { runSprayCheck } from "@agri/agent";
+import type { runSprayCheck } from "@/modules/agent";
 
 type SprayCheckRun = Awaited<ReturnType<typeof runSprayCheck>>;
 

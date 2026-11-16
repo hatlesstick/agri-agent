@@ -1,4 +1,4 @@
-import type { MockToolMatcher } from "@/mock/model";
+import type { MockToolMatcher } from "@/modules/agent/mock/model";
 
 const CITY_AFTER_PREPOSITION = /\b(?:in|for|at|near)\s+(\p{L}[\p{L}'’-]*)/iu;
 

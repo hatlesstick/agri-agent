@@ -32,3 +32,5 @@ export type WeatherResult = Forecast | WeatherError;
 export function isWeatherError(result: WeatherResult): result is WeatherError {
   return "error" in result;
 }
+
+export type WeatherPort = { getForecast(city: string): Promise<WeatherResult> };

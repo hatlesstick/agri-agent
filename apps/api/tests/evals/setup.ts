@@ -1,5 +1,5 @@
 import { afterAll } from "vitest";
-import { flushAgentTelemetry, registerAgentTelemetry } from "@/index";
+import { flushAgentTelemetry, registerAgentTelemetry } from "@/observability";
 import { flushScores } from "@tests/evals/scores";
 
 registerAgentTelemetry({ exportMode: "immediate", environment: "evals" });

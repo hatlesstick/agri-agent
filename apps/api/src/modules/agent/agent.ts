@@ -1,10 +1,10 @@
 import { isStepCount, Output, ToolLoopAgent, type InferAgentUIMessage, type LanguageModel } from "ai";
 import { z } from "zod";
-import { buildInstructions, STRUCTURED_OUTPUT_INSTRUCTIONS } from "@/instructions";
-import { chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/model";
-import { sprayCheckSchema } from "@/spray-check/schemas";
-import type { AgentPorts } from "@/ports";
-import { agentToolsContext, createAgentTools } from "@/tools";
+import { buildInstructions, STRUCTURED_OUTPUT_INSTRUCTIONS } from "@/modules/agent/instructions";
+import { chatModel, MAX_AGENT_STEPS, MAX_OUTPUT_TOKENS } from "@/modules/agent/model";
+import { sprayCheckSchema } from "@/modules/agent/spray-check/schemas";
+import type { AgentPorts } from "@/modules/agent/agent.types";
+import { agentToolsContext, createAgentTools } from "@/modules/agent/tools";
 
 export const agentCallOptionsSchema = z.object({
   now: z.date(),

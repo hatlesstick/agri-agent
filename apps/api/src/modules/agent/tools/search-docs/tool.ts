@@ -1,6 +1,6 @@
 import { tool } from "ai";
-import type { RagEngine } from "@/ports";
-import { searchDocs } from "@/rag/search";
+import type { RagEngine } from "@/modules/rag";
+import { searchDocs } from "@/modules/rag";
 import {
   searchDocsInputSchema,
   searchDocsOutputSchema,

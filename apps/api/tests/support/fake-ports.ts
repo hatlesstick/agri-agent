@@ -1,5 +1,6 @@
-import type { RagCandidate, RagEngine, WeatherPort } from "@/ports";
-import type { WeatherResult } from "@/weather/weather.types";
+import type { RagCandidate, RagEngine } from "@/modules/rag";
+import type { WeatherPort } from "@/modules/weather";
+import type { WeatherResult } from "@/modules/weather/weather.types";
 
 export function fakeWeather(result: WeatherResult): WeatherPort & { calls: string[] } {
   const calls: string[] = [];

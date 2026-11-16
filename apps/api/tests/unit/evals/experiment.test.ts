@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SprayCheckOutcome } from "@/index";
+import type { SprayCheckOutcome } from "@/modules/agent";
 import {
   decisionFailures,
   itemEvaluations,

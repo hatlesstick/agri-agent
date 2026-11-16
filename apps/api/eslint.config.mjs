@@ -11,12 +11,19 @@ const MODULES_DIR = new URL("./src/modules/", import.meta.url);
 const MODULES = existsSync(MODULES_DIR) ? readdirSync(MODULES_DIR, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name) : [];
 const DEEP_MODULE_IMPORTS = ["@/modules/*/**"];
 
-function restrictedImports(message, group) {
+function restrictedImports(message, group, paths = []) {
   return {
     "no-restricted-imports": "off",
-    "@typescript-eslint/no-restricted-imports": ["error", { patterns: [{ group, message }] }],
+    "@typescript-eslint/no-restricted-imports": ["error", { paths, patterns: [{ group, message }] }],
   };
 }
+
+const ADAPTER_MESSAGE = "Tools receive ports; concrete adapters are wired by Nest modules or createAgentPorts().";
+const TOOL_FORBIDDEN_NAMES = [
+  { name: "@/modules/weather", importNames: ["WeatherRepository", "OpenMeteoClient", "WeatherModule"], message: ADAPTER_MESSAGE },
+  { name: "@/modules/rag", importNames: ["JsonRagEngine", "DocsRepository", "RagModule"], message: ADAPTER_MESSAGE },
+  { name: "@/modules/agent", importNames: ["createAgentPorts", "AgentModule"], message: ADAPTER_MESSAGE },
+];
 
 export default tseslint.config(
   js.configs.recommended,
@@ -44,6 +51,10 @@ export default tseslint.config(
       [...FRAMEWORKS, ...(name === "rag" ? LANGCHAIN_CHAT_MODELS : LANGCHAIN), ...DEEP_MODULE_IMPORTS, `!@/modules/${name}/**`, "@agri/web", "@agri/web/*"],
     ),
   })),
+  {
+    files: ["src/modules/agent/tools/**/*.ts"],
+    rules: restrictedImports(ADAPTER_MESSAGE, [...FRAMEWORKS, ...LANGCHAIN, ...DEEP_MODULE_IMPORTS, "!@/modules/agent/**", "@/modules/agent/create-agent-ports", "@/modules/agent/AgentModule", "@agri/web", "@agri/web/*"], TOOL_FORBIDDEN_NAMES),
+  },
   {
     files: ["src/modules/agent/graphs/**/*.ts"],
     rules: restrictedImports("LangGraph is allowed here, but never LangChain chat models: call models through the AI SDK.", [...FRAMEWORKS, ...LANGCHAIN_CHAT_MODELS, ...DEEP_MODULE_IMPORTS, "!@/modules/agent/**"]),

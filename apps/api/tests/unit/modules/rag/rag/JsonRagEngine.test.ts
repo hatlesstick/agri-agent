@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { docsRepository } from "@/docs/DocsRepository";
-import { JsonRagEngine } from "@/rag/JsonRagEngine";
+import { DocsRepository } from "@/modules/rag/DocsRepository";
+import { JsonRagEngine } from "@/modules/rag/JsonRagEngine";
 
 describe("JsonRagEngine (mock embeddings)", () => {
   beforeEach(() => vi.stubEnv("AI_MOCK", "1"));
@@ -18,8 +18,9 @@ describe("JsonRagEngine (mock embeddings)", () => {
   });
 
   it("builds the index once and again after reset", async () => {
-    const read = vi.spyOn(docsRepository, "readCorpusChunks");
-    const engine = new JsonRagEngine();
+    const docs = new DocsRepository();
+    const read = vi.spyOn(docs, "readCorpusChunks");
+    const engine = new JsonRagEngine(docs);
     await engine.search("drift", { topK: 3 });
     await engine.search("inversion", { topK: 3 });
     expect(read).toHaveBeenCalledTimes(1);

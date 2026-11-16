@@ -1,13 +1,16 @@
 import { afterAll, afterEach, describe, it, vi } from "vitest";
-import { defaultAgentPorts, runSprayCheck } from "@/index";
+import { createAgentPorts, runSprayCheck } from "@/modules/agent";
 import { EVAL_TIMEOUT_MS, evalModel, evaluateCase, MOCK, RETRIES_PER_CALL, skipOnMock, tracedRun, type RunOutcome } from "@tests/evals/harness";
 import { printEvalReport } from "@tests/evals/report";
 import { EVAL_NOW, stubWeatherScenario } from "@tests/evals/scenarios";
 import { decisionFailures, toExperimentOutput } from "@tests/evals/experiment";
 import { SPRAY_CHECK_CASES, SPRAY_CHECK_SUITE, type SprayCheckCase } from "@tests/evals/spray-check-cases";
 import { recordScores } from "@tests/evals/scores";
-import { sprayCheckSchema } from "@/spray-check/schemas";
-import { weatherRepository } from "@/weather/WeatherRepository";
+import { sprayCheckSchema } from "@/modules/agent/spray-check/schemas";
+
+const ports = createAgentPorts();
+const weatherRepository = ports.weather;
+
 
 const SUITE = SPRAY_CHECK_SUITE;
 
@@ -17,7 +20,7 @@ function runOnce(testCase: SprayCheckCase, attempt: number): Promise<RunOutcome>
     stubWeatherScenario(testCase.scenario);
     const outcome = await runSprayCheck({
       question: testCase.question,
-      ports: defaultAgentPorts(),
+      ports: ports,
       model: evalModel(),
       now: EVAL_NOW,
       maxRetries: RETRIES_PER_CALL,

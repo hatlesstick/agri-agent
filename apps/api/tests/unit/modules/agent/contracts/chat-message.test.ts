@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AgriChatMessage } from "@agri/shared/contracts";
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@/modules/agent/agent";
 
 const toContract = (message: AgriAgentUIMessage): AgriChatMessage => message;
 const fromContract = (message: AgriChatMessage): AgriAgentUIMessage => message;

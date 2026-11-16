@@ -1,5 +1,5 @@
-import { OpenMeteoClient } from "@/weather/OpenMeteoClient";
-import type { Forecast, WeatherResult } from "@/weather/weather.types";
+import { OpenMeteoClient } from "@/modules/weather/OpenMeteoClient";
+import type { Forecast, WeatherResult } from "@/modules/weather/weather.types";
 import { todayIn } from "@agri/shared";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
@@ -68,4 +68,3 @@ export class WeatherRepository {
   }
 }
 
-export const weatherRepository = new WeatherRepository();

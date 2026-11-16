@@ -1,15 +1,15 @@
 import { tool } from "ai";
-import type { WeatherPort } from "@/ports";
+import type { WeatherPort } from "@/modules/weather";
 import {
   getWeatherInputSchema,
   getWeatherOutputSchema,
   type GetWeatherInput,
   type GetWeatherOutput,
 } from "@agri/shared/contracts";
-import type { WeatherToolDeps } from "@/tools/shared/deps";
-import { clockContextSchema } from "@/tools/shared/schemas";
+import type { WeatherToolDeps } from "@/modules/agent/tools/shared/deps";
+import { clockContextSchema } from "@/modules/agent/tools/shared/schemas";
 import { currentLocalHour } from "@agri/shared";
-import { isWeatherError, type HourlyPoint } from "@/weather/weather.types";
+import { isWeatherError, type HourlyPoint } from "@/modules/weather";
 
 export const WEATHER_HOURS_FOR_MODEL = 48;
 

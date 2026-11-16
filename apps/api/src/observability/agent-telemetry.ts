@@ -2,7 +2,7 @@ import { OpenTelemetry } from "@ai-sdk/otel";
 import { LangfuseSpanProcessor } from "@langfuse/otel";
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { registerTelemetry } from "ai";
-import { serverEnv } from "@agri/shared/server-env";
+import { loadApiEnv } from "@/config";
 
 type TelemetryOptions = { exportMode?: "immediate" | "batched"; environment?: string };
 
@@ -15,7 +15,7 @@ export function isTelemetryEnabled(): boolean {
 export function registerAgentTelemetry(options: TelemetryOptions = {}): boolean {
   if (spanProcessor) return true;
 
-  const env = serverEnv();
+  const env = loadApiEnv();
   if (!env.LANGFUSE_PUBLIC_KEY || !env.LANGFUSE_SECRET_KEY) return false;
 
   spanProcessor = new LangfuseSpanProcessor({

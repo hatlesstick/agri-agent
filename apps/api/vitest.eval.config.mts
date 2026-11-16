@@ -1,5 +1,8 @@
 import { fileURLToPath } from "node:url";
+import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
+
+const runId = process.env.EVAL_RUN_ID ?? `eval-${new Date().toISOString().replace(/[:.]/g, "-")}`;
 
 export default defineConfig({
   resolve: {
@@ -10,14 +13,11 @@ export default defineConfig({
   },
   test: {
     include: ["tests/evals/**/*.eval.ts"],
-    environment: "node",
-    setupFiles: ["tests/support/setup.ts"],
-    env: {
-      NODE_ENV: "test",
-      AI_MOCK: "1",
-      LOG_LEVEL: "silent",
-      OPEN_METEO_GEOCODING_URL: "https://geocoding-api.open-meteo.com/v1/search",
-      OPEN_METEO_FORECAST_URL: "https://api.open-meteo.com/v1/forecast",
-    },
+    setupFiles: ["tests/support/setup.ts", "tests/evals/setup.ts"],
+    env: { NODE_ENV: "test", LOG_LEVEL: "silent", ...loadEnv("", process.cwd(), ""), EVAL_RUN_ID: runId },
+    testTimeout: 120_000,
+    fileParallelism: false,
+    silent: false,
+    reporters: ["verbose"],
   },
 });

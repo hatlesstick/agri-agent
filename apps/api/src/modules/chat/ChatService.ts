@@ -1,10 +1,9 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { ServerResponse } from "node:http";
 import { pipeAgentUIStreamToResponse, pipeUIMessageStreamToResponse } from "ai";
-import { AGENT_TIMEOUT_MS, createAgriAgent, SCREEN_REFUSAL, screenInput, type AgentPorts } from "@agri/agent";
+import { AGENT_PORTS, AGENT_TIMEOUT_MS, createAgriAgent, SCREEN_REFUSAL, screenInput, type AgentPorts } from "@/modules/agent";
 import { CLOCK, type Clock } from "@/common/clock";
 import { chatErrorMessage } from "@/common/http";
-import { AGENT_PORTS } from "@/modules/agent-bridge";
 import { dropBlockedHistory, latestUserText } from "@/modules/chat/chat-request";
 import type { ChatReplyInput } from "@/modules/chat/ChatService.types";
 import { refusalStream } from "@/modules/chat/refusal-stream";

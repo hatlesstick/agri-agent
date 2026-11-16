@@ -1,16 +1,16 @@
 import { tool } from "ai";
-import type { WeatherPort } from "@/ports";
+import type { WeatherPort } from "@/modules/weather";
 import {
   sprayWindowInputSchema,
   sprayWindowOutputSchema,
   type SprayWindowInput,
   type SprayWindowOutput,
 } from "@agri/shared/contracts";
-import type { WeatherToolDeps } from "@/tools/shared/deps";
-import { clockContextSchema } from "@/tools/shared/schemas";
+import type { WeatherToolDeps } from "@/modules/agent/tools/shared/deps";
+import { clockContextSchema } from "@/modules/agent/tools/shared/schemas";
 import { currentLocalHour, resolveDay, todayIn } from "@agri/shared";
-import { assessSprayDay } from "@/spray-window/assess-spray-day";
-import { isWeatherError } from "@/weather/weather.types";
+import { assessSprayDay } from "@/modules/spray-rules";
+import { isWeatherError } from "@/modules/weather";
 
 export async function sprayWindow(input: SprayWindowInput, { weather, now = new Date() }: WeatherToolDeps): Promise<SprayWindowOutput> {
   const forecast = await weather.getForecast(input.city);

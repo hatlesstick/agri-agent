@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/spray-check/reconcile";
-import type { SprayCheck } from "@/spray-check/schemas";
+import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/modules/agent/spray-check/reconcile";
+import type { SprayCheck } from "@/modules/agent/spray-check/schemas";
 
 const assessment = (overrides: Record<string, unknown> = {}) => ({
   city: "Lyon",

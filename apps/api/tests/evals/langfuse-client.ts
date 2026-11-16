@@ -1,8 +1,8 @@
 import { LangfuseClient } from "@langfuse/client";
-import { serverEnv } from "@agri/shared/server-env";
+import { loadApiEnv } from "@/config";
 
 export function requireLangfuseClient(): LangfuseClient {
-  const env = serverEnv();
+  const env = loadApiEnv();
   if (!env.LANGFUSE_PUBLIC_KEY || !env.LANGFUSE_SECRET_KEY) {
     throw new Error("Set LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY in .env.local to use Langfuse datasets and experiments.");
   }

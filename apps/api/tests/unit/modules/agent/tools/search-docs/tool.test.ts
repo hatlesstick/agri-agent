@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runSearchDocs } from "@/tools/search-docs/tool";
+import { runSearchDocs } from "@/modules/agent/tools/search-docs/tool";
 import { fakeRag } from "@tests/support/fake-ports";
 
 describe("runSearchDocs", () => {

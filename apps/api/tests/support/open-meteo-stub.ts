@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { vi } from "vitest";
 
-const FIXTURES = new URL("../../../../packages/agent/tests/fixtures/weather/", import.meta.url);
+const FIXTURES = new URL("../fixtures/weather/", import.meta.url);
 
 const fixture = (name: string): unknown => JSON.parse(readFileSync(new URL(name, FIXTURES), "utf8"));
 

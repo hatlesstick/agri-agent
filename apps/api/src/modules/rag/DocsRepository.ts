@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DATA_DIR } from "@/paths";
-import { chunkMarkdown } from "@/docs/chunk-markdown";
-import type { Chunk, RagIndex } from "@/docs/docs.types";
+import { chunkMarkdown } from "@/modules/rag/chunk-markdown";
+import type { Chunk, RagIndex } from "@/modules/rag/docs.types";
 
 export const DOCS_DIR = join(DATA_DIR, "docs");
 export const INDEX_FILE = join(DATA_DIR, "index.json");
@@ -20,4 +20,3 @@ export class DocsRepository {
   }
 }
 
-export const docsRepository = new DocsRepository();

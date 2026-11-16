@@ -1,4 +1,4 @@
-import type { HourlyPoint } from "@/weather/weather.types";
+import type { HourlyPoint } from "@/modules/weather";
 
 export type SprayThresholds = {
   minWindSpeed: number;

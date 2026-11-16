@@ -1,15 +1,18 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { printEvalReport, recordEval } from "@tests/evals/report";
 import { MOCK } from "@tests/evals/harness";
-import { docsRepository } from "@/docs/DocsRepository";
-import { jsonRagEngine } from "@/rag/JsonRagEngine";
-import { REAL_MIN_SCORE, searchDocs } from "@/rag/search";
+import { DocsRepository } from "@/modules/rag/DocsRepository";
+import { JsonRagEngine } from "@/modules/rag/JsonRagEngine";
+import { REAL_MIN_SCORE, searchDocs } from "@/modules/rag/search";
 import { cosineSimilarity, embed } from "ai";
 import { existsSync, readFileSync } from "node:fs";
-import { EMBEDDING_MODEL } from "@/model";
-import { INDEX_FILE } from "@/docs/DocsRepository";
-import type { RagIndex } from "@/docs/docs.types";
-import { chunkMarkdown } from "@/docs/chunk-markdown";
+import { EMBEDDING_MODEL } from "@/modules/rag";
+import { INDEX_FILE } from "@/modules/rag/DocsRepository";
+import type { RagIndex } from "@/modules/rag/docs.types";
+import { chunkMarkdown } from "@/modules/rag/chunk-markdown";
+
+const docsRepository = new DocsRepository();
+const jsonRagEngine = new JsonRagEngine(docsRepository);
 
 const SUITE = "rag evals (retrieval)";
 

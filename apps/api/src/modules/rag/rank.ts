@@ -1,5 +1,5 @@
 import { cosineSimilarity } from "ai";
-import type { RagIndex, SearchHit } from "@/docs/docs.types";
+import type { RagIndex, SearchHit } from "@/modules/rag/docs.types";
 
 export const DEFAULT_TOP_K = 3;
 

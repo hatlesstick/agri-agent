@@ -1,4 +1,4 @@
-import type { Chunk } from "@/docs/docs.types";
+import type { Chunk } from "@/modules/rag/docs.types";
 
 const SOURCE_LINE = /^Source:\s*(.+)$/m;
 const TITLE_LINE = /^#\s+(.+)$/m;

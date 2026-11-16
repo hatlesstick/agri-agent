@@ -1,9 +1,9 @@
 import { NoObjectGeneratedError, NoOutputGeneratedError, type LanguageModel } from "ai";
-import { createSprayCheckAgent } from "@/agent";
-import { AGENT_TIMEOUT_MS } from "@/model";
-import type { AgentPorts } from "@/ports";
-import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/spray-check/reconcile";
-import type { SprayCheckOutcome, SprayCheckTrace } from "@/spray-check/schemas";
+import { createSprayCheckAgent } from "@/modules/agent/agent";
+import { AGENT_TIMEOUT_MS } from "@/modules/agent/model";
+import type { AgentPorts } from "@/modules/agent/agent.types";
+import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/modules/agent/spray-check/reconcile";
+import type { SprayCheckOutcome, SprayCheckTrace } from "@/modules/agent/spray-check/schemas";
 
 const MAX_ATTEMPTS = 2;
 

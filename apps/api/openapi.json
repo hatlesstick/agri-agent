@@ -60,6 +60,153 @@
   },
   "openapi": "3.0.0",
   "paths": {
+    "/chat": {
+      "post": {
+        "operationId": "ChatController_reply",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {},
+                "properties": {
+                  "messages": {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "id": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "parts": {
+                              "items": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "type": {
+                                    "enum": [
+                                      "text"
+                                    ],
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "type": "object"
+                              },
+                              "minItems": 1,
+                              "type": "array"
+                            },
+                            "role": {
+                              "enum": [
+                                "user"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "id": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "parts": {
+                              "items": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "type": {
+                                    "pattern": "^(text|step-start|reasoning|tool-[A-Za-z][A-Za-z0-9]*)$",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "type": "object"
+                              },
+                              "minItems": 1,
+                              "type": "array"
+                            },
+                            "role": {
+                              "enum": [
+                                "assistant"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "messages"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "AI SDK UI message stream (server-sent events). A blocked input is answered with a refusal stream."
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "invalid_request"
+          },
+          "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "payload_too_large, part_too_large, message_too_long or conversation_too_long"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "rate_limited"
+          }
+        },
+        "tags": [
+          "chat"
+        ]
+      }
+    },
     "/health/live": {
       "get": {
         "operationId": "HealthController_live",
@@ -85,6 +232,139 @@
         },
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/spray-check": {
+      "post": {
+        "operationId": "SprayCheckController_check",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "question": {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "question"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "bestWindow": {
+                      "additionalProperties": false,
+                      "description": "Exactly the bestWindow returned by sprayWindow, without the hours field; null when there is none",
+                      "nullable": true,
+                      "properties": {
+                        "from": {
+                          "description": "City-local start time, YYYY-MM-DDTHH:mm",
+                          "type": "string"
+                        },
+                        "to": {
+                          "description": "City-local end time, YYYY-MM-DDTHH:mm",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "from",
+                        "to"
+                      ],
+                      "type": "object"
+                    },
+                    "canSpray": {
+                      "description": "Exactly the canSpray value returned by sprayWindow",
+                      "type": "boolean"
+                    },
+                    "city": {
+                      "description": "City the answer is about, as returned by the sprayWindow tool",
+                      "type": "string"
+                    },
+                    "reason": {
+                      "description": "Short explanation for the farmer in the language of the question",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "city",
+                    "canSpray",
+                    "bestWindow",
+                    "reason"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rule-backed spray decision with a short explanation."
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "invalid_request"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "blocked_input or spray_window_not_called"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "rate_limited"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "invalid_model_output"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "model_busy"
+          }
+        },
+        "tags": [
+          "spray-check"
         ]
       }
     }

@@ -8,10 +8,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./server-env": {
-      "types": "./dist/server-env.d.ts",
-      "import": "./dist/server-env.js"
-    },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js"

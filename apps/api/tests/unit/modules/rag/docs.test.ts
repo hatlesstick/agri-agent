@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { chunkMarkdown } from "@/docs/chunk-markdown";
+import { chunkMarkdown } from "@/modules/rag/chunk-markdown";
 import { cosineSimilarity } from "ai";
-import { rankChunks } from "@/rag/rank";
-import type { RagIndex } from "@/docs/docs.types";
+import { rankChunks } from "@/modules/rag/rank";
+import type { RagIndex } from "@/modules/rag/docs.types";
 
 const DOC = "# Spray drift\n\nSource: FAO 2001\n\nIntro text that is ignored.\n\n## Main factors\n\nWind and droplet size.\n\n## Empty\n\n## Practical measures\n\nUse low-drift nozzles.\n";
 

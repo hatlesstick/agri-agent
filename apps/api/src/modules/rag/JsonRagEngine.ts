@@ -1,10 +1,11 @@
 import { embed } from "ai";
-import { DocsRepository, docsRepository } from "@/docs/DocsRepository";
-import type { RagIndex } from "@/docs/docs.types";
-import { mockEmbedding } from "@/mock/embedding";
-import { EMBEDDING_MODEL, isMockMode } from "@/model";
-import type { RagCandidate, RagEngine } from "@/ports";
-import { rankChunks } from "@/rag/rank";
+import { DocsRepository } from "@/modules/rag/DocsRepository";
+import type { RagIndex } from "@/modules/rag/docs.types";
+import { isMockMode } from "@/config";
+import { EMBEDDING_MODEL } from "@/modules/rag/embeddings";
+import { mockEmbedding } from "@/modules/rag/mock-embedding";
+import type { RagCandidate, RagEngine } from "@/modules/rag/rag.types";
+import { rankChunks } from "@/modules/rag/rank";
 
 export function usableIndex(index: RagIndex | null, embeddingModel: string): RagIndex | null {
   if (!index || index.chunks.length === 0) {
@@ -27,7 +28,7 @@ async function embedQuery(query: string): Promise<number[]> {
 export class JsonRagEngine implements RagEngine {
   private cachedIndex: RagIndex | null = null;
 
-  constructor(private readonly docs: DocsRepository = docsRepository) {}
+  constructor(private readonly docs: DocsRepository = new DocsRepository()) {}
 
   async search(query: string, { topK }: { topK: number }): Promise<RagCandidate[] | null> {
     const index = this.loadIndex();
@@ -55,4 +56,3 @@ export class JsonRagEngine implements RagEngine {
   }
 }
 
-export const jsonRagEngine = new JsonRagEngine();

@@ -4,7 +4,8 @@ import { expect } from "vitest";
 import { estimateCostUsd } from "@tests/evals/model-pricing";
 import { recordEval } from "@tests/evals/report";
 import { evalTags } from "@tests/evals/tags";
-import { CHAT_MODEL, chatModel, isMockMode } from "@/model";
+import { isMockMode } from "@/config";
+import { CHAT_MODEL, chatModel } from "@/modules/agent";
 
 export const MOCK = isMockMode();
 export const EVAL_MODEL = process.env.EVAL_MODEL || CHAT_MODEL;

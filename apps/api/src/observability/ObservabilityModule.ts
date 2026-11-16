@@ -1,5 +1,5 @@
 import { Global, Module } from "@nestjs/common";
-import { flushAgentTelemetry, isTelemetryEnabled } from "@agri/agent";
+import { flushAgentTelemetry, isTelemetryEnabled } from "@/observability/agent-telemetry";
 import { HealthController } from "@/observability/HealthController";
 import { TELEMETRY, TelemetryFlushInterceptor, type TelemetryControl } from "@/observability/TelemetryFlushInterceptor";
 

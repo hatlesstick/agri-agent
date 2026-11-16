@@ -1,11 +1,14 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getWeather } from "@/tools/get-weather/tool";
+import { OpenMeteoClient, WeatherRepository } from "@/modules/weather";
+import { getWeather } from "@/modules/agent/tools/get-weather/tool";
 import { sprayWindowOutputSchema, type SprayWindowInput } from "@agri/shared/contracts";
-import { sprayWindow } from "@/tools/spray-window/tool";
-import { sprayOutlook } from "@/tools/spray-outlook/tool";
+import { sprayWindow } from "@/modules/agent/tools/spray-window/tool";
+import { sprayOutlook } from "@/modules/agent/tools/spray-outlook/tool";
 import { EVAL_NOW, UNKNOWN_CITY, stubWeatherScenario, type WeatherScenario } from "@tests/evals/scenarios";
 import { printEvalReport, recordEval } from "@tests/evals/report";
-import { weatherRepository } from "@/weather/WeatherRepository";
+
+const weatherRepository = new WeatherRepository(new OpenMeteoClient());
+
 
 const SUITE = "tool evals (deterministic, no model)";
 

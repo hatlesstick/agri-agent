@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { sprayOutlook } from "@/tools/spray-outlook/tool";
+import { OpenMeteoClient, WeatherRepository } from "@/modules/weather";
+import { sprayOutlook } from "@/modules/agent/tools/spray-outlook/tool";
 import { sprayOutlookOutputSchema } from "@agri/shared/contracts";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
-import { weatherRepository } from "@/weather/WeatherRepository";
 import { fakeWeather } from "@tests/support/fake-ports";
+
+const weatherRepository = new WeatherRepository(new OpenMeteoClient());
+
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 

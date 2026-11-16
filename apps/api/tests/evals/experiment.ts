@@ -1,4 +1,4 @@
-import type { SprayCheckOutcome } from "@/index";
+import type { SprayCheckOutcome } from "@/modules/agent";
 import { slug } from "@tests/evals/slug";
 import { sameWindow, SPRAY_CHECK_CASES, type SprayCheckCase, type SprayCheckExpected } from "@tests/evals/spray-check-cases";
 import { EVAL_NOW, type WeatherScenario } from "@tests/evals/weather-fixtures";

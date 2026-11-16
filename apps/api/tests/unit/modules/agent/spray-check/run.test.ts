@@ -1,11 +1,15 @@
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { runSprayCheck } from "@/spray-check/run";
+import { WeatherRepository } from "@/modules/weather";
+import { runSprayCheck } from "@/modules/agent/spray-check/run";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
-import { WeatherRepository, weatherRepository } from "@/weather/WeatherRepository";
 import { fakeRag, fakeWeather } from "@tests/support/fake-ports";
-import { defaultAgentPorts } from "@/default-ports";
+import { createAgentPorts } from "@/modules/agent";
+
+const ports = createAgentPorts();
+const weatherRepository = ports.weather;
+
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 const USAGE = {
@@ -40,7 +44,7 @@ describe("runSprayCheck", () => {
       question: "Can I spray in Lyon tomorrow?",
       model: modelThatNeverStopsCallingTools(),
       now: new Date("2026-11-11T08:30:00Z"),
-      ports: defaultAgentPorts(),
+      ports: ports,
     });
     expect(outcome).toMatchObject({ ok: true, reasonSource: "rules", result: { city: "Lyon" } });
   });

@@ -1,8 +1,8 @@
-import type { AgentPorts } from "@/ports";
-import { createGetWeatherTool } from "@/tools/get-weather/tool";
-import { createSearchDocsTool } from "@/tools/search-docs/tool";
-import { createSprayOutlookTool } from "@/tools/spray-outlook/tool";
-import { createSprayWindowTool } from "@/tools/spray-window/tool";
+import type { AgentPorts } from "@/modules/agent/agent.types";
+import { createGetWeatherTool } from "@/modules/agent/tools/get-weather/tool";
+import { createSearchDocsTool } from "@/modules/agent/tools/search-docs/tool";
+import { createSprayOutlookTool } from "@/modules/agent/tools/spray-outlook/tool";
+import { createSprayWindowTool } from "@/modules/agent/tools/spray-window/tool";
 
 export function createAgentTools({ weather, rag }: AgentPorts) {
   return {

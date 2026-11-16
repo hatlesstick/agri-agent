@@ -49,7 +49,7 @@ jobs:
         with:
           name: eval-results
           path: |
-            packages/agent/.evals/results/
+            apps/api/.evals/results/
             apps/web/.evals/results/
           if-no-files-found: ignore
           retention-days: 14

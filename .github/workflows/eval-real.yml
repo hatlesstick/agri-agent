@@ -80,6 +80,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: eval-real-${{ github.run_id }}-${{ github.run_attempt }}
-          path: packages/agent/.evals/results/
+          path: apps/api/.evals/results/
           if-no-files-found: ignore
           retention-days: 30

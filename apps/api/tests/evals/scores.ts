@@ -1,13 +1,13 @@
 import { LangfuseClient } from "@langfuse/client";
-import { isTelemetryEnabled } from "@/index";
-import { serverEnv } from "@agri/shared/server-env";
+import { isTelemetryEnabled } from "@/observability";
+import { loadApiEnv } from "@/config";
 
 let client: LangfuseClient | null = null;
 
 function scoreClient(): LangfuseClient | null {
   if (!isTelemetryEnabled()) return null;
   if (!client) {
-    const env = serverEnv();
+    const env = loadApiEnv();
     client = new LangfuseClient({
       publicKey: env.LANGFUSE_PUBLIC_KEY,
       secretKey: env.LANGFUSE_SECRET_KEY,

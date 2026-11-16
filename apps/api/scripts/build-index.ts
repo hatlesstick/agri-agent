@@ -1,11 +1,11 @@
 import { writeFileSync } from "node:fs";
 import { embedMany } from "ai";
-import { EMBEDDING_MODEL } from "@/model";
-import { docsRepository, INDEX_FILE } from "@/docs/DocsRepository";
-import type { RagIndex } from "@/docs/docs.types";
+import { EMBEDDING_MODEL } from "@/modules/rag";
+import { DocsRepository, INDEX_FILE } from "@/modules/rag";
+import type { RagIndex } from "@/modules/rag/docs.types";
 
 async function main(): Promise<void> {
-  const chunks = docsRepository.readCorpusChunks();
+  const chunks = new DocsRepository().readCorpusChunks();
   const { embeddings, usage } = await embedMany({
     model: EMBEDDING_MODEL,
     values: chunks.map((chunk) => chunk.text),

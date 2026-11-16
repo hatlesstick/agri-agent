@@ -1,11 +1,11 @@
-import type { HourlyPoint } from "@/weather/weather.types";
+import type { HourlyPoint } from "@/modules/weather";
 import type {
   RejectionReason,
   SprayAssessment,
   SprayThresholds,
   SprayWindow,
   SprayWindowInput,
-} from "@/spray-window/spray-window.types";
+} from "@/modules/spray-rules/spray-window.types";
 
 export const DEFAULT_SPRAY_THRESHOLDS: SprayThresholds = {
   minWindSpeed: 1,

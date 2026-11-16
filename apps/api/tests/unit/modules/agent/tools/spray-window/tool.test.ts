@@ -1,16 +1,19 @@
 import { isStepCount, streamText } from "ai";
+import { OpenMeteoClient, WeatherRepository } from "@/modules/weather";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMockChatModel } from "@/mock/model";
-import { MOCK_TOOL_MATCHERS } from "@/mock/tool-matchers";
+import { createMockChatModel } from "@/modules/agent/mock/model";
+import { MOCK_TOOL_MATCHERS } from "@/modules/agent/mock/tool-matchers";
 import { sprayWindowInputSchema, sprayWindowOutputSchema } from "@agri/shared/contracts";
-import { createSprayWindowTool, sprayWindow } from "@/tools/spray-window/tool";
-import { assessSprayDay } from "@/spray-window/assess-spray-day";
+import { createSprayWindowTool, sprayWindow } from "@/modules/agent/tools/spray-window/tool";
+import { assessSprayDay } from "@/modules/spray-rules/assess-spray-day";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
-import { weatherRepository } from "@/weather/WeatherRepository";
 import { fakeWeather } from "@tests/support/fake-ports";
-import { isWeatherError } from "@/weather/weather.types";
+import { isWeatherError } from "@/modules/weather/weather.types";
+
+const weatherRepository = new WeatherRepository(new OpenMeteoClient());
+
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usableIndex } from "@/rag/JsonRagEngine";
-import { MOCK_MIN_SCORE, REAL_MIN_SCORE, searchDocs } from "@/rag/search";
-import type { RagCandidate } from "@/ports";
+import { usableIndex } from "@/modules/rag/JsonRagEngine";
+import { MOCK_MIN_SCORE, REAL_MIN_SCORE, searchDocs } from "@/modules/rag/search";
+import type { RagCandidate } from "@/modules/rag";
 import { fakeRag } from "@tests/support/fake-ports";
-import type { RagIndex } from "@/docs/docs.types";
+import type { RagIndex } from "@/modules/rag/docs.types";
 
 const index = (model: string, dims: number): RagIndex => ({
   model,

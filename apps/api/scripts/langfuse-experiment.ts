@@ -1,7 +1,8 @@
 import { parseArgs } from "node:util";
-import { defaultAgentPorts, flushAgentTelemetry, registerAgentTelemetry, runSprayCheck } from "@/index";
-import { CHAT_MODEL, chatModel, isMockMode } from "@/model";
-import { weatherRepository } from "@/weather/WeatherRepository";
+import { createAgentPorts, runSprayCheck } from "@/modules/agent";
+import { flushAgentTelemetry, registerAgentTelemetry } from "@/observability";
+import { isMockMode } from "@/config";
+import { CHAT_MODEL, chatModel } from "@/modules/agent";
 import {
   itemEvaluations,
   passRateEvaluation,
@@ -16,6 +17,10 @@ import { requireLangfuseClient } from "@tests/evals/langfuse-client";
 import { promptVersion } from "@tests/evals/prompt-version";
 import type { SprayCheckExpected } from "@tests/evals/spray-check-cases";
 import { scenarioFetch } from "@tests/evals/weather-fixtures";
+
+const ports = createAgentPorts();
+const weatherRepository = ports.weather;
+
 
 const RETRIES_PER_CALL = 4;
 const TIMEOUT_MS = 180_000;
@@ -32,7 +37,7 @@ function createTaskRunner(modelId: string): TaskRunner {
     try {
       const outcome = await runSprayCheck({
         question,
-        ports: defaultAgentPorts(),
+        ports: ports,
         model,
         now: new Date(now),
         maxRetries: RETRIES_PER_CALL,

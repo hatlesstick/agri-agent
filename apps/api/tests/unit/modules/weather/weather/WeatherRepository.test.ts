@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { FORECAST_CACHE_MAX_ENTRIES, OpenMeteoClient, WeatherRepository } from "@/modules/weather";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
-import { FORECAST_CACHE_MAX_ENTRIES, weatherRepository } from "@/weather/WeatherRepository";
-import { isWeatherError, type Forecast } from "@/weather/weather.types";
+import { isWeatherError, type Forecast } from "@/modules/weather/weather.types";
+
+const weatherRepository = new WeatherRepository(new OpenMeteoClient());
+
 
 type FetchHandler = (url: URL) => Response | Promise<Response>;
 

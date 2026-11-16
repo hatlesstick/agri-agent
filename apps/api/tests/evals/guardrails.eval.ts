@@ -1,9 +1,9 @@
 import { generateText, streamText, wrapLanguageModel } from "ai";
 import { afterAll, describe, expect, it } from "vitest";
-import { labelReminderMiddleware, LABEL_REMINDER, mentionsApplicationRate } from "@/guardrails/label-reminder";
-import { screenInput, type ScreenVerdict } from "@/guardrails/input-screen";
-import { looksLikeLeakedToolCode, TOOL_CODE_FALLBACK, toolCodeLeakMiddleware } from "@/guardrails/tool-code-leak";
-import { createMockChatModel } from "@/mock/model";
+import { labelReminderMiddleware, LABEL_REMINDER, mentionsApplicationRate } from "@/modules/agent/guardrails/label-reminder";
+import { screenInput, type ScreenVerdict } from "@/modules/agent/guardrails/input-screen";
+import { looksLikeLeakedToolCode, TOOL_CODE_FALLBACK, toolCodeLeakMiddleware } from "@/modules/agent/guardrails/tool-code-leak";
+import { createMockChatModel } from "@/modules/agent/mock/model";
 import { printEvalReport, recordEval } from "@tests/evals/report";
 
 const SUITE = "guardrail evals (deterministic, no model)";

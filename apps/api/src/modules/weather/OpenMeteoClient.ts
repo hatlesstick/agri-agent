@@ -1,11 +1,11 @@
-import { serverEnv } from "@agri/shared/server-env";
+import { loadApiEnv } from "@/config";
 import { currentLocalHour } from "@agri/shared";
 import {
   forecastResponseSchema,
   geocodingResponseSchema,
   HOURLY_VARIABLES,
-} from "@/weather/open-meteo.schemas";
-import type { Forecast, GeoLocation, HourlyPoint } from "@/weather/weather.types";
+} from "@/modules/weather/open-meteo.schemas";
+import type { Forecast, GeoLocation, HourlyPoint } from "@/modules/weather/weather.types";
 
 const REQUEST_TIMEOUT_MS = 8000;
 const FORECAST_DAYS = 3;
@@ -22,7 +22,7 @@ async function getJson(url: URL): Promise<unknown> {
 
 export class OpenMeteoClient {
   async geocodeCity(name: string): Promise<GeoLocation | null> {
-    const url = new URL(serverEnv().OPEN_METEO_GEOCODING_URL);
+    const url = new URL(loadApiEnv().OPEN_METEO_GEOCODING_URL);
     url.search = new URLSearchParams({ name, count: "1", language: "en" }).toString();
 
     const { results } = geocodingResponseSchema.parse(await getJson(url));
@@ -39,7 +39,7 @@ export class OpenMeteoClient {
   }
 
   async fetchHourlyForecast(location: GeoLocation): Promise<Forecast> {
-    const url = new URL(serverEnv().OPEN_METEO_FORECAST_URL);
+    const url = new URL(loadApiEnv().OPEN_METEO_FORECAST_URL);
     url.search = new URLSearchParams({
       latitude: String(location.latitude),
       longitude: String(location.longitude),

@@ -1,4 +1,4 @@
-import type { SprayCheck } from "@/index";
+import type { SprayCheck } from "@/modules/agent";
 import { UNKNOWN_CITY, type WeatherScenario } from "@tests/evals/weather-fixtures";
 
 export const SPRAY_CHECK_SUITE = "spray-check evals (structured output)";
