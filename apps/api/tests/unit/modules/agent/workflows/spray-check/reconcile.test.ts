@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/modules/agent/workflows/spray-check/reconcile";
 import type { SprayCheck } from "@/modules/agent/workflows/spray-check/schemas";
@@ -27,13 +28,13 @@ describe("reconcileSprayCheck", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("keeps model output when it agrees with sprayWindow", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     expect(reconcileSprayCheck(modelSays(), [sprayWindowResult(assessment())])).toEqual({ ok: true, result: modelSays(), overridden: false, reasonSource: "model" });
     expect(warn).not.toHaveBeenCalled();
   });
 
   it("overwrites canSpray, bestWindow and the contradicting reason when the model disagrees", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     const outcome = reconcileSprayCheck(modelSays({ canSpray: false, bestWindow: null, reason: "Too windy, do not spray." }), [sprayWindowResult(assessment())]);
     expect(outcome).toEqual({
       ok: true,
@@ -45,13 +46,13 @@ describe("reconcileSprayCheck", () => {
   });
 
   it("takes city from the rules, keeps the model's reason", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     const outcome = reconcileSprayCheck(modelSays({ city: "lyon", reason: "custom" }), [sprayWindowResult(assessment())]);
     expect(outcome).toMatchObject({ ok: true, result: { city: "Lyon", reason: "custom" } });
   });
 
   it("uses the last sprayWindow result when called twice", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     const outcome = reconcileSprayCheck(modelSays(), [
       sprayWindowResult(assessment()),
       sprayWindowResult(assessment({ canSpray: false, bestWindow: null, windows: [] })),
@@ -68,7 +69,7 @@ describe("reconcileSprayCheck", () => {
   });
 
   it("sets canSpray false and bestWindow null when sprayWindow returned an error", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     const outcome = reconcileSprayCheck(modelSays(), [sprayWindowResult({ error: "city_not_found" })]);
     expect(outcome).toMatchObject({ ok: true, result: { canSpray: false, bestWindow: null }, overridden: true });
   });

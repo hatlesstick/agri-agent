@@ -14,6 +14,7 @@ const apiEnvSchema = z.object({
   OPEN_METEO_GEOCODING_URL: httpsUrl,
   OPEN_METEO_FORECAST_URL: httpsUrl,
   AI_MOCK: flag,
+  AI_GATEWAY_API_KEY: z.string().min(1).optional(),
   LANGFUSE_PUBLIC_KEY: z.string().startsWith("pk-lf-").optional(),
   LANGFUSE_SECRET_KEY: z.string().startsWith("sk-lf-").optional(),
   LANGFUSE_BASE_URL: httpsUrl.default("https://cloud.langfuse.com"),
@@ -33,6 +34,9 @@ const validatedApiEnvSchema = apiEnvSchema.superRefine((env, context) => {
   }
   if (env.NODE_ENV === "production" && env.TRUSTED_PROXY_HOPS === undefined) {
     context.addIssue({ code: "custom", path: ["TRUSTED_PROXY_HOPS"], message: "is required in production" });
+  }
+  if (env.NODE_ENV === "production" && !env.AI_MOCK && env.AI_GATEWAY_API_KEY === undefined) {
+    context.addIssue({ code: "custom", path: ["AI_GATEWAY_API_KEY"], message: "is required in production unless AI_MOCK=1" });
   }
   if (env.CACHE_DRIVER === "redis" && env.REDIS_URL === undefined) {
     context.addIssue({ code: "custom", path: ["REDIS_URL"], message: "is required when CACHE_DRIVER=redis" });

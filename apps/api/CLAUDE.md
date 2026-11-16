@@ -78,13 +78,13 @@ Dockerfile
 - Inside tools, external failures stay data (`{ error: "weather_unavailable" }`) so the model can explain them.
 
 ## Configuration
-- One zod env schema in `config/`; read through the `API_ENV` token, never `process.env` in business code. Production requires `PROXY_AUTH_SECRET` (≥ 32 chars) and `TRUSTED_PROXY_HOPS`.
+- One zod env schema in `config/`, validated once at startup; modules receive config through the `API_ENV` token (e.g. Open-Meteo URLs injected into `OpenMeteoClient` by `WeatherModule`). The only exception is `AI_MOCK`, a process-wide switch read by `isMockMode()` (`config/mock-mode.ts`) so evals can toggle it per test. Production also requires `AI_GATEWAY_API_KEY` unless `AI_MOCK=1`. Production requires `PROXY_AUTH_SECRET` (≥ 32 chars) and `TRUSTED_PROXY_HOPS`.
 - `TRUSTED_PROXY_HOPS` = proxies in front of the API (Caddy = 1, local = 0) → Express `trust proxy`. `X-Client-IP` is trusted only with a valid `X-Proxy-Auth`.
 - `.env.example` lists every key read in code (checked by a test); local env in `apps/api/.env`.
 
 ## Caching and state
-- `CacheStore` port (`get`, `set` with TTL, `delete`); adapter `InMemoryCacheStore` (bounded LRU) now, `RedisCacheStore` later via `CACHE_DRIVER=memory|redis` + `REDIS_URL`. The weather forecast cache uses it.
-- `RateLimitStore` port for request limits (in-memory now; Redis/Postgres when there is more than one API instance).
+- `CacheStore` port (`get`, `set` with TTL, `delete`, `clear` — a Redis adapter clears only its key prefix); adapter `InMemoryCacheStore` (bounded LRU) now, `RedisCacheStore` later via `CACHE_DRIVER=memory|redis` + `REDIS_URL`. The weather forecast cache uses it.
+- The `RateLimiter` type (`peek`, `record`, `check`) is the rate-limit store port, provided as `RATE_LIMITERS` (in-memory now; a Redis/Postgres implementation of the same type when there is more than one API instance).
 - New caches or counters go through these ports — never a module-level `Map`.
 
 ## Observability and operations
@@ -95,7 +95,7 @@ Dockerfile
 - Timeouts: agent 30 s (`AGENT_TIMEOUT_MS`), Open-Meteo 8 s; client disconnect aborts the agent run.
 
 ## Security
-- `ProxyAuthGuard` on browser routes; rate limits per client + global; JSON body cap 256 KiB (`CHAT_LIMITS.maxBodyBytes`); CORS closed for browsers; security headers; non-root container.
+- `ProxyAuthGuard` on browser routes; rate limits per client + global; JSON body cap 256 KiB (`CHAT_LIMITS.maxBodyBytes`); CORS closed for browsers; security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Resource-Policy: same-site`) from `common/http/security-headers.ts`; security headers; non-root container.
 
 ## Agent domain (moved from the root rules)
 ### Tools
@@ -113,7 +113,7 @@ Input screen (fixed refusal without a model call) → history sanitising (client
   - **LangGraph.js** (Step 3) orchestrates subagents in `modules/agent/workflows`: state, routing, `interrupt` for human approval, Postgres checkpointer. Graph nodes call models through the AI SDK (`generateText` / `ToolLoopAgent`), never LangChain chat models. Stream to the UI with `@ai-sdk/langchain`.
   - **LangChain.js** (2.4) only for RAG building blocks in `modules/rag`: `@langchain/textsplitters`, `PGVectorStore` / `MemoryVectorStore`, retriever wrapped as the `RagEngine` adapter, embeddings via `AiSdkEmbeddings` (LangChain `Embeddings` backed by AI SDK `embedMany`).
   - Import `langchain`, `@langchain/*` only in `modules/rag` and `modules/agent/workflows`. Upgrade `ai` together with `@ai-sdk/langchain` (it pins an exact `ai` version).
-- Models via Vercel AI Gateway (`AI_GATEWAY_API_KEY`, `"provider/model"` strings). Default `google/gemini-2.5-flash-lite`, fallback `openai/gpt-5.4-nano`; comparison candidates `deepseek/deepseek-v4-flash`, `amazon/nova-lite`, `amazon/nova-2-lite` (paid credits). `anthropic/claude-haiku-5.5` not on the Free Tier. Model name constants in `modules/agent/model.ts`; prices with their read date in `tests/evals/model-pricing.ts`.
+- Models via Vercel AI Gateway (`AI_GATEWAY_API_KEY`, `"provider/model"` strings). Default `google/gemini-2.5-flash-lite`, fallback `openai/gpt-5.4-nano`; comparison candidates `deepseek/deepseek-v4-flash`, `amazon/nova-lite`, `amazon/nova-2-lite` (paid credits). `anthropic/claude-haiku-5.5` not on the Free Tier. Chat model constants in `modules/agent/core/model.ts`, the embedding model id in `modules/rag/embeddings/embedding-model.ts`; prices with their read date in `tests/evals/support/model-pricing.ts`.
 - Embeddings `google/gemini-embedding-001`.
 - Tool input schemas stay portable: no `\p{…}` regex escapes (OpenAI rejects them).
 - Verified APIs (ai@7.0.170 — re-check on upgrade): `ToolLoopAgent`; `isStepCount(n)`; `tool({ description, inputSchema, outputSchema, contextSchema, execute })`; `generateText({ output: Output.object({ schema }) })`; `convertToModelMessages`; `pipeAgentUIStreamToResponse({ response, agent, uiMessages, options, abortSignal, timeout })` for Node responses; `embed`, `embedMany`, `cosineSimilarity`. Deprecated: `toUIMessageStreamResponse`, `generateObject`, `stepCountIs`.
@@ -142,14 +142,16 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 
 ## Lint-enforced boundaries
 - `common/`, `config/`, `observability/` never import `modules/`.
-- Modules import other modules only via `@/modules/<name>`.
-- Controllers never import repositories or adapters; tools and services import ports/tokens, never adapter classes.
+- Modules, `bootstrap/` and root files import another module only via `@/modules/<name>`; no deep imports into another module.
+- Adapter classes (`WeatherRepository`, `OpenMeteoClient`, `JsonRagEngine`, `DocsRepository`) are imported only inside their own module and by `modules/agent/core/create-agent-ports.ts`; everything else depends on ports/tokens.
+- Tools never import `createAgentPorts` or `AgentModule`.
+- No relative imports in `src/` (use `@/`); no `console.*` in `src/` (use Nest `Logger`, backed by pino).
 - No `next`, `react`, `react-dom` anywhere in `apps/api`.
 - `langchain`, `@langchain/*` only in `modules/rag/**` and `modules/agent/workflows/**`; no LangChain chat-model classes anywhere (`@langchain/openai`, `@langchain/anthropic`, `@langchain/google-*`).
 
 ## Containers
 - `Dockerfile`: multi-stage, `pnpm deploy --prod`, Node 22 slim, non-root, `HEALTHCHECK` on `/health/live`, `data/` included.
-- Root `docker-compose.yml`: `api` + `db` (pgvector, from 2.1) + `redis` (profile `cache`); `docker-compose.prod.yml` adds `caddy` (2.2). `db`/`redis` ports bound to `127.0.0.1`.
+- Root `docker-compose.yml`: `api` + `db` (pgvector, from 2.1) + `redis` (profile `cache`); `docker-compose.prod.yml` adds `caddy` (2.2). `api`, `db` and `redis` ports are bound to `127.0.0.1` (Caddy is the only public entry in production).
 
 ## Commands
 - `pnpm --filter @agri/api dev | build | start | test | eval | openapi`

@@ -14,7 +14,7 @@ services:
       PORT: "4000"
       TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000"
     restart: unless-stopped
 
   redis:

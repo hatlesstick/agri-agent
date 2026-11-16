@@ -128,7 +128,7 @@ pnpm langfuse:experiment --model openai/gpt-5.4-nano
 AI_MOCK=1 pnpm langfuse:experiment --dry-run               # local check with the mock model, nothing is sent
 ```
 
-Each experiment run executes the spray-check agent on every item with the fixture weather and records item scores (`rule_consistency`, `tool_usage`, `steps`, `latency_ms`) and a run score (`pass_rate`); metadata includes the model and the prompt version (last commit of `apps/api/src/modules/agent/instructions.ts`, or `--prompt-version`).
+Each experiment run executes the spray-check agent on every item with the fixture weather and records item scores (`rule_consistency`, `tool_usage`, `steps`, `latency_ms`) and a run score (`pass_rate`); metadata includes the model and the prompt version (last commit of `apps/api/src/modules/agent/core/instructions.ts`, or `--prompt-version`).
 
 To compare runs: Langfuse → Datasets → `agri-agent-spray-check` → Runs → select two runs → Compare. The view shows each item's output and scores side by side, plus average scores, latency and cost per run.
 

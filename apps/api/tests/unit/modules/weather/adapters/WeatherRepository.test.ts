@@ -146,19 +146,20 @@ describe("getForecast", () => {
     );
   });
 
-  it("uses the URLs from the environment", async () => {
-    vi.stubEnv("OPEN_METEO_GEOCODING_URL", "https://geo.example.com/v1/search");
-    vi.stubEnv("OPEN_METEO_FORECAST_URL", "https://forecast.example.com/v1/forecast");
+  it("uses the injected Open-Meteo URLs", async () => {
+    const injected = new WeatherRepository(
+      new OpenMeteoClient({ geocodingUrl: "https://geo.example.com/v1/search", forecastUrl: "https://forecast.example.com/v1/forecast" }),
+      new InMemoryCacheStore({ maxEntries: 10 }),
+    );
     const fetchMock = vi.fn(async (input: string | URL) =>
       new URL(String(input)).host === "geo.example.com" ? json(geocodingLyon) : json(forecastLyon),
     );
     vi.stubGlobal("fetch", fetchMock);
-    asForecast(await weatherRepository.getForecast("Lyon"));
+    asForecast(await injected.getForecast("Lyon"));
     expect(fetchMock.mock.calls.map(([input]) => new URL(String(input)).host)).toEqual([
       "geo.example.com",
       "forecast.example.com",
     ]);
-    vi.unstubAllEnvs();
   });
 
   it("serves a differently spaced and cased name from cache", async () => {

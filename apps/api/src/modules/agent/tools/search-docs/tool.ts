@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { tool } from "ai";
 import type { RagEngine } from "@/modules/rag";
 import { searchDocs } from "@/modules/rag";
@@ -8,12 +9,14 @@ import {
   type SearchDocsOutput,
 } from "@agri/shared/contracts";
 
+const logger = new Logger("SearchDocsTool");
+
 export async function runSearchDocs(input: SearchDocsInput, { rag }: { rag: RagEngine }): Promise<SearchDocsOutput> {
   try {
     const hits = await searchDocs(rag, input.query);
     return searchDocsOutputSchema.parse(hits ? { hits } : { error: "search_unavailable" });
   } catch (error) {
-    console.warn("searchDocs failed", error instanceof Error ? error.message : error);
+    logger.warn("searchDocs failed", error instanceof Error ? error.message : error);
     return { error: "search_unavailable" };
   }
 }

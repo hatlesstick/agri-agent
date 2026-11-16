@@ -18,7 +18,7 @@ This document is the source of truth for how the system is split and how code is
 
 ## AI stack
 
-- **Vercel AI SDK is the single model layer.** Every model and embedding call in the backend goes through it: `ToolLoopAgent`, `generateText` / `Output.object`, tools, `embed` / `embedMany`, AI Gateway, the scripted mock model, guardrail middleware and Langfuse telemetry. Streaming to the UI uses the AI SDK UI message stream (`@ai-sdk/react` on the web side). Model ids and limits come from one place (`modules/agent/model.ts`).
+- **Vercel AI SDK is the single model layer.** Every model and embedding call in the backend goes through it: `ToolLoopAgent`, `generateText` / `Output.object`, tools, `embed` / `embedMany`, AI Gateway, the scripted mock model, guardrail middleware and Langfuse telemetry. Streaming to the UI uses the AI SDK UI message stream (`@ai-sdk/react` on the web side). Model ids and limits come from one place (`modules/agent/core/model.ts`; the embedding model id in `modules/rag/embeddings/embedding-model.ts`).
 - **LangGraph.js orchestrates subagents** (Step 3): a graph in `modules/agent/workflows` holds state, routing between subagents, human-in-the-loop `interrupt` and a Postgres checkpointer (`@langchain/langgraph-checkpoint-postgres`). **Nodes call models only through the AI SDK** (`generateText` / `ToolLoopAgent` inside a node); no LangChain chat models. Graph runs stream to the UI through `@ai-sdk/langchain`, so the web client keeps `useChat`.
 - **LangChain.js provides RAG building blocks** (Stage 2.4): `@langchain/textsplitters` for chunking, `PGVectorStore` (`@langchain/community`) on pgvector in production and `MemoryVectorStore` in mock mode / offline CI, a retriever wrapped as the `RagEngine` adapter. Embeddings are an `AiSdkEmbeddings` class (LangChain `Embeddings` implemented with AI SDK `embedMany`), so AI Gateway, mock embeddings and telemetry stay in the single model layer. Threshold, top-k and the `searchDocs` tool contract stay ours.
 - **Containment:** LangChain / LangGraph packages are imported only in `modules/rag` (adapters) and `modules/agent/workflows`; tools, controllers and other modules see only our ports and services. `@ai-sdk/langchain` pins an exact `ai` version — upgrade `ai` together with it so only one copy is installed.
@@ -80,13 +80,13 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 
 ### Configuration
 
-- Env is parsed once at startup by a zod schema in `config/`; the app does not start on invalid env. Code reads config through the `API_ENV` token, never `process.env`.
+- Env is parsed once at startup by a zod schema in `config/`; the app does not start on invalid env. Modules receive config through the `API_ENV` token; `AI_MOCK` is the one process-wide switch read directly (`isMockMode()`).
 - Each app has `.env.example`; a test checks it lists every key read in code and holds no secret values.
 
 ### Caching and state (scalability)
 
-- `CacheStore` port: `get<T>(key)`, `set<T>(key, value, ttlMs)`, `delete(key)`. Adapter now: `InMemoryCacheStore` (LRU with max entries). Later: `RedisCacheStore` selected by `CACHE_DRIVER=memory|redis` + `REDIS_URL`.
-- Weather forecast cache uses `CacheStore`. Rate limiting uses a `RateLimitStore` port (in-memory now; Redis/Postgres when there is more than one API instance).
+- `CacheStore` port: `get<T>(key)`, `set<T>(key, value, ttlMs)`, `delete(key)`, `clear()` (an adapter clears only its own key prefix). Adapter now: `InMemoryCacheStore` (LRU with max entries). Later: `RedisCacheStore` selected by `CACHE_DRIVER=memory|redis` + `REDIS_URL`.
+- Weather forecast cache uses `CacheStore`. Rate limiting uses the `RateLimiter` type as its store port (`RATE_LIMITERS`) (in-memory now; Redis/Postgres when there is more than one API instance).
 - Rule: a new cache or counter is added through these ports, never as a module-level `Map`.
 
 ### Observability and operations
@@ -100,7 +100,7 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 ### Security
 
 - `ProxyAuthGuard` on browser routes (`X-Proxy-Auth` from Vercel `proxy.ts`), `X-Client-IP` trusted only with a valid secret; Telegram / Inngest / MCP routes use their own auth.
-- Rate limits per client and global; JSON body cap 256 KiB; CORS closed for browsers; security headers; secrets only from env; non-root container.
+- Rate limits per client and global; JSON body cap 256 KiB; CORS closed for browsers; baseline security headers (nosniff, frame deny, no-referrer, CORP same-site); secrets only from env; non-root container.
 
 ### Testing
 
@@ -114,8 +114,8 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 
 - `common/`, `config/`, `observability/` never import `modules/`.
 - A module imports another module only via `@/modules/<name>`; no deep imports into another module.
-- Controllers never import repositories or adapters.
-- Services and tools never import adapter classes, only ports/tokens.
+- Adapter classes are imported only inside their own module and by `createAgentPorts()`; controllers, services and tools depend on ports/tokens.
+- No relative imports and no `console.*` in `apps/api/src`.
 - `apps/api` never imports Next.js or React; `apps/web` never imports `apps/api` or runtime AI agent code.
 
 ## Frontend (`apps/web`)

@@ -25,5 +25,5 @@ const CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
 };
 
 export function codeForStatus(status: number): ErrorCode {
-  return CODE_BY_STATUS[status] ?? "internal_error";
+  return CODE_BY_STATUS[status] ?? (status >= 400 && status < 500 ? "invalid_request" : "internal_error");
 }

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { STATUS_CODES } from "node:http";
 import type { ErrorCode, ProblemDetails } from "@agri/shared/contracts";
 import { codeForStatus, ProblemException } from "@/common/errors/problem";
+import { ensureRequestId } from "@/common/http/request-id";
 
 type BodyParserError = { type?: string; status?: number };
 
@@ -28,17 +29,18 @@ export class ProblemDetailsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const http = host.switchToHttp();
-    const request = http.getRequest<Request & { id?: string }>();
+    const request = http.getRequest<Request>();
     const response = http.getResponse<Response>();
     const { status, code, detail, headers } = resolve(exception);
     if (status >= 500) this.logger.error({ err: exception, code }, "request failed");
     if (response.headersSent) return;
+    const requestId = ensureRequestId(request, response);
     const body: ProblemDetails = {
       type: "about:blank",
       title: STATUS_CODES[status] ?? "Error",
       status,
       ...(detail ? { detail } : {}),
-      instance: String(request.id ?? ""),
+      instance: requestId,
       code,
     };
     response.status(status).set(headers).type("application/problem+json").send(JSON.stringify(body));

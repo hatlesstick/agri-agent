@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,7 +13,7 @@ describe("POST /spray-check", () => {
 
   beforeEach(() => {
     stubOpenMeteo();
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
   });
 
   afterEach(async () => {
@@ -43,7 +44,7 @@ describe("POST /spray-check", () => {
     [Object.assign(new Error("The operation timed out"), { name: "TimeoutError" }), 504, "model_timeout"],
     [new Error("boom"), 500, "internal_error"],
   ])("maps agent failure %s to %i %s", async (error, status, code) => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "error").mockImplementation(() => {});
     app = await testApp([{ token: SprayCheckService, useValue: { check: async () => Promise.reject(error) } }]);
     const response = await request(app.getHttpServer()).post("/spray-check").send({ question: "Can I spray in Lyon tomorrow?" });
     expect(response.status).toBe(status);

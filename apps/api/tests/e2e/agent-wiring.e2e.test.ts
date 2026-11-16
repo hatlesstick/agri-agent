@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import request from "supertest";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -28,7 +29,7 @@ describe("agent wiring through DI", () => {
     vi.stubGlobal("fetch", vi.fn(async () => {
       throw new Error("fetch must not be called");
     }));
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     const weather = fakeWeather(lyon);
     app = await testApp([
       { token: WEATHER_PORT, useValue: weather },

@@ -1,4 +1,7 @@
+import { Logger } from "@nestjs/common";
 import type { LanguageModelMiddleware } from "ai";
+
+const logger = new Logger("ToolCodeLeakGuardrail");
 
 export const TOOL_CODE_FALLBACK = "I could not run the weather check this time. Please ask again.";
 
@@ -19,7 +22,7 @@ export const toolCodeLeakMiddleware: LanguageModelMiddleware = {
   wrapGenerate: async ({ doGenerate }) => {
     const result = await doGenerate();
     if (!result.content.some((part) => part.type === "text" && looksLikeLeakedToolCode(part.text))) return result;
-    console.warn("guardrail: leaked tool_code text replaced");
+    logger.warn("guardrail: leaked tool_code text replaced");
     return {
       ...result,
       content: result.content.map((part) =>
@@ -34,7 +37,7 @@ export const toolCodeLeakMiddleware: LanguageModelMiddleware = {
 
     const decide = (id: string, state: BlockState, controller: TransformStreamDefaultController<StreamPart>) => {
       if (looksLikeLeakedToolCode(state.buffer)) {
-        console.warn("guardrail: leaked tool_code text replaced");
+        logger.warn("guardrail: leaked tool_code text replaced");
         state.decided = "leak";
         controller.enqueue({ type: "text-delta", id, delta: TOOL_CODE_FALLBACK });
       } else {
@@ -56,7 +59,7 @@ export const toolCodeLeakMiddleware: LanguageModelMiddleware = {
           if (state.decided === "pass") {
             const window = state.tail + part.delta;
             if (looksLikeLeakedToolCode(window)) {
-              console.warn("guardrail: leaked tool_code text replaced");
+              logger.warn("guardrail: leaked tool_code text replaced");
               state.decided = "leak";
               return controller.enqueue({ type: "text-delta", id: part.id, delta: `\n\n${TOOL_CODE_FALLBACK}` });
             }

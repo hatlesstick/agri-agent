@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { runSearchDocs } from "@/modules/agent/tools/search-docs/tool";
 import { fakeRag } from "@tests/support/fake-ports";
@@ -6,7 +7,7 @@ describe("runSearchDocs", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("returns search_unavailable when the engine throws", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     expect(await runSearchDocs({ query: "spray drift" }, { rag: fakeRag(new Error("boom")) })).toEqual({ error: "search_unavailable" });
   });
 

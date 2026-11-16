@@ -5,7 +5,7 @@ import { abortOnClose } from "@/common/http";
 
 function exchange() {
   const req = new EventEmitter() as IncomingMessage;
-  const res = Object.assign(new EventEmitter(), { writableFinished: false }) as unknown as ServerResponse & { writableFinished: boolean };
+  const res = Object.assign(new EventEmitter(), { writableFinished: false, destroyed: false }) as unknown as ServerResponse & { writableFinished: boolean; destroyed: boolean };
   return { req, res };
 }
 
@@ -24,5 +24,11 @@ describe("abortOnClose", () => {
     res.emit("finish");
     res.emit("close");
     expect(signal.aborted).toBe(false);
+  });
+
+  it("aborts at once when the client is already gone", () => {
+    const { req, res } = exchange();
+    res.destroyed = true;
+    expect(abortOnClose(req, res).aborted).toBe(true);
   });
 });

@@ -5,6 +5,7 @@ import { Logger } from "nestjs-pino";
 import { CHAT_LIMITS } from "@agri/shared";
 import { AppModule } from "@/AppModule";
 import { problem, ProblemDetailsFilter } from "@/common/errors";
+import { securityHeaders } from "@/common/http";
 import { setupSwagger } from "@/common/openapi";
 import type { ApiEnv } from "@/config";
 
@@ -12,6 +13,7 @@ export function configureApp(app: NestExpressApplication, env: ApiEnv): void {
   app.useLogger(app.get(Logger));
   app.set("trust proxy", env.TRUSTED_PROXY_HOPS ?? 0);
   app.disable("x-powered-by");
+  app.use(securityHeaders);
   app.useBodyParser("json", { limit: CHAT_LIMITS.maxBodyBytes });
   app.useGlobalFilters(new ProblemDetailsFilter());
   app.useGlobalPipes(new StandardSchemaValidationPipe({ exceptionFactory: () => problem("invalid_request", 400) }));

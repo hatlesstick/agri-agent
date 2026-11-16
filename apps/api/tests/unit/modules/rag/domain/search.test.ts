@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usableIndex } from "@/modules/rag/adapters/JsonRagEngine";
 import { MOCK_MIN_SCORE, REAL_MIN_SCORE, searchDocs } from "@/modules/rag/domain/search";
@@ -20,13 +21,13 @@ describe("usableIndex", () => {
   });
 
   it("rejects and warns when the index was built with another model", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     expect(usableIndex(index("openai/text-embedding-3-small", 3), "google/gemini-embedding-001")).toBeNull();
     expect(warn).toHaveBeenCalled();
   });
 
   it("rejects a missing or empty index", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
     expect(usableIndex(null, "m")).toBeNull();
     expect(usableIndex({ ...index("m", 3), chunks: [] }, "m")).toBeNull();
   });

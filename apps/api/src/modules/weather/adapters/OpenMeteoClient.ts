@@ -1,4 +1,4 @@
-import { loadApiEnv } from "@/config";
+import { loadApiEnv, type ApiEnv } from "@/config";
 import { currentLocalHour } from "@agri/shared";
 import {
   forecastResponseSchema,
@@ -20,9 +20,17 @@ async function getJson(url: URL): Promise<unknown> {
   return response.json();
 }
 
+export type OpenMeteoUrls = { geocodingUrl: string; forecastUrl: string };
+
+export function openMeteoUrls(env: Pick<ApiEnv, "OPEN_METEO_GEOCODING_URL" | "OPEN_METEO_FORECAST_URL">): OpenMeteoUrls {
+  return { geocodingUrl: env.OPEN_METEO_GEOCODING_URL, forecastUrl: env.OPEN_METEO_FORECAST_URL };
+}
+
 export class OpenMeteoClient {
+  constructor(private readonly urls: OpenMeteoUrls = openMeteoUrls(loadApiEnv())) {}
+
   async geocodeCity(name: string): Promise<GeoLocation | null> {
-    const url = new URL(loadApiEnv().OPEN_METEO_GEOCODING_URL);
+    const url = new URL(this.urls.geocodingUrl);
     url.search = new URLSearchParams({ name, count: "1", language: "en" }).toString();
 
     const { results } = geocodingResponseSchema.parse(await getJson(url));
@@ -39,7 +47,7 @@ export class OpenMeteoClient {
   }
 
   async fetchHourlyForecast(location: GeoLocation): Promise<Forecast> {
-    const url = new URL(loadApiEnv().OPEN_METEO_FORECAST_URL);
+    const url = new URL(this.urls.forecastUrl);
     url.search = new URLSearchParams({
       latitude: String(location.latitude),
       longitude: String(location.longitude),

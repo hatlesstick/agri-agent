@@ -1,9 +1,12 @@
+import { Logger } from "@nestjs/common";
 import { NoObjectGeneratedError, NoOutputGeneratedError, type LanguageModel } from "ai";
 import { createSprayCheckAgent } from "@/modules/agent/core/agent";
 import { AGENT_TIMEOUT_MS } from "@/modules/agent/core/model";
 import type { AgentPorts } from "@/modules/agent/agent.types";
 import { reconcileSprayCheck, ruleBasedAnswer, type ToolResult } from "@/modules/agent/workflows/spray-check/reconcile";
 import type { SprayCheckOutcome, SprayCheckTrace } from "@/modules/agent/workflows/spray-check/schemas";
+
+const logger = new Logger("SprayCheckRun");
 
 const MAX_ATTEMPTS = 2;
 
@@ -67,9 +70,9 @@ export async function runSprayCheck({
       return { ...reconciliation, trace: traceOf(current) };
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
-        console.warn(`spray-check: attempt ${attempt} produced no valid object`, error.text?.slice(0, 200) || "(empty)");
+        logger.warn(`spray-check: attempt ${attempt} produced no valid object`, error.text?.slice(0, 200) || "(empty)");
       } else if (NoOutputGeneratedError.isInstance(error)) {
-        console.warn(`spray-check: attempt ${attempt} ended without output (step limit or empty stream)`);
+        logger.warn(`spray-check: attempt ${attempt} ended without output (step limit or empty stream)`);
       } else {
         throw error;
       }

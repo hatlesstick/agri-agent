@@ -1,5 +1,8 @@
+import { Logger } from "@nestjs/common";
 import { sprayAssessmentSchema, sprayWindowErrorSchema } from "@agri/shared/contracts";
 import type { SprayCheck } from "@/modules/agent/workflows/spray-check/schemas";
+
+const logger = new Logger("SprayCheckReconcile");
 
 export type ToolResult = { toolName: string; output: unknown };
 
@@ -32,12 +35,12 @@ export function reconcileSprayCheck(modelOutput: SprayCheck, toolResults: ToolRe
       };
 
   if (!assessment.success && !sprayWindowErrorSchema.safeParse(lastSprayWindow.output).success) {
-    console.warn("spray-check: unexpected sprayWindow output", lastSprayWindow.output);
+    logger.warn("spray-check: unexpected sprayWindow output", lastSprayWindow.output);
   }
 
   const overridden = modelOutput.canSpray !== rules.canSpray || !sameWindow(modelOutput.bestWindow, rules.bestWindow);
   if (overridden) {
-    console.warn("spray-check override", {
+    logger.warn("spray-check override", {
       model: { canSpray: modelOutput.canSpray, bestWindow: modelOutput.bestWindow },
       rules: { canSpray: rules.canSpray, bestWindow: rules.bestWindow },
     });

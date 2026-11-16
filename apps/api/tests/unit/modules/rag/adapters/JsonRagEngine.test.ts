@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DocsRepository } from "@/modules/rag/adapters/DocsRepository";
 import { JsonRagEngine } from "@/modules/rag/adapters/JsonRagEngine";
@@ -27,5 +28,17 @@ describe("JsonRagEngine (mock embeddings)", () => {
     engine.reset();
     await engine.search("drift", { topK: 3 });
     expect(read).toHaveBeenCalledTimes(2);
+  });
+
+  it("reads a missing index once and warns once instead of on every query", async () => {
+    vi.stubEnv("AI_MOCK", "0");
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
+    const docs = new DocsRepository();
+    const read = vi.spyOn(docs, "readIndex").mockReturnValue(null);
+    const engine = new JsonRagEngine(docs);
+    expect(await engine.search("drift", { topK: 3 })).toBeNull();
+    expect(await engine.search("drift", { topK: 3 })).toBeNull();
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(Logger.prototype.warn).toHaveBeenCalledTimes(1);
   });
 });

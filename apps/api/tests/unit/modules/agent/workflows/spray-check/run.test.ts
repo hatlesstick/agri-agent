@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WeatherRepository } from "@/modules/weather";
@@ -32,7 +33,7 @@ describe("runSprayCheck", () => {
   beforeEach(() => {
     weatherRepository.clearCache();
     vi.stubGlobal("fetch", vi.fn(async (input: string | URL) => (new URL(String(input)).host.startsWith("geocoding") ? json(geocodingLyon) : json(forecastLyon))));
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
   });
   afterEach(() => {
     vi.unstubAllGlobals();
