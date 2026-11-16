@@ -1,56 +1,29 @@
 {
   "name": "agri-agent",
-  "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run",
-    "eval": "AI_MOCK=1 vitest run --config vitest.eval.config.mts",
-    "eval:real": "AI_MOCK=0 vitest run --config vitest.eval.config.mts",
-    "eval:baseline": "node scripts/promote-eval-baseline.mjs",
-    "eval:compare": "tsx scripts/compare-models.ts",
-    "eval:summary": "tsx scripts/eval-summary.ts",
-    "langfuse:dataset": "tsx --env-file=.env.local scripts/langfuse-dataset-sync.ts",
-    "langfuse:experiment": "tsx --env-file=.env.local scripts/langfuse-experiment.ts",
-    "index": "tsx --env-file=.env.local scripts/build-index.ts"
-  },
-  "dependencies": {
-    "@ai-sdk/otel": "^1.0.170",
-    "@ai-sdk/react": "^4.0.174",
-    "@hookform/resolvers": "^7.0.6",
-    "@langfuse/client": "^6.1.1",
-    "@langfuse/otel": "^6.1.1",
-    "@langfuse/tracing": "^6.1.1",
-    "@opentelemetry/sdk-trace-node": "^2.12.1",
-    "ai": "^7.0.170",
-    "next": "16.4.6",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "react-hook-form": "^7.92.0",
-    "react-markdown": "^10.1.0",
-    "zod": "^4.6.7"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "eval": "turbo run eval",
+    "eval:real": "pnpm --filter @agri/web eval:real",
+    "eval:baseline": "pnpm --filter @agri/web eval:baseline",
+    "eval:compare": "pnpm --filter @agri/web eval:compare",
+    "eval:summary": "pnpm --filter @agri/web eval:summary",
+    "langfuse:dataset": "pnpm --filter @agri/web langfuse:dataset",
+    "langfuse:experiment": "pnpm --filter @agri/web langfuse:experiment",
+    "index": "pnpm --filter @agri/web index"
   },
   "devDependencies": {
-    "@tailwindcss/turbopack": "4.3.3",
-    "@testing-library/dom": "^10.4.2",
-    "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.10",
-    "@types/node": "^22.20.5",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.4.6",
-    "jsdom": "^29.1.1",
-    "tailwindcss": "4.3.3",
-    "tsx": "^4.23.15",
-    "typescript": "^5",
-    "vitest": "^5.1.0"
+    "turbo": "^2.11.11"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }
