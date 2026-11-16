@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 import { currentActivity } from "@/ui/helpers/agent-activity";
 import { friendlyChatError } from "@/ui/helpers/chat-errors";
 

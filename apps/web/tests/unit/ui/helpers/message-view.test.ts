@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 import { assistantMessageView, stepLabel } from "@/ui/helpers/message-view";
 
 function assistant(parts: unknown[]): AgriAgentUIMessage {

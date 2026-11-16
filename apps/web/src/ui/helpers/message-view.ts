@@ -1,4 +1,4 @@
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 import { summarizeSteps, type StepSummary } from "@/ui/helpers/agent-activity";
 import { isToolPart } from "@/ui/helpers/tool-parts";
 

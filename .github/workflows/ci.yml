@@ -46,7 +46,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: eval-results
-          path: apps/web/.evals/results/
+          path: |
+            packages/agent/.evals/results/
+            apps/web/.evals/results/
           if-no-files-found: ignore
           retention-days: 14
 

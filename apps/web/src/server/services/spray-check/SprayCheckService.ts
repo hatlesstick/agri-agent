@@ -1,4 +1,4 @@
-import { runSprayCheck, screenInput } from "@/agent";
+import { runSprayCheck, screenInput } from "@agri/agent";
 import type { SprayCheckInput, SprayCheckOutcome } from "@/server/services/spray-check/SprayCheckService.types";
 
 export class SprayCheckService {

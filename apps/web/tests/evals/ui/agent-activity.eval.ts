@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 import { currentActivity, summarizeSteps } from "@/ui/helpers/agent-activity";
 
 type Part = AgriAgentUIMessage["parts"][number];

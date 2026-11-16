@@ -1,4 +1,4 @@
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 
 export type MessagePart = AgriAgentUIMessage["parts"][number];
 export type ToolPart = Extract<MessagePart, { type: `tool-${string}` }>;

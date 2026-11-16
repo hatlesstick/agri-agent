@@ -1,5 +1,5 @@
 import { createAgentUIStreamResponse } from "ai";
-import { AGENT_TIMEOUT_MS, createAgriAgent, SCREEN_REFUSAL, screenInput } from "@/agent";
+import { AGENT_TIMEOUT_MS, createAgriAgent, SCREEN_REFUSAL, screenInput } from "@agri/agent";
 import { dropBlockedHistory, latestUserText } from "@/server/guardrails/chat-request";
 import { chatErrorMessage } from "@/server/helpers/agent-errors";
 import { refusalStreamResponse } from "@/server/helpers/refusal-stream";

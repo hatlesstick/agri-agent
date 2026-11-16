@@ -13,7 +13,7 @@ export default defineConfig({
   },
   test: {
     include: ["tests/evals/**/*.eval.ts"],
-    setupFiles: ["tests/support/setup.ts", "tests/evals/setup.ts"],
+    setupFiles: ["tests/support/setup.ts"],
     env: { ...loadEnv("", process.cwd(), ""), EVAL_RUN_ID: runId },
     testTimeout: 120_000,
     fileParallelism: false,

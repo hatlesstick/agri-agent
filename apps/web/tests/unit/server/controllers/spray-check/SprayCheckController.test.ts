@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/agent", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/agent")>()),
+vi.mock("@agri/agent", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@agri/agent")>()),
   runSprayCheck: vi.fn(),
 }));
 
-const { runSprayCheck } = await import("@/agent");
+const { runSprayCheck } = await import("@agri/agent");
 const { sprayCheckController } = await import("@/server/controllers/spray-check/SprayCheckController");
 
 function request(question: string) {

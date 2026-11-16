@@ -1,4 +1,4 @@
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 
 export type ChatMessageProps = { message: AgriAgentUIMessage; isComplete: boolean };
 

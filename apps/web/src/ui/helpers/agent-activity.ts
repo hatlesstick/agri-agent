@@ -1,4 +1,4 @@
-import type { AgriAgentUIMessage } from "@/agent";
+import type { AgriAgentUIMessage } from "@agri/agent";
 import { isToolPart, toolName, type ToolPart } from "@/ui/helpers/tool-parts";
 
 export type Activity = { icon: string; label: string; step: number };

@@ -1,5 +1,5 @@
 import { after } from "next/server";
-import { flushAgentTelemetry, isTelemetryEnabled, sprayCheckRequestSchema } from "@/agent";
+import { flushAgentTelemetry, isTelemetryEnabled, sprayCheckRequestSchema } from "@agri/agent";
 import { readJsonBody } from "@/server/guardrails/chat-request";
 import { checkRateLimit, rateLimitedResponse } from "@/server/guardrails/rate-limit";
 import { agentFailureResponse } from "@/server/helpers/agent-errors";
