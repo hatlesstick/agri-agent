@@ -9,7 +9,7 @@ import {
   type SprayOutlookOutput,
 } from "@/tools/spray-outlook/schemas";
 import { currentLocalHour, todayIn } from "@agri/shared";
-import { sprayWindowService } from "@/spray-window/SprayWindowService";
+import { assessSprayDay } from "@/spray-window/assess-spray-day";
 import { isWeatherError } from "@/weather/weather.types";
 
 export async function sprayOutlook(input: SprayOutlookInput, { weather, now = new Date() }: WeatherToolDeps): Promise<SprayOutlookOutput> {
@@ -23,7 +23,7 @@ export async function sprayOutlook(input: SprayOutlookInput, { weather, now = ne
     city: forecast.city,
     timezone: forecast.timezone,
     days: dates.map((date) => {
-      const { canSpray, bestWindow, rejectedReasons } = sprayWindowService.assess({
+      const { canSpray, bestWindow, rejectedReasons } = assessSprayDay({
         hourly: forecast.hourly,
         date,
         options: { notBefore: currentLocalHour(forecast.timezone, now) },

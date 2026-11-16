@@ -4,7 +4,7 @@ import { createMockChatModel } from "@/mock/model";
 import { MOCK_TOOL_MATCHERS } from "@/mock/tool-matchers";
 import { sprayWindowInputSchema, sprayWindowOutputSchema } from "@/tools/spray-window/schemas";
 import { createSprayWindowTool, sprayWindow } from "@/tools/spray-window/tool";
-import { sprayWindowService } from "@/spray-window/SprayWindowService";
+import { assessSprayDay } from "@/spray-window/assess-spray-day";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
@@ -38,7 +38,7 @@ describe("sprayWindow", () => {
       city: "Lyon",
       date: "2026-11-12",
       timezone: "Europe/Paris",
-      ...sprayWindowService.assess({ hourly: forecast.hourly, date: "2026-11-12" }),
+      ...assessSprayDay({ hourly: forecast.hourly, date: "2026-11-12" }),
     });
   });
 

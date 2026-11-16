@@ -9,7 +9,7 @@ import {
 import type { WeatherToolDeps } from "@/tools/shared/deps";
 import { clockContextSchema } from "@/tools/shared/schemas";
 import { currentLocalHour, resolveDay, todayIn } from "@agri/shared";
-import { sprayWindowService } from "@/spray-window/SprayWindowService";
+import { assessSprayDay } from "@/spray-window/assess-spray-day";
 import { isWeatherError } from "@/weather/weather.types";
 
 export async function sprayWindow(input: SprayWindowInput, { weather, now = new Date() }: WeatherToolDeps): Promise<SprayWindowOutput> {
@@ -28,7 +28,7 @@ export async function sprayWindow(input: SprayWindowInput, { weather, now = new 
     city: forecast.city,
     date,
     timezone: forecast.timezone,
-    ...sprayWindowService.assess({ hourly: forecast.hourly, date, options: { notBefore: currentLocalHour(forecast.timezone, now) } }),
+    ...assessSprayDay({ hourly: forecast.hourly, date, options: { notBefore: currentLocalHour(forecast.timezone, now) } }),
   });
 }
 

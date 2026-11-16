@@ -5,7 +5,7 @@ import type {
   SprayThresholds,
   SprayWindow,
   SprayWindowInput,
-} from "@/spray-window/SprayWindowService.types";
+} from "@/spray-window/spray-window.types";
 
 export const DEFAULT_SPRAY_THRESHOLDS: SprayThresholds = {
   minWindSpeed: 1,
@@ -63,43 +63,39 @@ function toWindow(hourly: HourlyPoint[], firstIndex: number, lastIndex: number):
   };
 }
 
-export class SprayWindowService {
-  assess({ hourly, date, thresholds = {}, options = {} }: SprayWindowInput): SprayAssessment {
-    const { notBefore } = options;
-    const rules = { ...DEFAULT_SPRAY_THRESHOLDS, ...thresholds };
-    const rejectedReasons: Partial<Record<RejectionReason, number>> = {};
-    const windows: SprayWindow[] = [];
-    let runStart: number | null = null;
+export function assessSprayDay({ hourly, date, thresholds = {}, options = {} }: SprayWindowInput): SprayAssessment {
+  const { notBefore } = options;
+  const rules = { ...DEFAULT_SPRAY_THRESHOLDS, ...thresholds };
+  const rejectedReasons: Partial<Record<RejectionReason, number>> = {};
+  const windows: SprayWindow[] = [];
+  let runStart: number | null = null;
 
-    const closeRun = (lastIndex: number) => {
-      if (runStart !== null) windows.push(toWindow(hourly, runStart, lastIndex));
-      runStart = null;
-    };
+  const closeRun = (lastIndex: number) => {
+    if (runStart !== null) windows.push(toWindow(hourly, runStart, lastIndex));
+    runStart = null;
+  };
 
-    hourly.forEach((point, index) => {
-      if (!point.time.startsWith(date) || (notBefore !== undefined && point.time < notBefore)) {
-        closeRun(index - 1);
-        return;
-      }
-
-      const reasons = hourReasons(hourly, index, rules);
-      if (reasons.length === 0) {
-        runStart ??= index;
-        return;
-      }
-
+  hourly.forEach((point, index) => {
+    if (!point.time.startsWith(date) || (notBefore !== undefined && point.time < notBefore)) {
       closeRun(index - 1);
-      for (const reason of reasons) rejectedReasons[reason] = (rejectedReasons[reason] ?? 0) + 1;
-    });
-    closeRun(hourly.length - 1);
+      return;
+    }
 
-    const bestWindow = windows.reduce<SprayWindow | null>(
-      (best, window) => (best === null || window.hours > best.hours ? window : best),
-      null,
-    );
+    const reasons = hourReasons(hourly, index, rules);
+    if (reasons.length === 0) {
+      runStart ??= index;
+      return;
+    }
 
-    return { canSpray: windows.length > 0, bestWindow, windows, rejectedReasons };
-  }
+    closeRun(index - 1);
+    for (const reason of reasons) rejectedReasons[reason] = (rejectedReasons[reason] ?? 0) + 1;
+  });
+  closeRun(hourly.length - 1);
+
+  const bestWindow = windows.reduce<SprayWindow | null>(
+    (best, window) => (best === null || window.hours > best.hours ? window : best),
+    null,
+  );
+
+  return { canSpray: windows.length > 0, bestWindow, windows, rejectedReasons };
 }
-
-export const sprayWindowService = new SprayWindowService();
