@@ -135,9 +135,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Shell scripts are clean
-        run: shellcheck infra/smoke/*.sh
+        run: shellcheck -x infra/deploy.sh infra/smoke/*.sh
       - name: Caddy, API and Postgres from the production Compose file
         run: infra/smoke/run.sh
+      - name: Deploy, failed migration, failed readiness and rollback
+        run: SMOKE_SKIP_BUILD=1 infra/smoke/deploy-test.sh
 
   secrets:
     name: Secret scan
