@@ -75,6 +75,16 @@ chmod 600 .env api.env
   docker compose -f docker-compose.prod.yml exec -T db sh -c 'pg_restore --clean --if-exists -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < backups/pre-deploy-<timestamp>-<tag>.dump
   ```
 
+## Checking production
+
+```bash
+infra/check-production.sh --api https://<api-host>                               # no model calls
+infra/check-production.sh --api https://<api-host> --web https://<app>.vercel.app # + rewrite and proxy.ts (empty chat → 400, still no model call)
+infra/check-production.sh --api https://<api-host> --web https://<app>.vercel.app --stream   # + one real streamed answer
+```
+
+It checks readiness, TLS (≥ 14 days left), HTTP→HTTPS, 403 on browser routes without a valid `X-Proxy-Auth`, security headers, closed 4000/5432/6379, and, with `--web`, that the Vercel rewrite and `proxy.ts` reach the API. The smoke test runs it against the local stack.
+
 ## Troubleshooting
 
 - Status and logs: `docker compose -f docker-compose.prod.yml ps`, `… logs --tail 100 api`, `… logs caddy` (access logs drop `X-Proxy-Auth`, cookies and client IPs).

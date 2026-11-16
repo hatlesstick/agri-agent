@@ -42,4 +42,10 @@ if compose logs caddy 2>/dev/null | grep -q "$SECRET"; then fail "Caddy access l
 if compose logs caddy 2>/dev/null | grep -q "wrong-secret"; then fail "Caddy access log contains a client-sent X-Proxy-Auth"; fi
 pass "Caddy access log keeps proxy secrets out"
 
+[ -x "$ROOT/infra/check-production.sh" ] || fail "infra/check-production.sh is missing"
+"$ROOT/infra/check-production.sh" --api "$BASE" --skip-ports || fail "check-production against the smoke stack"
+pass "check-production passes against the smoke stack"
+if "$ROOT/infra/check-production.sh" --api "http://127.0.0.1:1" --skip-ports >/dev/null 2>&1; then fail "check-production passed against a dead API"; fi
+pass "check-production fails against a dead API"
+
 echo "smoke passed"
