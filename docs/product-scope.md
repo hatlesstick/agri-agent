@@ -44,7 +44,8 @@ The core is built first. Backlog items are not started until the core is done, e
 - A second implementation of the same background agent on Vercel eve, connected to the API through the MCP server, compared in the README.
 
 ### Step 5 — Production hardening and pilot users
-- Full authentication, distributed rate limiting, budgets and alerts; an optional AWS deployment (ECS Fargate, RDS, S3, Bedrock with Guardrails, CDK).
+- Full authentication (own sessions and OAuth sign-in), distributed rate limiting, budgets and alerts; infrastructure stays on the VPS.
+- Amazon Bedrock as the only AWS service: Bedrock models and embeddings through AI Gateway, compared on the same evals; Bedrock Guardrails and Knowledge Bases (managed RAG compared with our pgvector RAG) if an AWS account is added.
 - Pilot farms as real users; 👍 / 👎 feedback → Langfuse → new eval cases.
 - Agronomist review queue in an admin view.
 - Photo diagnosis (vision) with evals.
