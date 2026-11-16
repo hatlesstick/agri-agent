@@ -82,4 +82,9 @@ pass "chat without a valid proxy secret is forbidden"
 python3 "$ROOT/infra/smoke/stream-timing.py" "$BASE/chat" "$SECRET" "please repeat these few words back to me one by one slowly" || fail "chat stream through Caddy"
 pass "chat streams incrementally through Caddy"
 
+sleep 1
+if compose logs caddy 2>/dev/null | grep -q "$SECRET"; then fail "Caddy access log contains the proxy secret"; fi
+if compose logs caddy 2>/dev/null | grep -q "wrong-secret"; then fail "Caddy access log contains a client-sent X-Proxy-Auth"; fi
+pass "Caddy access log keeps proxy secrets out"
+
 echo "smoke passed"
