@@ -55,3 +55,4 @@ packages/shared   contracts only: zod request/response/error schemas, chat messa
 - One workspace: `pnpm --filter @agri/api <script>` (or `@agri/web`, `@agri/shared`)
 - Database: `pnpm db:up` (Compose Postgres; `pnpm dev` runs it first), `pnpm --filter @agri/api db:migrate | db:seed | test:db`
 - Containers: `docker compose up` (API + db; see apps/api/CLAUDE.md)
+- Production: **docs/deploy.md** — `infra/` (prod Compose + Caddy, `deploy.sh`, `bootstrap.sh`), Deploy workflow after green CI on `main`; rehearse with `infra/smoke/run.sh`, `infra/smoke/deploy-test.sh`, `infra/smoke/bootstrap-test.sh`
