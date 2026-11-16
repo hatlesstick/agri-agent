@@ -15,11 +15,9 @@
     "eval": "AI_MOCK=1 vitest run --config vitest.eval.config.mts"
   },
   "dependencies": {
-    "@agri/agent": "workspace:*",
     "@agri/shared": "workspace:*",
     "@ai-sdk/react": "^4.0.174",
     "@hookform/resolvers": "^7.0.6",
-    "ai": "^7.0.170",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",

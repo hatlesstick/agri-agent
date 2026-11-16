@@ -41,13 +41,15 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm eval
+      - name: OpenAPI contract is up to date
+        run: pnpm openapi && git diff --exit-code apps/api/openapi.json
       - name: Upload eval results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: eval-results
           path: |
-            packages/agent/.evals/results/
+            apps/api/.evals/results/
             apps/web/.evals/results/
           if-no-files-found: ignore
           retention-days: 14
@@ -70,6 +72,22 @@ jobs:
           restore-keys: ${{ runner.os }}-turbo-${{ github.job }}-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+
+  docker:
+    name: API image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          tags: agri-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   secrets:
     name: Secret scan

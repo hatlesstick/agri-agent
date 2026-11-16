@@ -1,3 +1,3 @@
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 
-export type MessageListProps = { messages: AgriAgentUIMessage[]; lastIsComplete: boolean };
+export type MessageListProps = { messages: AgriChatMessage[]; lastIsComplete: boolean };

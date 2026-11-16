@@ -8,13 +8,13 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./server-env": {
-      "types": "./dist/server-env.d.ts",
-      "import": "./dist/server-env.js"
-    },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
     }
   },
   "files": [
@@ -39,6 +39,15 @@
     "typescript": "^5",
     "typescript-eslint": "^8",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "ai": "7.0.170"
+  },
+  "peerDependencies": {
+    "ai": "7.0.170"
+  },
+  "peerDependenciesMeta": {
+    "ai": {
+      "optional": true
+    }
   }
 }

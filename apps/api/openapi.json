@@ -1,0 +1,431 @@
+{
+  "components": {
+    "schemas": {
+      "ProblemDetails": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "invalid_request",
+              "payload_too_large",
+              "part_too_large",
+              "message_too_long",
+              "conversation_too_long",
+              "rate_limited",
+              "forbidden",
+              "not_found",
+              "blocked_input",
+              "spray_window_not_called",
+              "invalid_model_output",
+              "model_busy",
+              "model_timeout",
+              "internal_error"
+            ],
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "status": {
+            "maximum": 599,
+            "minimum": 400,
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "instance",
+          "code"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {},
+    "description": "Spraying-conditions agent: chat stream, structured spray check, health. Errors are RFC 9457 problem details with a stable `code`.",
+    "title": "agri-agent API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/chat": {
+      "post": {
+        "operationId": "ChatController_reply",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {},
+                "properties": {
+                  "messages": {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "id": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "parts": {
+                              "items": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "type": {
+                                    "enum": [
+                                      "text"
+                                    ],
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "type": "object"
+                              },
+                              "minItems": 1,
+                              "type": "array"
+                            },
+                            "role": {
+                              "enum": [
+                                "user"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "id": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "parts": {
+                              "items": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "type": {
+                                    "pattern": "^(text|step-start|reasoning|tool-[A-Za-z][A-Za-z0-9]*)$",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "type": "object"
+                              },
+                              "minItems": 1,
+                              "type": "array"
+                            },
+                            "role": {
+                              "enum": [
+                                "assistant"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "messages"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "AI SDK UI message stream (server-sent events). A blocked input is answered with a refusal stream."
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "invalid_request"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "forbidden"
+          },
+          "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "payload_too_large, part_too_large, message_too_long, conversation_too_long"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "rate_limited"
+          },
+          "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "internal_error"
+          }
+        },
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The process is up."
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dependencies are ready to serve traffic."
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/spray-check": {
+      "post": {
+        "operationId": "SprayCheckController_check",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "question": {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "question"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "bestWindow": {
+                      "additionalProperties": false,
+                      "description": "Exactly the bestWindow returned by sprayWindow, without the hours field; null when there is none",
+                      "nullable": true,
+                      "properties": {
+                        "from": {
+                          "description": "City-local start time, YYYY-MM-DDTHH:mm",
+                          "type": "string"
+                        },
+                        "to": {
+                          "description": "City-local end time, YYYY-MM-DDTHH:mm",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "from",
+                        "to"
+                      ],
+                      "type": "object"
+                    },
+                    "canSpray": {
+                      "description": "Exactly the canSpray value returned by sprayWindow",
+                      "type": "boolean"
+                    },
+                    "city": {
+                      "description": "City the answer is about, as returned by the sprayWindow tool",
+                      "type": "string"
+                    },
+                    "reason": {
+                      "description": "Short explanation for the farmer in the language of the question",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "city",
+                    "canSpray",
+                    "bestWindow",
+                    "reason"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rule-backed spray decision with a short explanation."
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "invalid_request"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "forbidden"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "blocked_input, spray_window_not_called"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "rate_limited"
+          },
+          "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "internal_error"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "invalid_model_output"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "model_busy"
+          },
+          "504": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "model_timeout"
+          }
+        },
+        "tags": [
+          "spray-check"
+        ]
+      }
+    }
+  },
+  "servers": [],
+  "tags": []
+}

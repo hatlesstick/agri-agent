@@ -1,4 +1,6 @@
-const MESSAGES: Record<string, string> = {
+import type { ErrorCode } from "@agri/shared/contracts";
+
+const MESSAGES: Partial<Record<ErrorCode, string>> = {
   rate_limited: "Too many requests. Please wait a minute and try again.",
   message_too_long: "Your message is too long. Please shorten it.",
   conversation_too_long: "The conversation is too long. Please start a new chat.",
@@ -15,8 +17,8 @@ export function friendlyChatError(message: string): string {
   if (!trimmed.startsWith("{")) return trimmed;
   try {
     const parsed: unknown = JSON.parse(trimmed);
-    const code = parsed && typeof parsed === "object" && "error" in parsed ? String(parsed.error) : "";
-    return MESSAGES[code] ?? FALLBACK;
+    const code = parsed && typeof parsed === "object" && "code" in parsed ? String(parsed.code) : "";
+    return MESSAGES[code as ErrorCode] ?? FALLBACK;
   } catch {
     return FALLBACK;
   }

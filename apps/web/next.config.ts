@@ -1,13 +1,10 @@
-import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 
+const apiOrigin = (process.env.API_ORIGIN ?? "http://localhost:4000").replace(/\/+$/, "");
+
 const nextConfig: NextConfig = {
-  env: {
-    AGRI_DATA_DIR: "../../packages/agent/data",
-  },
-  outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
-  outputFileTracingIncludes: {
-    "/api/**": ["../../packages/agent/data/**/*"],
+  async rewrites() {
+    return { beforeFiles: [{ source: "/api/:path*", destination: `${apiOrigin}/:path*` }] };
   },
   turbopack: {
     rules: {

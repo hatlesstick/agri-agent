@@ -1,0 +1,144 @@
+import { isStepCount, streamText } from "ai";
+import { OpenMeteoClient, WeatherRepository } from "@/modules/weather";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createMockChatModel } from "@/modules/agent/mock/model";
+import { MOCK_TOOL_MATCHERS } from "@/modules/agent/mock/tool-matchers";
+import { sprayWindowInputSchema, sprayWindowOutputSchema } from "@agri/shared/contracts";
+import { createSprayWindowTool, sprayWindow } from "@/modules/agent/tools/spray-window/tool";
+import { assessSprayDay } from "@/modules/spray-rules/assess-spray-day";
+import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
+import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
+import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
+import { fakeWeather } from "@tests/support/fake-ports";
+import { isWeatherError } from "@/modules/weather/weather.types";
+
+const weatherRepository = new WeatherRepository(new OpenMeteoClient());
+
+
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+
+function stubOpenMeteo(geocoding: unknown = geocodingLyon) {
+  const fetchMock = vi.fn(async (input: string | URL) =>
+    new URL(String(input)).host.startsWith("geocoding") ? json(geocoding) : json(forecastLyon),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+const MORNING_IN_PARIS = new Date("2026-11-11T08:30:00Z");
+
+describe("sprayWindow", () => {
+  beforeEach(() => weatherRepository.clearCache());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("resolves tomorrow in the city's time zone and returns the rules' assessment", async () => {
+    stubOpenMeteo();
+    const result = await sprayWindow({ city: "Lyon", date: "tomorrow" }, { weather: weatherRepository, now: MORNING_IN_PARIS });
+
+    const forecast = await weatherRepository.getForecast("Lyon");
+    if (isWeatherError(forecast)) throw new Error(forecast.error);
+    expect(result).toEqual({
+      city: "Lyon",
+      date: "2026-11-12",
+      timezone: "Europe/Paris",
+      ...assessSprayDay({ hourly: forecast.hourly, date: "2026-11-12" }),
+    });
+  });
+
+  it("returns output that matches the output schema and carries no hourly data", async () => {
+    stubOpenMeteo();
+    const result = await sprayWindow({ city: "Lyon", date: "today" }, { weather: weatherRepository, now: MORNING_IN_PARIS });
+    expect(sprayWindowOutputSchema.safeParse(result).success).toBe(true);
+    expect(result).not.toHaveProperty("hourly");
+  });
+
+  it("never offers a window that has already started or passed today", async () => {
+    stubOpenMeteo();
+    const evening = new Date("2026-11-11T18:30:00Z");
+    const result = await sprayWindow({ city: "Lyon", date: "today" }, { weather: weatherRepository, now: evening });
+    if ("error" in result) throw new Error(result.error);
+    for (const window of result.windows) expect(window.from >= "2026-11-11T19:00").toBe(true);
+  });
+
+  it("accepts an explicit date", async () => {
+    stubOpenMeteo();
+    const result = await sprayWindow({ city: "Lyon", date: "2026-11-13" }, { weather: weatherRepository, now: MORNING_IN_PARIS });
+    expect(result).toMatchObject({ date: "2026-11-13" });
+  });
+
+  it("returns date_out_of_range for a date outside the forecast", async () => {
+    stubOpenMeteo();
+    expect(await sprayWindow({ city: "Lyon", date: "2026-11-20" }, { weather: weatherRepository, now: MORNING_IN_PARIS })).toEqual({
+      error: "date_out_of_range",
+    });
+  });
+
+  it("returns date_in_past for a day before today in the city's time zone", async () => {
+    stubOpenMeteo();
+    expect(await sprayWindow({ city: "Lyon", date: "2026-11-10" }, { weather: weatherRepository, now: MORNING_IN_PARIS })).toEqual({ error: "date_in_past" });
+  });
+
+  it("propagates city_not_found", async () => {
+    stubOpenMeteo(geocodingEmpty);
+    expect(await sprayWindow({ city: "Xyzzyqwv", date: "tomorrow" }, { weather: weatherRepository, now: MORNING_IN_PARIS })).toEqual({
+      error: "city_not_found",
+    });
+  });
+
+  it("does not refetch the forecast for the same city", async () => {
+    const fetchMock = stubOpenMeteo();
+    await sprayWindow({ city: "Lyon", date: "today" }, { weather: weatherRepository, now: MORNING_IN_PARIS });
+    await sprayWindow({ city: "Lyon", date: "tomorrow" }, { weather: weatherRepository, now: MORNING_IN_PARIS });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("sprayWindowInputSchema", () => {
+  it.each(["today", "tomorrow", "day_after_tomorrow", "2026-11-12"])("accepts date %s", (date) => {
+    expect(sprayWindowInputSchema.safeParse({ city: "Lyon", date }).success).toBe(true);
+  });
+
+  it.each(["yesterday", "12.11.2026", "2026-11-12T10:00", ""])("rejects date %s", (date) => {
+    expect(sprayWindowInputSchema.safeParse({ city: "Lyon", date }).success).toBe(false);
+  });
+
+  it("rejects a non-Latin city name", () => {
+    expect(sprayWindowInputSchema.safeParse({ city: "\u041b\u0456\u043e\u043d", date: "today" }).success).toBe(false);
+  });
+});
+
+describe("sprayWindowTool in a mock tool loop", () => {
+  beforeEach(() => weatherRepository.clearCache());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("calls sprayWindow for a spraying question and answers from its result", async () => {
+    stubOpenMeteo();
+    const result = streamText({
+      model: createMockChatModel({ toolMatchers: MOCK_TOOL_MATCHERS, chunkDelayInMs: null }),
+      tools: { sprayWindow: createSprayWindowTool(weatherRepository) },
+      toolsContext: { sprayWindow: { now: MORNING_IN_PARIS } },
+      stopWhen: isStepCount(5),
+      prompt: "Can I spray in Lyon tomorrow?",
+    });
+
+    const steps = await result.steps;
+    expect(steps[0].toolCalls).toEqual([
+      expect.objectContaining({ toolName: "sprayWindow", input: { city: "Lyon", date: "tomorrow" } }),
+    ]);
+    expect(steps[0].toolResults[0].output).toMatchObject({ city: "Lyon", timezone: "Europe/Paris" });
+    expect(await result.text).toContain("[mock] sprayWindow result:");
+  });
+});
+
+describe("injected weather port", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads the forecast from the injected weather port", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new Error("fetch must not be called");
+    }));
+    const weather = fakeWeather({ error: "city_not_found" });
+    expect(await sprayWindow({ city: "Atlantis", date: "tomorrow" }, { weather, now: MORNING_IN_PARIS })).toEqual({ error: "city_not_found" });
+    expect(weather.calls).toEqual(["Atlantis"]);
+  });
+});

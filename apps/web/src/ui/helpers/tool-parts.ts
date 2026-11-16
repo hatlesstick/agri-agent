@@ -1,6 +1,6 @@
-import type { AgriAgentUIMessage } from "@agri/agent";
+import type { AgriChatMessage } from "@agri/shared/contracts";
 
-export type MessagePart = AgriAgentUIMessage["parts"][number];
+export type MessagePart = AgriChatMessage["parts"][number];
 export type ToolPart = Extract<MessagePart, { type: `tool-${string}` }>;
 export type ToolOutput<Name extends string> = Extract<ToolPart, { type: `tool-${Name}` }>["output"];
 
