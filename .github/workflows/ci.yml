@@ -41,6 +41,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm eval
+      - name: OpenAPI contract is up to date
+        run: pnpm openapi && git diff --exit-code apps/api/openapi.json
       - name: Upload eval results
         if: always()
         uses: actions/upload-artifact@v7

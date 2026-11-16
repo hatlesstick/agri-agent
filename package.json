@@ -18,7 +18,8 @@
     "eval:summary": "turbo run build --filter=@agri/agent^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/agent eval:summary",
     "langfuse:dataset": "turbo run build --filter=@agri/agent^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/agent langfuse:dataset",
     "langfuse:experiment": "turbo run build --filter=@agri/agent^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/agent langfuse:experiment",
-    "index": "turbo run build --filter=@agri/agent^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/agent index"
+    "index": "turbo run build --filter=@agri/agent^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/agent index",
+    "openapi": "turbo run build --filter=@agri/api^... --output-logs=errors-only 1>&2 && pnpm --filter @agri/api openapi"
   },
   "devDependencies": {
     "turbo": "^2.11.11"
