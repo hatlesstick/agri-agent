@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { InMemoryCacheStore } from "@/common/cache";
 import { FORECAST_CACHE_MAX_ENTRIES, OpenMeteoClient, WeatherRepository } from "@/modules/weather";
 import forecastLyon from "@tests/fixtures/weather/forecast-lyon.json";
 import geocodingEmpty from "@tests/fixtures/weather/geocoding-empty.json";
 import geocodingLyon from "@tests/fixtures/weather/geocoding-lyon.json";
 import { isWeatherError, type Forecast } from "@/modules/weather/weather.types";
 
-const weatherRepository = new WeatherRepository(new OpenMeteoClient());
+const forecastCache = new InMemoryCacheStore({ maxEntries: FORECAST_CACHE_MAX_ENTRIES });
+const weatherRepository = new WeatherRepository(new OpenMeteoClient(), forecastCache);
 
 
 type FetchHandler = (url: URL) => Response | Promise<Response>;
@@ -181,10 +183,10 @@ describe("getForecast", () => {
     for (let index = 0; index < FORECAST_CACHE_MAX_ENTRIES; index += 1) {
       await weatherRepository.getForecast(`Lyon${index}`);
     }
-    expect(weatherRepository.cacheSize).toBe(FORECAST_CACHE_MAX_ENTRIES);
+    expect(forecastCache.size).toBe(FORECAST_CACHE_MAX_ENTRIES);
 
     await weatherRepository.getForecast("Overflow");
-    expect(weatherRepository.cacheSize).toBe(FORECAST_CACHE_MAX_ENTRIES);
+    expect(forecastCache.size).toBe(FORECAST_CACHE_MAX_ENTRIES);
 
     const callsBefore = fetchMock.mock.calls.length;
     await weatherRepository.getForecast("Lyon0");
@@ -212,7 +214,7 @@ describe("getForecast", () => {
     vi.setSystemTime(new Date("2026-11-11T10:16:00Z"));
     stubFetch({ forecast: () => json({}, 503) });
     await weatherRepository.getForecast("Lyon");
-    expect(weatherRepository.cacheSize).toBe(0);
+    expect(forecastCache.size).toBe(0);
   });
 
   it("labels hours in real local time across a daylight-saving switch", async () => {
