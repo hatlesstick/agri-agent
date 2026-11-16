@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.turbo
+**/.turbo
+**/node_modules
+**/dist
+**/.next
+**/.evals
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+.superpowers
+PLAN.md
+docs/plan-*.md

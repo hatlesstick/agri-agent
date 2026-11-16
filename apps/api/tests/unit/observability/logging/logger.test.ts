@@ -34,4 +34,11 @@ describe("pinoHttpOptions", () => {
     const redact = pinoHttpOptions(env).redact as { paths: string[] };
     expect(redact.paths).toEqual(expect.arrayContaining(['req.headers["x-proxy-auth"]', "req.headers.authorization", "req.headers.cookie", "req.body"]));
   });
+
+  it("does not log health probes", () => {
+    const autoLogging = pinoHttpOptions(env).autoLogging as { ignore: (req: IncomingMessage) => boolean };
+    expect(autoLogging.ignore({ url: "/health/live" } as IncomingMessage)).toBe(true);
+    expect(autoLogging.ignore({ url: "/health/ready" } as IncomingMessage)).toBe(true);
+    expect(autoLogging.ignore({ url: "/chat" } as IncomingMessage)).toBe(false);
+  });
 });

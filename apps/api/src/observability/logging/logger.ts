@@ -20,6 +20,7 @@ export function pinoHttpOptions(env: ApiEnv): Options {
       res.setHeader(REQUEST_ID_HEADER, id);
       return id;
     },
+    autoLogging: { ignore: (req: IncomingMessage) => (req.url ?? "").startsWith("/health/") },
     redact: {
       paths: ['req.headers["x-proxy-auth"]', "req.headers.authorization", "req.headers.cookie", "req.body", "res.headers[\"set-cookie\"]"],
       censor: "[redacted]",
