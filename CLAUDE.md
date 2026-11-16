@@ -1,5 +1,7 @@
 # CLAUDE.md — agri-agent
 
+Current plan: docs/plan-step-2.md — one stage at a time, stop after each.
+
 ## Overview
 `agri-agent` is a tool-using AI agent that assesses field-spraying conditions from weather forecasts. It is built on the Vercel AI SDK, with a web chat as the first delivery channel.
 
@@ -14,7 +16,7 @@ Release **P0+**: core agent (P0, stages 1–5) plus guardrails, an evaluation su
 
 ### Acceptance criteria
 - **P0 (stage 5):** for the prompt "Can I spray in Lyon tomorrow?", the agent invokes the required tools without guidance and returns a schema-valid answer with a rationale.
-- **P0+ (stage 8):** guardrails reject invalid, oversized and rate-exceeding requests; `npm run eval` reports pass rates for every case on both the primary and fallback models, including guardrail cases; spraying-practice questions are answered from `data/docs/` with cited sources, or explicitly declined when no relevant source exists.
+- **P0+ (stage 8):** guardrails reject invalid, oversized and rate-exceeding requests; `pnpm eval` reports pass rates for every case on both the primary and fallback models, including guardrail cases; spraying-practice questions are answered from `data/docs/` with cited sources, or explicitly declined when no relevant source exists.
 
 ### Roadmap
 This agent is the foundation for a Telegram agronomy bot: weather → spray window → RAG → field memory → photo diagnostics → multi-agent.
@@ -26,19 +28,21 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - If the model and the rules disagree, the code wins.
 
 ## Architecture
+pnpm + Turborepo monorepo. Packages are built to `dist` with tsup (ESM + `.d.ts`); apps import only built output through package names.
 ```
- browser ─▶ app/ (routes) ─▶ ui/ (atomic components, hooks)
-                │
-                ▼  /api/chat, /api/spray-check
-           server/controllers ─▶ server/services ─▶ @/agent (ToolLoopAgent: model, prompt, tools)
-                                        │                    │ tools
-                                        ▼                    ▼
-                               server/repositories ◀── server/services/spray-window (rules)
-                               (Open-Meteo + cache, RAG docs)
+ browser ─▶ apps/web  app/ (routes) ─▶ ui/ (atomic components, hooks)
+                         │
+                         ▼  /api/chat, /api/spray-check
+                    server/controllers ─▶ server/services ─▶ @agri/agent (ToolLoopAgent: model, prompt, tools)
+                                                                 │ tools
+                                                                 ▼
+                                              weather/ (Open-Meteo + cache), docs/ (RAG corpus), spray-window/ (rules)
+ @agri/shared: chat limits, time helpers, server env schema, test support (used by web and agent)
 ```
-- **Frontend** (`app/`, `ui/`): renders the chat, never contains business rules.
-- **Backend API** (`server/`): controllers handle HTTP, services hold business logic, repositories access data.
-- **Agent** (`agent/`): model, prompt, tools, model guardrails, evals and loop limits behind `src/agent/index.ts`. Tools are thin wrappers over services and repositories.
+- **Frontend** (`apps/web/src/app`, `apps/web/src/ui`): renders the chat, never contains business rules.
+- **Backend API** (`apps/web/src/server`): controllers handle HTTP, services orchestrate the agent. Moves to a separate NestJS API in Stage 2.0b.
+- **Agent** (`packages/agent`, `@agri/agent`): framework-free core — model, prompt, tools, model guardrails, RAG, spray rules, weather client, evals — behind `packages/agent/src/index.ts`. Tools are thin wrappers over `weather/`, `docs/` and `spray-window/`.
+- **Shared** (`packages/shared`, `@agri/shared`): no framework, no AI SDK, no other workspace package.
 - **Channels** (web chat today, Telegram later) only pass messages to the agent and format the response.
 
 ## Tools
@@ -52,7 +56,7 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - Input: `{ city: string, date: string }` (`date` is `"YYYY-MM-DD"`, the city's local date).
 - Fetches weather itself via `WeatherRepository` (cached → no repeated Open-Meteo request).
 - Output: `{ canSpray, bestWindow: { from, to } | null, windows: [...], rejectedReasons }`.
-- Rules live in `SprayWindowService.assess` (`server/services/spray-window`); thresholds are **parameters with defaults**:
+- Rules live in `SprayWindowService.assess` (`packages/agent/src/spray-window`); thresholds are **parameters with defaults**:
   - wind 1–4 m/s (lower bound: dead calm risks temperature inversion and drift);
   - no precipitation 3 h before and 3 h after the spraying hour (Open-Meteo `precipitation` at hour T is the sum of the preceding hour, so the check spans values from index i-2 to i+4);
   - hours that have already passed in the city are never offered;
@@ -64,7 +68,7 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - Not available to the `/api/spray-check` agent (`activeTools`), whose schema describes a single day.
 
 ### `searchDocs`
-- Input: `{ query }` (short English query). Searches `data/index.json` (embeddings of `data/docs/*.md`, built by `npm run index`) and returns top-3 passages with `source` above a similarity threshold (`REAL_MIN_SCORE` = 0.64, calibrated 2026-11-11: on-corpus top scores 0.725–0.868, off-corpus 0.477–0.551; recalibrate after changing the corpus). Mock mode builds an in-memory bag-of-words index.
+- Input: `{ query }` (short English query). Searches `packages/agent/data/index.json` (embeddings of `data/docs/*.md`, built by `pnpm index`) and returns top-3 passages with `source` above a similarity threshold (`REAL_MIN_SCORE` = 0.64, calibrated 2026-11-11: on-corpus top scores 0.725–0.868, off-corpus 0.477–0.551; recalibrate after changing the corpus). Mock mode builds an in-memory bag-of-words index.
 - The agent answers practice questions only from returned passages, cites sources, and says it has no reliable information when there are no hits.
 
 ## Stack
@@ -72,11 +76,11 @@ This agent is the foundation for a Telegram agronomy bot: weather → spray wind
 - Next.js 16 (App Router), TypeScript (strict), Tailwind 4
 - Vercel AI SDK 7: `ai`, `@ai-sdk/react`
 - Models via **Vercel AI Gateway** (bundled in `ai`): env `AI_GATEWAY_API_KEY`, model set as a `"provider/model"` string (no separate provider packages).
-  - Development model: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 per 1M tokens, tool-use + structured-output; available on the Free Tier, tool calling verified 2026-11-11). Fallback: `openai/gpt-5.4-nano`. Comparison candidates also include `deepseek/deepseek-v4-flash` and Amazon Bedrock models served by the Gateway (`amazon/nova-lite`, `amazon/nova-2-lite`); these need paid Gateway credits (Free Tier returns "Free tier users do not have access to this model", verified 2026-11-12). Tool input schemas must stay portable across providers: no Unicode property escapes (`\p{…}`) in regex patterns, since OpenAI rejects them. Prices for cost estimates live in `tests/evals/model-pricing.ts` with the date they were read.
+  - Development model: **`google/gemini-2.5-flash-lite`** ($0.10 / $0.40 per 1M tokens, tool-use + structured-output; available on the Free Tier, tool calling verified 2026-11-11). Fallback: `openai/gpt-5.4-nano`. Comparison candidates also include `deepseek/deepseek-v4-flash` and Amazon Bedrock models served by the Gateway (`amazon/nova-lite`, `amazon/nova-2-lite`); these need paid Gateway credits (Free Tier returns "Free tier users do not have access to this model", verified 2026-11-12). Tool input schemas must stay portable across providers: no Unicode property escapes (`\p{…}`) in regex patterns, since OpenAI rejects them. Prices for cost estimates live in `packages/agent/tests/evals/model-pricing.ts` with the date they were read.
   - `anthropic/claude-haiku-5.5` is **not available** on the Free Tier (requires paid credits).
-  - The model name is a single constant in `src/agent/model.ts`.
+  - The model name is a single constant in `packages/agent/src/model.ts`.
 - `zod` for tool schemas and structured output
-- Tracing: AI SDK telemetry → `@ai-sdk/otel` (OpenTelemetry spans) → `@langfuse/otel` `LangfuseSpanProcessor` → Langfuse Cloud (EU). Registered once in `src/instrumentation.ts` (Next.js) and in `tests/evals/setup.ts` (evals) via `registerAgentTelemetry()` from `src/agent/telemetry.ts`. Disabled when `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY` are not set. Every model call sets `telemetry.functionId` (`chat`, `eval:<case>`); evals add `evalRunId`, `evalCase`, `model` via `runtimeContext` + `includeRuntimeContext`. Prompts and outputs are sent to Langfuse, so never put secrets or personal data in prompts. Tools receive the current time through AI SDK tool context (`contextSchema` + `toolsContext: agentToolsContext(now)`); never fake the global `Date`, it corrupts trace timestamps. Each agent eval run is wrapped in `startActiveObservation` + `propagateAttributes` (`@langfuse/tracing`: trace name `eval:<case>`, `sessionId` = eval run id, tags `eval` + model) and gets scores via `@langfuse/client` (`tests/evals/scores.ts`): `eval_passed`, `tool_selection`, `tool_arguments` (only when a tool was expected), `steps`; rate-limited runs get no scores. Read scores via `GET /api/public/v3/scores?traceId=…` (v2 and trace endpoints are deprecated on Langfuse Cloud).
+- Tracing: AI SDK telemetry → `@ai-sdk/otel` (OpenTelemetry spans) → `@langfuse/otel` `LangfuseSpanProcessor` → Langfuse Cloud (EU). Registered once in `apps/web/src/instrumentation.ts` (Next.js) and in `packages/agent/tests/evals/setup.ts` (evals) via `registerAgentTelemetry()` from `packages/agent/src/telemetry.ts`. Disabled when `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY` are not set. Every model call sets `telemetry.functionId` (`chat`, `eval:<case>`); evals add `evalRunId`, `evalCase`, `model` via `runtimeContext` + `includeRuntimeContext`. Prompts and outputs are sent to Langfuse, so never put secrets or personal data in prompts. Tools receive the current time through AI SDK tool context (`contextSchema` + `toolsContext: agentToolsContext(now)`); never fake the global `Date`, it corrupts trace timestamps. Each agent eval run is wrapped in `startActiveObservation` + `propagateAttributes` (`@langfuse/tracing`: trace name `eval:<case>`, `sessionId` = eval run id, tags `eval` + model) and gets scores via `@langfuse/client` (`packages/agent/tests/evals/scores.ts`): `eval_passed`, `tool_selection`, `tool_arguments` (only when a tool was expected), `steps`; rate-limited runs get no scores. Read scores via `GET /api/public/v3/scores?traceId=…` (v2 and trace endpoints are deprecated on Langfuse Cloud).
 - `vitest` for tests (added in stage 2)
 - Open-Meteo API (no key):
   - geocoding: `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en` (`language=en` matches Latin names only, hence the Latin-script input rule)
@@ -102,6 +106,7 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 - Tools in the UI: message parts `tool-<name>` with states `input-streaming` / `input-available` / `output-available` / `output-error`.
 
 ## Stages (one at a time, stop after each)
+Stage history of Step 1; paths below refer to the pre-workspace layout (see Structure for the current one).
 ### P0
 1. **Chat without tools:** `src/agent/model.ts`, `server/services/chat` with `streamText`, `src/app/page.tsx` with `useChat`. Explain how the stream flows from server to UI.
 2. **Tool `getWeather`:** `server/repositories/weather` (Open-Meteo + cache) and `src/agent/tools/get-weather/`. Tests with mocked `fetch`: success, city not found, 5xx, timeout, URLs from env.
@@ -158,28 +163,33 @@ Verified in `node_modules/ai/docs` and `dist/index.d.ts`. Re-check if the versio
 - **Save tokens:** develop with `AI_MOCK=1` (scripted mock model from `ai/test`, zero tokens). Use the real model only for a stage's final acceptance check and for evals, and say so before doing it.
 - **Language:** everything in the repo is English: code, tests, mocks, fixtures, prompts, commits, README, CLAUDE.md and plans. The agent replies in the language of the user's message. Chat communication with the developer in Ukrainian.
 - **Mock data uses European cities** (default: Lyon, `Europe/Paris`).
-- **Service URLs come from env** (`OPEN_METEO_GEOCODING_URL`, `OPEN_METEO_FORECAST_URL`), validated by `src/shared/config/env.ts` (https only, fail fast).
+- **Service URLs come from env** (`OPEN_METEO_GEOCODING_URL`, `OPEN_METEO_FORECAST_URL`), validated by `packages/shared/src/server-env.ts` (https only, fail fast).
 - Small commits, conventional commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
 
 ## Testing strategy
-All tests live in `tests/`, never next to the code. Three free layers, all must stay green before a commit:
-- **Unit tests** (`npm test`, `tests/unit/**`, mirrors `src/`): Vitest projects `unit` (Node, `*.test.ts`) and `components` (jsdom + Testing Library, `tests/unit/ui/**/*.test.tsx`). Services, repositories with stubbed Open-Meteo, tools, reconciliation, RAG chunking and ranking, env, request guardrails, mock model, UI helpers, hooks and components.
-- **Deterministic evals** (`npm run eval`, `tests/evals/**/*.eval.ts`, mock model forced): tool scenarios, guardrails (input screen, markdown safety, leak and label middleware, rate limiting), UI activity logic, agent and spray-check flows on the mock model; results in `.evals/results`, compared with baselines in `tests/evals/baselines/`.
-- **Real-model evals** (`npm run eval:real` or the manual `eval-real` GitHub workflow): only when the user asks — they share the AI Gateway rate limit with manual testing and cost tokens. Each case runs several times and reports a pass rate; scores go to Langfuse.
+Each workspace keeps its tests in its own `tests/`, never next to the code. Three free layers, all must stay green before a commit (run from the repo root; Turborepo builds packages first):
+- **Unit tests** (`pnpm test`, `<workspace>/tests/unit/**`, mirrors `src/`): in `apps/web` Vitest projects `unit` (Node, `*.test.ts`) and `components` (jsdom + Testing Library, `tests/unit/ui/**/*.test.tsx`); in packages Node only. Services, weather repository with stubbed Open-Meteo, tools, reconciliation, RAG chunking and ranking, env, request guardrails, mock model, UI helpers, hooks and components.
+- **Deterministic evals** (`pnpm eval`, mock model forced): `packages/agent/tests/evals/*.eval.ts` (tool scenarios, guardrails, agent and spray-check flows on the mock model; results in `packages/agent/.evals/results`, compared with baselines in `packages/agent/tests/evals/baselines/`) and `apps/web/tests/evals/{server,ui}/*.eval.ts` (HTTP guardrails, UI activity logic, markdown safety).
+- **Real-model evals** (`pnpm eval:real` or the manual `eval-real` GitHub workflow): only when the user asks — they share the AI Gateway rate limit with manual testing and cost tokens. Each case runs several times and reports a pass rate; scores go to Langfuse.
 
 Test layout:
 ```
-tests/
-  unit/<same path as src>/…   e.g. tests/unit/server/services/spray-window/SprayWindowService.test.ts
+apps/web/tests/
+  unit/<same path as src>/…     e.g. tests/unit/server/guardrails/chat-request.test.ts
   unit/ui/<level>/<Component>.test.tsx
-  evals/                      harness, report, scores, tags, summary, setup, baselines/; shared case data (spray-check-cases, weather-fixtures) and experiment logic used by both evals and Langfuse scripts; suites in agent/, server/, ui/
-  fixtures/                   shared JSON fixtures (weather/)
-  support/                    test infrastructure: offline guard, setup files
+  evals/server/, evals/ui/      deterministic HTTP and UI evals
+  support/                      setup files (offline guard from @agri/shared/testing)
+packages/agent/tests/
+  unit/<same path as src>/…     e.g. tests/unit/spray-window/SprayWindowService.test.ts
+  evals/                        suites (*.eval.ts), harness, report, scores, tags, summary, setup, baselines/; shared case data (spray-check-cases, weather-fixtures) and experiment logic used by both evals and Langfuse scripts
+  fixtures/                     shared JSON fixtures (weather/)
+packages/shared/tests/unit/     env schema, time helpers, test-support helpers
 ```
-- Import code under test via `@/…`, test helpers and fixtures via `@tests/…`.
+- Inside a workspace import code under test via `@/…`, test helpers and fixtures via `@tests/…`; across workspaces only via package names.
 - Every new service, repository, helper or hook gets unit tests; every new component gets a component test (render, user interaction via `@testing-library/user-event`, accessible queries by role/label); every new tool or agent behaviour gets eval cases.
 - Bug fixes start with a failing test.
-- Modules imported by scripts (`scripts/*.ts`, run with `tsx`) must not import `vitest`; keep Vitest-only helpers (`vi.stubGlobal`, `expect`) in `scenarios.ts`, `harness.ts` and `report.ts`.
+- Modules imported by scripts (`packages/agent/scripts/*.ts`, run with `tsx`) must not import `vitest`; keep Vitest-only helpers (`vi.stubGlobal`, `expect`) in `scenarios.ts`, `harness.ts` and `report.ts`.
+- Every workspace that reads env has a `.env.example` checked by `envExampleFindings` from `@agri/shared/testing`.
 
 ## Code style
 - **No comments in code**: not when creating files, not when editing. No `//`, `/* */`, JSDoc or "explaining what a line does". Clarity comes from names and small functions; decisions are explained in chat. Exception: only when a comment is explicitly requested.
@@ -188,83 +198,85 @@ tests/
   - Classes (services, repositories, controllers, clients): PascalCase file named after the class (`SprayWindowService.ts`).
   - Hooks: camelCase starting with `use` (`ui/hooks/useAgentChat.ts`).
   - Everything else (helpers, schemas, guardrails, tools): kebab-case (`agent-activity.ts`, `chat-message.schema.ts`).
-- **Types:** a component's props live in `<Component>.types.ts` next to it; a class's input/output types live in `<ClassName>.types.ts`. Shared domain types live with their owner (e.g. `server/repositories/weather/weather.types.ts`). Prefer `type` over `interface`.
+- **Types:** a component's props live in `<Component>.types.ts` next to it; a class's input/output types live in `<ClassName>.types.ts`. Shared domain types live with their owner (e.g. `packages/agent/src/weather/weather.types.ts`). Prefer `type` over `interface`.
 - **Components:** declared as `export const Name: React.FC<NameProps> = (…) => …` with `import type React from "react"`; named exports only (Next.js `page.tsx`/`layout.tsx` keep their default export). Each component folder has an `index.ts` re-export, so imports look like `@/ui/atoms/Button`. Inside a component folder use relative imports (`./Button.types`); across folders use `@/…`.
 - **Components only render.** State, effects and side effects go into custom hooks (`ui/hooks/`); pure computations and formatting go into `ui/helpers/`. A component may call one hook and pass data down.
-- **Forms:** `react-hook-form` + `zod` via `@hookform/resolvers/zod`. The schema lives in `ui/schemas/<name>.schema.ts` and exports both the schema and `z.infer` type; the form logic lives in a hook (`useXForm`) that returns registered fields, `onSubmit`, validity and errors. Limits shared with the server come from `shared/config/` (e.g. `CHAT_LIMITS`), never duplicated.
+- **Forms:** `react-hook-form` + `zod` via `@hookform/resolvers/zod`. The schema lives in `ui/schemas/<name>.schema.ts` and exports both the schema and `z.infer` type; the form logic lives in a hook (`useXForm`) that returns registered fields, `onSubmit`, validity and errors. Limits shared with the server come from `@agri/shared` (e.g. `CHAT_LIMITS`), never duplicated.
 - **Backend classes:** services, repositories, controllers and clients are classes with dependencies passed through the constructor and a default singleton exported next to the class (`export const sprayWindowService = new SprayWindowService()`). Controllers expose `handle` as an arrow property so routes can do `export const POST = chatController.handle`. Module-private helpers stay plain functions in the same file.
 - Errors from external services are returned as data (`{ error: "city_not_found" }`) at the repository/tool boundary; HTTP status mapping happens only in controllers and `server/helpers`.
 
 ## Commands
-- `npm run dev`: local dev server
-- `npm run lint`: lint
-- `npm run eval`: tool and agent evals with the mock model (free)
-- `npm run eval:real`: agent evals against the real model (costs tokens; report shows pass rate per case)
-- `npm test`: unit and component tests
-- `npm run typecheck`: Next.js route types + `tsc --noEmit`
-- `npm run eval:summary`: markdown summary of the latest eval run
-- `npm run eval:compare`: writes `docs/model-comparison.md` from the latest real-model run per model and suite
-- `npm run langfuse:dataset`: creates/updates the Langfuse dataset `agri-agent-spray-check` from `tests/evals/spray-check-cases.ts` (writes to Langfuse: only when the user asks)
-- `npm run langfuse:experiment -- --model <id>`: runs a Langfuse experiment over the dataset (real model: only when the user asks); `AI_MOCK=1 … -- --dry-run` checks the wiring locally without Langfuse
-- `npm run index`: build the RAG index (from stage 8)
+Run from the repo root (`corepack enable && pnpm install` once). Turborepo runs the task in every workspace and builds packages first.
+- `pnpm dev`: packages in watch mode + Next.js dev server
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`
+- `pnpm eval`: deterministic evals with the mock model (free), never cached
+- `pnpm eval:real [files]`: agent evals against the real model (costs tokens; only when the user asks)
+- `pnpm eval:summary`: markdown summary of the latest agent eval run
+- `pnpm eval:compare`: writes `docs/model-comparison.md` from the latest real-model run per model and suite
+- `pnpm eval:baseline <runId>`: promotes a run to `packages/agent/tests/evals/baselines`
+- `pnpm langfuse:dataset`: creates/updates the Langfuse dataset `agri-agent-spray-check` from `packages/agent/tests/evals/spray-check-cases.ts` (writes to Langfuse: only when the user asks)
+- `pnpm langfuse:experiment --model <id>`: runs a Langfuse experiment over the dataset (real model: only when the user asks); `AI_MOCK=1 pnpm langfuse:experiment --dry-run` checks the wiring locally without Langfuse
+- `pnpm index`: rebuilds `packages/agent/data/index.json`
+- One workspace only: `pnpm --filter @agri/agent <script>` (or `@agri/web`, `@agri/shared`).
+- Env files per workspace: `apps/web/.env.local` (the app), `packages/agent/.env.local` (evals and scripts); templates in each `.env.example`.
 
 ## Structure
-Three separate parts plus shared code: **frontend** (`app/` + `ui/`), **backend API** (`server/`), **AI agent** (`agent/`), **shared** (`shared/`). Tests live outside `src/` in `tests/`.
-
 ```
-src/
-  app/                              Next.js App Router only: routing, layout, styles. No logic.
+apps/web/                           Next.js app (@agri/web)
+  src/app/                          App Router only: routing, layout, styles. No logic.
     page.tsx                        renders @/ui/pages/ChatPage
     api/chat/route.ts               export const POST = chatController.handle
     api/spray-check/route.ts        export const POST = sprayCheckController.handle
-  ui/                               frontend, atomic design
-    atoms/<Name>/                   smallest elements: Button, TextInput, Badge, Spinner, Markdown
-    molecules/<Name>/               small compositions: AgentStatus, ErrorBanner, StepTimeline, ToolOutputSummary
-    organisms/<Name>/               page sections: ChatComposer, ChatMessage, MessageList, ToolCallCard
-    templates/<Name>/               layouts without state: ChatTemplate
-    pages/<Name>/                   screens that wire hooks to templates: ChatPage
-    hooks/                          stateful logic: useAgentChat, useChatComposerForm, useElapsedSeconds
-    helpers/                        pure UI logic and formatting: agent-activity, chat-errors, message-view, tool-parts
-    schemas/                        zod schemas for forms: chat-message.schema.ts
-  server/                           backend API
+  src/ui/                           frontend, atomic design
+    atoms/ molecules/ organisms/ templates/ pages/   components, one folder each
+    hooks/ helpers/ schemas/        stateful logic, pure UI logic, form schemas
+  src/server/                       HTTP backend (moves to apps/api in Stage 2.0b)
     controllers/<feature>/          HTTP in/out only: rate limit, body, request validation, status codes → service
-    services/<feature>/             business logic as classes: ChatService, SprayCheckService, SprayWindowService (spray rules)
-    repositories/<source>/          data access as classes: WeatherRepository (+ OpenMeteoClient, response schemas, weather.types), DocsRepository (+ chunk-markdown, docs.types)
-    guardrails/                     HTTP guardrails: chat-request (body size, message schema, history sanitising), rate-limit
-    helpers/                        HTTP helpers: http-responses, agent-errors, refusal-stream
-  agent/                            AI agent, independent of HTTP and UI
-    index.ts                        public API used by server/ (and later Telegram)
-    agent.ts, model.ts, instructions.ts, telemetry.ts
-    tools/<tool-name>/              tool.ts + schemas.ts; registry in tools/index.ts
-    guardrails/                     model-level: input screen, label reminder, tool_code leak middleware
-    rag/                            searchDocs retrieval: embedding search (search.ts) and ranking (rank.ts)
-    spray-check/                    structured run + reconcile
-    mock/                           scripted mock model, tool matchers, mock embeddings
-  shared/                           used by every part
-    config/                         env.ts (zod-validated env), chat-limits.ts
-    helpers/                        time.ts, relative-day.ts
-tests/                              see Testing strategy
-data/docs/, data/index.json         RAG corpus and index
-scripts/                            build-index.ts, eval-summary.ts, promote-eval-baseline.mjs
+    services/<feature>/             ChatService, SprayCheckService (call @agri/agent)
+    guardrails/                     chat-request (body size, message schema, history sanitising), rate-limit
+    helpers/                        http-responses, agent-errors, refusal-stream
+  src/instrumentation.ts            registers agent telemetry
+  next.config.ts                    AGRI_DATA_DIR for the bundled agent, file tracing of packages/agent/data
+packages/agent/                     framework-free agent (@agri/agent)
+  src/index.ts                      public API used by apps (and later Telegram, MCP)
+  src/agent.ts, model.ts, instructions.ts, telemetry.ts, paths.ts (DATA_DIR)
+  src/tools/<tool-name>/            tool.ts + schemas.ts; registry in tools/index.ts
+  src/guardrails/                   input screen, label reminder, tool_code leak middleware
+  src/rag/                          searchDocs retrieval: search.ts, rank.ts
+  src/spray-check/                  structured run + reconcile
+  src/mock/                         scripted mock model, tool matchers, mock embeddings
+  src/weather/                      WeatherRepository, OpenMeteoClient, response schemas, weather.types
+  src/docs/                         DocsRepository, chunk-markdown, docs.types
+  src/spray-window/                 SprayWindowService (spray rules)
+  data/docs/, data/index.json       RAG corpus and index
+  scripts/                          build-index, eval-summary, compare-models, promote-eval-baseline, langfuse-*
+packages/shared/                    @agri/shared
+  src/index.ts                      CHAT_LIMITS, time and relative-day helpers
+  src/server-env.ts                 @agri/shared/server-env: zod-validated server env
+  src/testing/                      @agri/shared/testing: offline guard, envExampleFindings
 ```
+- RAG data location: `DATA_DIR` = `AGRI_DATA_DIR` (resolved against the working directory) or `packages/agent/data`. Next.js bundles workspace packages, so `apps/web/next.config.ts` fixes `AGRI_DATA_DIR` at build time (`../../packages/agent/data`): start `next dev` / `next start` from `apps/web` (the root `pnpm dev` and `pnpm --filter @agri/web start` do), and setting it in Vercel env has no effect.
 
 ### Where new code goes
-- New screen → `ui/pages/<Name>` (+ template if the layout is new); new UI piece → the lowest atomic level that fits.
+- New screen → `apps/web/src/ui/pages/<Name>` (+ template if the layout is new); new UI piece → the lowest atomic level that fits.
 - State, effects, data fetching in the UI → a hook in `ui/hooks/`; formatting and derived values → `ui/helpers/`; form validation → `ui/schemas/` + a `useXForm` hook.
-- New API endpoint → `app/api/<name>/route.ts` (one line) + `server/controllers/<name>/` + `server/services/<name>/`.
-- Business rule (e.g. spraying thresholds, Delta T) → a method on a service class in `server/services/<feature>/`.
-- New data source (API, database, files) → a repository class in `server/repositories/<source>/` with its types and response schemas.
-- New agent capability → `agent/tools/<name>/` (`tool.ts`, `schemas.ts`) + one line in `agent/tools/index.ts`; the tool calls services/repositories and contains no business rules itself.
-- A new channel (Telegram) → its own controllers/services that call `@/agent`; nothing in `agent/` changes.
+- New API endpoint → `app/api/<name>/route.ts` (one line) + `server/controllers/<name>/` + `server/services/<name>/` in `apps/web` (until Stage 2.0b).
+- Business rule (e.g. spraying thresholds, Delta T) → a class in `packages/agent/src/<feature>/` (today `spray-window/`).
+- New data source (API, files) → a repository class in `packages/agent/src/<source>/` with its types and response schemas.
+- New agent capability → `packages/agent/src/tools/<name>/` (`tool.ts`, `schemas.ts`) + one line in `tools/index.ts`; the tool calls rules/repositories and contains no business rules itself.
+- Code needed by more than one workspace and free of frameworks → `packages/shared`.
+- A new channel (Telegram) → its own controllers/services that call `@agri/agent`; nothing in `packages/agent` changes.
 
-### Dependency rules (enforced by ESLint `@typescript-eslint/no-restricted-imports`)
-- `shared/` imports no other part and no framework.
-- `server/repositories` → `shared/` and other repositories only; no AI SDK, Next.js, React, agent or other server folders.
-- `server/services` → repositories, guardrails, helpers, `shared/` and `@/agent` (public API only); never controllers or frameworks.
-- `server/controllers` → services, guardrails, helpers, `@/agent` (public API only), Next.js (`after`); never repositories directly.
+### Dependency rules (enforced by ESLint `@typescript-eslint/no-restricted-imports`, one config per workspace)
+- `packages/shared/src` imports no framework, no AI SDK and no other `@agri/*` package.
+- `packages/agent/src` imports no Next.js, React, Nest or `@agri/web`, and not `@agri/shared/testing`.
+- `packages/agent/src/weather`, `src/docs` → `@agri/shared` and each other only; no AI SDK, agent modules or rules.
+- `packages/agent/src/spray-window` → `weather/` and `@agri/shared`; no AI SDK or agent modules.
+- `apps/web`: other workspaces only through `@agri/agent`, `@agri/shared` and `@agri/shared/server-env` (server code only); no deep imports.
+- `server/services` → guardrails, helpers, `@agri/shared`, `@agri/agent`; never controllers or frameworks.
+- `server/controllers` → services, guardrails, helpers, `@agri/agent`, Next.js (`after`).
 - `server/guardrails`, `server/helpers` → leaf utilities; no controllers or services.
-- `agent/` → `server/repositories/*`, services that do not call the agent (today `spray-window`), `shared/`; never controllers, guardrails, helpers, `services/chat`, `services/spray-check`, UI or frameworks. Keeps the import graph acyclic.
-- `ui/` → `@/agent` with `import type` only, `shared/`, its own folders; never `server/` or `app/`.
+- `ui/` → `@agri/agent` with `import type` only, `@agri/shared`, its own folders; never `server/` or `app/`.
 - Atomic order inside `ui/`: atoms ← molecules ← organisms ← templates ← pages; a level never imports a higher one; `hooks/`, `helpers/`, `schemas/` never import components.
 - `app/` → `@/ui/pages/*` and `@/server/controllers/*` only.
-- Guardrails live where they act: HTTP input checks in `server/guardrails`, model/tool checks in `agent/guardrails`.
+- Guardrails live where they act: HTTP input checks in `apps/web/src/server/guardrails`, model/tool checks in `packages/agent/src/guardrails`.

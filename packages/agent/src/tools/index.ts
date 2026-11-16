@@ -1,0 +1,19 @@
+import { getWeatherTool } from "@/tools/get-weather/tool";
+import { searchDocsTool } from "@/tools/search-docs/tool";
+import { sprayOutlookTool } from "@/tools/spray-outlook/tool";
+import { sprayWindowTool } from "@/tools/spray-window/tool";
+
+export const agentTools = {
+  getWeather: getWeatherTool,
+  sprayWindow: sprayWindowTool,
+  sprayOutlook: sprayOutlookTool,
+  searchDocs: searchDocsTool,
+};
+
+export function agentToolsContext(now: Date = new Date()) {
+  return {
+    getWeather: { now },
+    sprayWindow: { now },
+    sprayOutlook: { now },
+  };
+}
