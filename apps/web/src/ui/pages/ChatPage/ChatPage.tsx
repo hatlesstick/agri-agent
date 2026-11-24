@@ -12,7 +12,7 @@ export const ChatPage: React.FC = () => {
     <AppShell
       account={<AccountPanel />}
       main={
-        <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3">
+        <section className="mx-auto flex h-[calc(100dvh-10rem)] min-h-[420px] w-full max-w-3xl flex-col gap-3 md:h-[calc(100dvh-8rem)]">
           <h1 className="font-display text-3xl font-bold">{t("app.name")}</h1>
           <ChatPanel />
         </section>

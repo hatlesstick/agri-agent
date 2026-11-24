@@ -13,7 +13,9 @@ export const TodayForecast: React.FC = () => {
   const hours = buildHourStrip({ date: forecast.date, windows: forecast.windows, hourly: forecast.hourly });
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm text-ink-soft">{t("forecast.for", { city: forecast.city })}</p>
+      <p className="text-sm text-ink-soft">
+        {t("forecast.for", { city: forecast.city })} · {forecast.date}
+      </p>
       <HourStrip hours={hours} />
     </div>
   );

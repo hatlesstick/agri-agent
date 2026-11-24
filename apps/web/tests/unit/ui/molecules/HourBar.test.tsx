@@ -28,4 +28,11 @@ describe("HourBar", () => {
     await userEvent.keyboard("{Enter}");
     expect(onSelect).toHaveBeenCalledOnce();
   });
+
+  it("shows a dash instead of zero when the weather for that hour is unknown", () => {
+    render(<HourBar time="05:00" status="stop" windMs={null} precipMm={null} selected={false} onSelect={() => {}} />);
+    const text = screen.getByRole("button", { name: /05:00/ }).textContent ?? "";
+    expect(text).not.toContain("0.0");
+    expect(text).toContain("—");
+  });
 });

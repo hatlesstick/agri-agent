@@ -18,8 +18,8 @@ export const HourStrip: React.FC<HourStripProps> = ({ hours }) => {
             key={hour.time}
             time={hour.time}
             status={hour.status}
-            windMs={hour.windMs ?? 0}
-            precipMm={hour.precipMm ?? 0}
+            windMs={hour.windMs}
+            precipMm={hour.precipMm}
             selected={index === selected}
             onSelect={() => select(index)}
           />
