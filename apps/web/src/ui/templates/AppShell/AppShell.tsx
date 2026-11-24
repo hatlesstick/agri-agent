@@ -31,7 +31,7 @@ export const AppShell: React.FC<AppShellProps> = ({ main, chat, account }) => {
               aria-expanded={open}
               aria-controls="chat-panel"
               onClick={toggle}
-              className="hidden min-h-11 items-center gap-2 rounded-xl border border-rule px-3 text-sm font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky md:inline-flex xl:hidden"
+              className="hidden min-h-11 items-center gap-2 rounded-xl border border-rule px-3 text-sm font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky md:inline-flex"
             >
               <Icon icon={open ? PanelRightClose : PanelRightOpen} />
               {t(open ? "chat.hide" : "chat.show")}
