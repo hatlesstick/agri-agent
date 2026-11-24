@@ -1,3 +1,3 @@
 import type { ReactNode } from "react";
 
-export type AppShellProps = { main: ReactNode; chat: ReactNode; account?: ReactNode };
+export type AppShellProps = { main: ReactNode; chat?: ReactNode | null; account?: ReactNode };

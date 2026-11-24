@@ -19,12 +19,14 @@ export const AppShell: React.FC<AppShellProps> = ({ main, chat, account }) => {
         {account}
         {main}
       </main>
-      <aside className="hidden min-w-0 flex-col md:flex xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)]">
-        <details open className="flex min-h-0 flex-1 flex-col">
-          <summary className="cursor-pointer py-2 font-semibold">{t("chat.title")}</summary>
-          <div className="flex min-h-0 flex-1 flex-col">{chat}</div>
-        </details>
-      </aside>
+      {chat && (
+        <aside className="hidden min-w-0 flex-col md:flex xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)]">
+          <details open className="flex min-h-0 flex-1 flex-col">
+            <summary className="cursor-pointer py-2 font-semibold">{t("chat.title")}</summary>
+            <div className="flex min-h-0 flex-1 flex-col">{chat}</div>
+          </details>
+        </aside>
+      )}
       <nav aria-label={t("nav.label")} className="fixed inset-x-0 bottom-0 border-t border-rule bg-paper p-2 md:hidden">
         <NavLinks variant="tabs" />
       </nav>
