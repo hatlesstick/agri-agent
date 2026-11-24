@@ -10,6 +10,12 @@ export const uk = {
   "status.stop": "Не обприскувати",
   "theme.label": "Тема",
   "locale.label": "Мова",
+  "hour.wind": "вітер {value} м/с",
+  "unit.mm": "мм",
+  "confidence.label": "Впевненість",
+  "sources.title": "Джерела",
+  "sources.empty": "Джерел немає",
+  "sources.updated": "оновлено {time}",
 } as const;
 
 export type MessageKey = keyof typeof uk;

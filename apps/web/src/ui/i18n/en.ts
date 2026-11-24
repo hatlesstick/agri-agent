@@ -12,4 +12,10 @@ export const en: Record<MessageKey, string> = {
   "status.stop": "Do not spray",
   "theme.label": "Theme",
   "locale.label": "Language",
+  "hour.wind": "wind {value} m/s",
+  "unit.mm": "mm",
+  "confidence.label": "Confidence",
+  "sources.title": "Sources",
+  "sources.empty": "No sources",
+  "sources.updated": "updated {time}",
 };

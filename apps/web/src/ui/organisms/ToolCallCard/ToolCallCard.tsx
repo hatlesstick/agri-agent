@@ -1,5 +1,4 @@
 import type React from "react";
-import { Badge } from "@/ui/atoms/Badge";
 import { TOOL_STATE_LABEL, toolName } from "@/ui/helpers/tool-parts";
 import { ToolOutputSummary } from "@/ui/molecules/ToolOutputSummary";
 import type { ToolCallCardProps } from "./ToolCallCard.types";
@@ -12,7 +11,7 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({ part }) => {
     <div className={`my-2 rounded-md border bg-white p-3 text-sm ${failed ? "border-red-300" : "border-zinc-200"}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono font-semibold">🔧 {toolName(part)}</span>
-        <Badge tone={failed ? "danger" : "neutral"}>{TOOL_STATE_LABEL[part.state]}</Badge>
+        <span className={`rounded-full border px-2 py-0.5 text-xs ${failed ? "border-stop text-stop" : "border-rule text-ink-soft"}`}>{TOOL_STATE_LABEL[part.state]}</span>
       </div>
 
       <ToolInput input={part.input} />
