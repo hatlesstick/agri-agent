@@ -36,9 +36,29 @@ EMPTY_CHAT='{"messages":[]}'
 
 host="$(echo "$API" | sed -E 's#^[a-z]+://([^/:]+).*#\1#')"
 
+check_web_session() {
+  local jar headers cookie first second
+  jar="$(mktemp)"
+  headers="$(curl -s -m 15 -D - -o /dev/null -c "$jar" "$WEB/api/session" | tr -d '\r')"
+  cookie="$(echo "$headers" | grep -i '^set-cookie: __Host-agri_session=' || true)"
+  if echo "$headers" | grep -q '^HTTP/[0-9.]* 200' && [ -n "$cookie" ] \
+    && echo "$cookie" | grep -q 'HttpOnly' && echo "$cookie" | grep -q 'Secure' \
+    && echo "$cookie" | grep -q 'SameSite=Lax' && echo "$cookie" | grep -q 'Path=/' \
+    && echo "$cookie" | grep -q 'Max-Age=34560000' && ! echo "$cookie" | grep -qi 'Domain='; then
+    ok "web /api/session sets the host-only session cookie"
+  else
+    bad "web /api/session cookie: ${cookie:-no Set-Cookie}"
+  fi
+  first="$(body -b "$jar" -c "$jar" "$WEB/api/session" | grep -o '"userId":"[^"]*"' || true)"
+  second="$(body -b "$jar" -c "$jar" "$WEB/api/session" | grep -o '"userId":"[^"]*"' || true)"
+  [ -n "$first" ] && [ "$first" = "$second" ] && ok "web /api/session keeps the same user across calls" || bad "web /api/session user changed or missing: ${first:-none} / ${second:-none}"
+  rm -f "$jar"
+}
+
 ready="$(body "$API/health/ready")"
 if echo "$ready" | grep -q '"database":"ok"'; then ok "API ready, database ok"; else bad "API not ready: ${ready:-no response}"; fi
 [ "$(status "$API/health/live")" = "200" ] && ok "API live" || bad "API /health/live"
+[ "$(status "$API/session")" = "403" ] && ok "direct /session without X-Proxy-Auth is 403" || bad "direct /session without X-Proxy-Auth"
 
 if [[ "$API" == https://* ]]; then
   expiry="$(echo | openssl s_client -connect "$host:443" -servername "$host" 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)"
@@ -77,6 +97,7 @@ if [ -n "$WEB" ]; then
   echo "$web_ready" | grep -q '"database":"ok"' && ok "web /api rewrite reaches the API" || bad "web /api/health/ready: ${web_ready:-no response}"
   proxied="$(body -X POST "$WEB/api/chat" -H 'content-type: application/json' -H 'x-proxy-auth: spoofed' --data "$EMPTY_CHAT")"
   echo "$proxied" | grep -q '"code":"invalid_request"' && ok "proxy.ts adds the right X-Proxy-Auth (empty chat → 400, not 403)" || bad "web /api/chat without a model call: ${proxied:-no response}"
+  check_web_session
 fi
 
 if [ "$STREAM" = "1" ]; then
