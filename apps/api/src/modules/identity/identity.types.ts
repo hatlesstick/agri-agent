@@ -13,6 +13,8 @@ export type Session = typeof sessions.$inferSelect;
 
 export type IdentitiesPort = {
   findOrCreateUser(input: FindOrCreateUserInput): Promise<FindOrCreateUserResult>;
+  findUserId(provider: IdentityProvider, externalId: string): Promise<string | null>;
+  attach(userId: string, provider: IdentityProvider, externalId: string): Promise<boolean>;
 };
 
 export type UsersPort = {
@@ -23,6 +25,7 @@ export type SessionsPort = {
   create(userId: string, tokenHash: string, now: Date): Promise<Session>;
   findActive(tokenHash: string, now: Date): Promise<Session | null>;
   touch(sessionId: string, now: Date): Promise<void>;
+  delete(tokenHash: string): Promise<boolean>;
 };
 
 export type ResolvedSession = { userId: string; token: string; setCookie: boolean };

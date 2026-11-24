@@ -4,6 +4,11 @@ import { IdentitiesRepository } from "@/modules/identity/repositories/Identities
 import { SessionsRepository } from "@/modules/identity/repositories/SessionsRepository";
 import { UsersRepository } from "@/modules/identity/repositories/UsersRepository";
 import { AuthController } from "@/modules/identity/AuthController";
+import { OAUTH_RUNTIME } from "@/modules/identity/auth/auth.tokens";
+import { OAuthService } from "@/modules/identity/auth/OAuthService";
+import { createOAuthRuntime } from "@/modules/identity/auth/passport-strategies";
+import type { ApiEnv } from "@/config";
+import { API_ENV } from "@/config";
 import { SessionController } from "@/modules/identity/SessionController";
 import { SessionGuard } from "@/modules/identity/session/SessionGuard";
 import { SessionService } from "@/modules/identity/session/SessionService";
@@ -16,6 +21,8 @@ import { SessionService } from "@/modules/identity/session/SessionService";
     { provide: SESSIONS_REPOSITORY, useClass: SessionsRepository },
     SessionService,
     SessionGuard,
+    OAuthService,
+    { provide: OAUTH_RUNTIME, inject: [API_ENV], useFactory: (env: ApiEnv) => createOAuthRuntime(env) },
   ],
   exports: [USERS_REPOSITORY, IDENTITIES_REPOSITORY, SESSIONS_REPOSITORY, SessionService, SessionGuard],
 })

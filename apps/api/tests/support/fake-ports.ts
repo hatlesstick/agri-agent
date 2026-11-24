@@ -35,6 +35,15 @@ export function fakeIdentityRepositories(clock: () => Date) {
   const touches: string[] = [];
 
   const identitiesRepository: IdentitiesPort = {
+    async findUserId(provider, externalId) {
+      return identityOwners.get(`${provider}:${externalId}`) ?? null;
+    },
+    async attach(userId, provider, externalId) {
+      const key = `${provider}:${externalId}`;
+      if (identityOwners.has(key)) return false;
+      identityOwners.set(key, userId);
+      return true;
+    },
     async findOrCreateUser({ provider, externalId }) {
       const key = `${provider}:${externalId}`;
       const existing = identityOwners.get(key);
@@ -61,6 +70,11 @@ export function fakeIdentityRepositories(clock: () => Date) {
     },
     async findActive(tokenHash, now) {
       return [...sessions.values()].find((session) => session.tokenHash === tokenHash && session.expiresAt > now) ?? null;
+    },
+    async delete(tokenHash) {
+      const existing = [...sessions.values()].find((session) => session.tokenHash === tokenHash);
+      if (existing) sessions.delete(existing.id);
+      return existing !== undefined;
     },
     async touch(sessionId, now) {
       const session = sessions.get(sessionId);

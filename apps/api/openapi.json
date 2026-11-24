@@ -74,6 +74,34 @@
         ]
       }
     },
+    "/auth/{provider}/callback": {
+      "get": {
+        "operationId": "AuthController_callback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/{provider}/start": {
+      "get": {
+        "operationId": "AuthController_start",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/providers": {
       "get": {
         "operationId": "AuthController_providers",

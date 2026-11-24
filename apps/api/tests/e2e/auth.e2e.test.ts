@@ -18,7 +18,7 @@ describe("GET /auth/providers", () => {
   });
 
   it("lists GitHub when its keys are configured", async () => {
-    app = await testApp([], { GITHUB_CLIENT_ID: "id", GITHUB_CLIENT_SECRET: "secret" });
+    app = await testApp([], { GITHUB_CLIENT_ID: "id", GITHUB_CLIENT_SECRET: "secret", PUBLIC_APP_ORIGIN: "https://agri-agent-m.vercel.app" });
     const response = await request(app.getHttpServer()).get("/auth/providers");
     expect(response.body).toEqual({ providers: ["github"] });
   });
