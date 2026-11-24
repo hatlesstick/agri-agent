@@ -15,7 +15,7 @@ export const AppShell: React.FC<AppShellProps> = ({ main, chat, account }) => {
       <nav aria-label={t("nav.label")} className="hidden md:block xl:hidden">
         <NavLinks variant="top" />
       </nav>
-      <main className="flex min-w-0 flex-col gap-4 pb-24 md:pb-0">
+      <main className="flex min-w-0 flex-1 flex-col gap-4 pb-24 md:pb-0">
         {account}
         {main}
       </main>
