@@ -60,6 +60,20 @@
   },
   "openapi": "3.0.0",
   "paths": {
+    "/": {
+      "get": {
+        "operationId": "RootController_root",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The API is up. Browsers get an HTML status page; other clients get JSON."
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
     "/chat": {
       "post": {
         "operationId": "ChatController_reply",
