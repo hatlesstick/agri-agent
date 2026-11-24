@@ -33,7 +33,22 @@ export class IdentitiesRepository {
     }
   }
 
-  private async findUserId(provider: IdentityProvider, externalId: string): Promise<string | null> {
+  async listProviders(userId: string): Promise<string[]> {
+    const rows = await this.database.get().selectDistinct({ provider: identities.provider }).from(identities).where(eq(identities.userId, userId));
+    return rows.map((row) => row.provider);
+  }
+
+  async attach(userId: string, provider: IdentityProvider, externalId: string): Promise<boolean> {
+    const inserted = await this.database
+      .get()
+      .insert(identities)
+      .values({ userId, provider, externalId })
+      .onConflictDoNothing({ target: [identities.provider, identities.externalId] })
+      .returning({ id: identities.id });
+    return inserted.length > 0;
+  }
+
+  async findUserId(provider: IdentityProvider, externalId: string): Promise<string | null> {
     const [row] = await this.database
       .get()
       .select({ userId: identities.userId })

@@ -31,6 +31,17 @@ export class SessionService {
     return { userId: user.id, createdAt: user.createdAt.toISOString() };
   }
 
+  async signOut(token: string | undefined): Promise<void> {
+    if (token) await this.sessions.delete(hashSessionToken(token));
+  }
+
+  async rotate(oldToken: string | undefined, userId: string): Promise<string> {
+    if (oldToken) await this.sessions.delete(hashSessionToken(oldToken));
+    const token = newSessionToken();
+    await this.sessions.create(userId, hashSessionToken(token), this.clock());
+    return token;
+  }
+
   private async slide(session: Session, token: string, now: Date): Promise<ResolvedSession> {
     const due = now.getTime() - session.lastSeenAt.getTime() >= SESSION_TOUCH_INTERVAL_MS;
     if (due) await this.sessions.touch(session.id, now);

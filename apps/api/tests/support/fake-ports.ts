@@ -35,12 +35,24 @@ export function fakeIdentityRepositories(clock: () => Date) {
   const touches: string[] = [];
 
   const identitiesRepository: IdentitiesPort = {
+    async listProviders(userId) {
+      return [...identityOwners.entries()].filter(([, owner]) => owner === userId).map(([key]) => key.split(":")[0]);
+    },
+    async findUserId(provider, externalId) {
+      return identityOwners.get(`${provider}:${externalId}`) ?? null;
+    },
+    async attach(userId, provider, externalId) {
+      const key = `${provider}:${externalId}`;
+      if (identityOwners.has(key)) return false;
+      identityOwners.set(key, userId);
+      return true;
+    },
     async findOrCreateUser({ provider, externalId }) {
       const key = `${provider}:${externalId}`;
       const existing = identityOwners.get(key);
       if (existing) return { userId: existing, created: false };
       const now = clock();
-      const user: User = { id: randomUUID(), displayName: null, locale: "en", createdAt: now, updatedAt: now };
+      const user: User = { id: randomUUID(), displayName: null, avatarUrl: null, locale: "en", createdAt: now, updatedAt: now };
       users.set(user.id, user);
       identityOwners.set(key, user.id);
       return { userId: user.id, created: true };
@@ -50,6 +62,10 @@ export function fakeIdentityRepositories(clock: () => Date) {
   const usersRepository: UsersPort = {
     async getById(userId) {
       return users.get(userId) ?? null;
+    },
+    async updateProfile(userId, profile) {
+      const user = users.get(userId);
+      if (user) users.set(userId, { ...user, ...profile });
     },
   };
 
@@ -61,6 +77,11 @@ export function fakeIdentityRepositories(clock: () => Date) {
     },
     async findActive(tokenHash, now) {
       return [...sessions.values()].find((session) => session.tokenHash === tokenHash && session.expiresAt > now) ?? null;
+    },
+    async delete(tokenHash) {
+      const existing = [...sessions.values()].find((session) => session.tokenHash === tokenHash);
+      if (existing) sessions.delete(existing.id);
+      return existing !== undefined;
     },
     async touch(sessionId, now) {
       const session = sessions.get(sessionId);

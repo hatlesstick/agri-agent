@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const channelEnum = pgEnum("channel", ["web", "telegram", "mcp"]);
+export const channelEnum = pgEnum("channel", ["web", "telegram", "mcp", "github", "google"]);
 
 export const messageRoleEnum = pgEnum("message_role", ["user", "assistant"]);
 
