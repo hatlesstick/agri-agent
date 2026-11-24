@@ -14,7 +14,7 @@ export const ChatPanel: React.FC = () => {
     <section className="flex min-h-0 flex-1 flex-col gap-4 rounded-[20px] border border-rule bg-surface p-4">
       <ForecastSaver messages={chat.messages} />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <MessageList messages={chat.messages} lastIsComplete={chat.lastIsComplete} />
+        <MessageList messages={chat.messages} lastIsComplete={chat.lastIsComplete} onSuggest={chat.send} />
       </div>
       {chat.isBusy && <AgentStatus activity={chat.activity} startedAt={chat.startedAt} />}
       {chat.errorMessage && <ErrorBanner message={chat.errorMessage} onRetry={chat.retry} />}
