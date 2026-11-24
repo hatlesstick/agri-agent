@@ -25,7 +25,6 @@ Known gaps that are deliberately deferred. Each item says where it is planned to
 ## Production and infrastructure
 | Item | Risk if left | Planned |
 |---|---|---|
-| Rollback drill through the Deploy workflow not yet run (needed two tags in GHCR) | Untested rollback path | 2.3 go-live |
 | No memory / CPU limits, `no-new-privileges` or `cap_drop` on the `api` container | A runaway process can starve Postgres and Caddy | 2.8 |
 | No ACME contact email in the Caddyfile | No expiry warnings from Let's Encrypt | 2.8 |
 | `pgvector/pgvector:pg17` tag is not pinned to a digest | A silent image change on the next pull | 2.4 (DB image moves to pgvector + PostGIS anyway) |
