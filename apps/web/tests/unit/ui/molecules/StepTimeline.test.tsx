@@ -13,7 +13,7 @@ describe("StepTimeline", () => {
       />,
     );
 
-    const items = within(screen.getByRole("list", { name: "Agent steps" })).getAllByRole("listitem");
-    expect(items.map((item) => item.textContent)).toEqual(["Step 1 · sprayWindow ✓", "→Step 2 · answer"]);
+    const items = within(screen.getByRole("list", { name: "Кроки агента" })).getAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual(["Крок 1 · sprayWindow ✓", "→Крок 2 · answer"]);
   });
 });
