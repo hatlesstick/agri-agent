@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { AppShell } from "@/ui/templates/AppShell";
+import { AccountPanel } from "@/ui/organisms/AccountPanel";
 import { ChatPanel } from "@/ui/organisms/ChatPanel";
 import { useT } from "@/ui/hooks/useT";
 
@@ -18,6 +19,7 @@ export const ApprovalsPage: React.FC = () => {
           </div>
         </section>
       }
+      account={<AccountPanel />}
       chat={<ChatPanel />}
     />
   );

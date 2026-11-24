@@ -3,6 +3,7 @@
 import type React from "react";
 import { FieldTable } from "@/ui/organisms/FieldTable";
 import { AppShell } from "@/ui/templates/AppShell";
+import { AccountPanel } from "@/ui/organisms/AccountPanel";
 import { ChatPanel } from "@/ui/organisms/ChatPanel";
 import { useT } from "@/ui/hooks/useT";
 
@@ -16,6 +17,7 @@ export const FieldsPage: React.FC = () => {
           <FieldTable fields={[]} />
         </section>
       }
+      account={<AccountPanel />}
       chat={<ChatPanel />}
     />
   );

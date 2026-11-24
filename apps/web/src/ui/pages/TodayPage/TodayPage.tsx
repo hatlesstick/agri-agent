@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { AppShell } from "@/ui/templates/AppShell";
+import { AccountPanel } from "@/ui/organisms/AccountPanel";
 import { ChatPanel } from "@/ui/organisms/ChatPanel";
 import { TodayForecast } from "@/ui/organisms/TodayForecast";
 import { useT } from "@/ui/hooks/useT";
@@ -17,6 +18,7 @@ export const TodayPage: React.FC = () => {
           <TodayForecast />
         </section>
       }
+      account={<AccountPanel />}
       chat={<ChatPanel />}
     />
   );
