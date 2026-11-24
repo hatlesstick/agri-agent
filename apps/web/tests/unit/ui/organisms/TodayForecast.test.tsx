@@ -15,6 +15,6 @@ describe("TodayForecast", () => {
     window.localStorage.setItem(FORECAST_STORAGE_KEY, JSON.stringify({ city: "Луцьк", date: "2026-11-12", windows: [{ from: "2026-11-12T08:00", to: "2026-11-12T09:00" }], hourly: [{ time: "2026-11-12T09:00", windSpeed: 3.1, precipitation: 0.2 }] }));
     render(<TodayForecast />);
     expect(screen.getAllByRole("button")).toHaveLength(17);
-    expect(screen.getByText("Прогноз для Луцьк")).toBeTruthy();
+    expect(screen.getByText(/Прогноз для Луцьк · 2026-11-12/)).toBeTruthy();
   });
 });

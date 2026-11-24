@@ -14,9 +14,9 @@ export const HourBar: React.FC<HourBarProps> = ({ time, status, windMs, precipMm
     >
       <span className="font-display font-semibold tabular-nums">{time}</span>
       <StatusLabel status={status} />
-      <span className="text-sm text-ink-soft tabular-nums">{t("hour.wind", { value: windMs.toFixed(1) })}</span>
+      <span className="text-sm text-ink-soft tabular-nums">{windMs === null ? "—" : t("hour.wind", { value: windMs.toFixed(1) })}</span>
       <span className="text-sm text-sky tabular-nums">
-        {precipMm.toFixed(1)} {t("unit.mm")}
+        {precipMm === null ? "—" : `${precipMm.toFixed(1)} ${t("unit.mm")}`}
       </span>
     </button>
   );
