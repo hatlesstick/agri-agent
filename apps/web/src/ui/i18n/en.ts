@@ -39,6 +39,7 @@ export const en: Record<MessageKey, string> = {
   "tool.raw": "Raw output",
   "tool.decision": "Decision",
   "tool.rejected": "Rejected",
+  "chat.title": "Chat",
   "forecast.for": "Forecast for {city}",
   "today.invite": "Ask in the chat whether your field can be sprayed today.",
   "fields.title": "Fields",

@@ -3,12 +3,13 @@ import { describe, expect, it } from "vitest";
 import { AppShell } from "@/ui/templates/AppShell";
 
 describe("AppShell", () => {
-  it("renders the navigation twice: a sidebar for desktop and tabs for phones", () => {
+  it("renders three navigations: a sidebar for wide laptops, a top bar for narrow ones and tabs for phones", () => {
     render(<AppShell main={<p>Сьогодні</p>} chat={<p>Чат</p>} />);
     const navs = screen.getAllByRole("navigation", { name: "Навігація" });
-    expect(navs).toHaveLength(2);
-    expect(navs[0].className).toContain("hidden");
-    expect(navs[1].className).toContain("md:hidden");
+    expect(navs).toHaveLength(3);
+    expect(navs[0].className).toContain("xl:block");
+    expect(navs[1].className).toContain("xl:hidden");
+    expect(navs[2].className).toContain("md:hidden");
   });
 
   it("links the four core screens", () => {

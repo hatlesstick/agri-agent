@@ -1,1 +1,1 @@
-export type NavLinksProps = { variant: "sidebar" | "tabs" };
+export type NavLinksProps = { variant: "sidebar" | "top" | "tabs" };

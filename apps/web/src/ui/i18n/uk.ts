@@ -37,6 +37,7 @@ export const uk = {
   "tool.raw": "Сирі дані",
   "tool.decision": "Рішення",
   "tool.rejected": "Відхилено",
+  "chat.title": "Чат",
   "forecast.for": "Прогноз для {city}",
   "today.invite": "Спитайте в чаті, чи можна обприскувати ваше поле сьогодні.",
   "fields.title": "Поля",
