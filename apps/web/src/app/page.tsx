@@ -1,6 +1,6 @@
 import type React from "react";
-import { ChatPage } from "@/ui/pages/ChatPage";
+import { TodayPage } from "@/ui/pages/TodayPage";
 
-const Page: React.FC = () => <ChatPage />;
+const Page: React.FC = () => <TodayPage />;
 
 export default Page;
