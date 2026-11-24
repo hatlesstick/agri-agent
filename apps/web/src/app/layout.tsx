@@ -5,7 +5,7 @@ import "./globals.css";
 const unbounded = Unbounded({ subsets: ["cyrillic", "latin"], weight: "variable", variable: "--font-unbounded", display: "swap" });
 const onest = Onest({ subsets: ["cyrillic", "latin"], weight: "variable", variable: "--font-onest", display: "swap" });
 
-const THEME_BOOTSTRAP = `(function(){try{var m=document.cookie.match(/(?:^|; )theme=(light|dark)/);if(m){document.documentElement.setAttribute('data-theme',m[1]);}}catch(e){}})();`;
+const THEME_BOOTSTRAP = `(function(){try{var m=document.cookie.match(/(?:^|; )agri-theme=(light|dark)/);if(m){document.documentElement.setAttribute('data-theme',m[1]);}}catch(e){}})();`;
 
 export const metadata: Metadata = {
   title: "Agri Agent",
