@@ -27,3 +27,19 @@ describe("GET /health/ready", () => {
     expect(response.body).toEqual({ status: "degraded", checks: { config: "ok", database: "down" } });
   });
 });
+
+describe("GET /", () => {
+  let app: NestExpressApplication;
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it("answers that the API is up and points to the health endpoints", async () => {
+    app = await testApp([{ token: DATABASE, useValue: databaseThatPings(true) }]);
+    const response = await request(app.getHttpServer()).get("/");
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ name: "agri-agent API", status: "ok", health: "/health/ready" });
+  });
+});
+
