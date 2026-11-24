@@ -17,8 +17,8 @@ describe("message dictionaries", () => {
     expect(translate("uk", "window.range", { start: "06:00", end: "10:00" })).toBe("06:00–10:00");
   });
 
-  it("falls back to Ukrainian, the default locale, for an unknown locale value", () => {
-    expect(translate("fr" as never, "nav.today")).toBe(uk["nav.today"]);
+  it("falls back to English, the default locale, for an unknown locale value", () => {
+    expect(translate("fr" as never, "nav.today")).toBe(en["nav.today"]);
   });
 });
 
@@ -26,7 +26,7 @@ describe("locale cookie", () => {
   it("round-trips the locale through the cookie header", () => {
     expect(localeCookie("en")).toContain(`${LOCALE_COOKIE}=en`);
     expect(readLocale(`theme=dark; ${LOCALE_COOKIE}=en`)).toBe("en");
-    expect(readLocale(undefined)).toBe("uk");
-    expect(readLocale(`${LOCALE_COOKIE}=xx`)).toBe("uk");
+    expect(readLocale(undefined)).toBe("en");
+    expect(readLocale(`${LOCALE_COOKIE}=xx`)).toBe("en");
   });
 });

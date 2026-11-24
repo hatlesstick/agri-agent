@@ -1,7 +1,7 @@
 const RAW_PALETTE = /(bg|text|border|ring|fill|stroke)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}/;
 const HEX = /#[0-9a-fA-F]{3,8}\b/;
 
-export default {
+const rule = {
   meta: {
     type: "problem",
     messages: {
@@ -20,3 +20,5 @@ export default {
     };
   },
 };
+
+export default rule;

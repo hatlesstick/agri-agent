@@ -10,6 +10,8 @@ export type Account = {
   authError: string | undefined;
   returnTo: string;
   signOut: () => Promise<void>;
+  menuOpen: boolean;
+  toggleMenu: () => void;
 };
 
 const SERVER_HREF = "http://localhost/";
@@ -45,6 +47,7 @@ export function useAccount(): Account {
   }, [location]);
 
   const [revision, setRevision] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -62,7 +65,26 @@ export function useAccount(): Account {
   const signOut = useCallback(async () => {
     await fetch("/api/auth/sign-out", { method: "POST" }).catch(() => undefined);
     setRevision((current) => current + 1);
+    setMenuOpen(false);
   }, []);
 
-  return { me, providers, authError, returnTo, signOut };
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest("[data-account-menu]")) setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [menuOpen]);
+
+  const toggleMenu = useCallback(() => setMenuOpen((open) => !open), []);
+
+  return { me, providers, authError, returnTo, signOut, menuOpen, toggleMenu };
 }
