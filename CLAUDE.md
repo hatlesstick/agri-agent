@@ -9,7 +9,7 @@ Architecture and the rules behind it: **docs/architecture.md** (source of truth)
 - Streams responses to the client; selects and chains tools autonomously (weather → spray window → answer).
 - Determines whether a field can be sprayed, the best time window, and explains the decision.
 - Exposes a structured endpoint returning `{ city, canSpray, bestWindow, reason }`.
-- Roadmap: weather → spray window → RAG → field memory → photo diagnostics → multi-agent; Step 1 history in `docs/step-1-stages.md`.
+- Roadmap: weather → spray window → RAG → field memory → photo diagnostics → multi-agent.
 
 ## Product
 An AI assistant for farmers and agronomists. Scope: **docs/product-scope.md** — the **core** (Steps 1–5) is built now; the **backlog** (E1–E7, requirements in **docs/backlog-extensions.md**) comes after the core. Known gaps: **docs/tech-debt.md**. Visual language: **docs/design-system.md** ("Ozymyna and Chernozem").
