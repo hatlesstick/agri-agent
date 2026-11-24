@@ -28,6 +28,7 @@ export const en: Record<MessageKey, string> = {
   "fields.empty.body": "Fields appear here after you save one. Ask about your field in the chat.",
   "nav.label": "Navigation",
   "today.title": "Today",
+  "forecast.for": "Forecast for {city}",
   "today.invite": "Ask in the chat whether your field can be sprayed today.",
   "fields.title": "Fields",
   "approvals.title": "Approvals",

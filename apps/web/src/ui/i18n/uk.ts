@@ -26,6 +26,7 @@ export const uk = {
   "fields.empty.body": "Поля з'являться тут після збереження. Спитайте в чаті про своє поле.",
   "nav.label": "Навігація",
   "today.title": "Сьогодні",
+  "forecast.for": "Прогноз для {city}",
   "today.invite": "Спитайте в чаті, чи можна обприскувати ваше поле сьогодні.",
   "fields.title": "Поля",
   "approvals.title": "Підтвердження",

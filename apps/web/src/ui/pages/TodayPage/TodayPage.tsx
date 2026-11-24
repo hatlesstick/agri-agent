@@ -3,6 +3,7 @@
 import type React from "react";
 import { AppShell } from "@/ui/templates/AppShell";
 import { ChatPanel } from "@/ui/organisms/ChatPanel";
+import { TodayForecast } from "@/ui/organisms/TodayForecast";
 import { useT } from "@/ui/hooks/useT";
 
 export const TodayPage: React.FC = () => {
@@ -13,6 +14,7 @@ export const TodayPage: React.FC = () => {
         <section className="flex flex-col gap-2">
           <h1 className="font-display text-3xl font-bold">{t("today.title")}</h1>
           <p className="text-ink-soft">{t("today.invite")}</p>
+          <TodayForecast />
         </section>
       }
       chat={<ChatPanel />}
