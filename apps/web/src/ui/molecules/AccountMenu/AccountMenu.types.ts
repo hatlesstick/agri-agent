@@ -6,5 +6,7 @@ export type AccountMenuProps = {
   providers: SignInProvider[];
   returnTo: string;
   authError: string | undefined;
+  menuOpen: boolean;
+  onToggle: () => void;
   onSignOut: () => void;
 };

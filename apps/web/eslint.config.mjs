@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import noRawPalette from "./eslint-rules/no-raw-palette.mjs";
 
 const ATOMIC_LEVELS = ["atoms", "molecules", "organisms", "templates", "pages"];
 
@@ -57,10 +58,18 @@ function layerRules() {
   return [...layers, ...atomic, foundations];
 }
 
+import { LEGACY_RAW_PALETTE_FILES } from "./eslint-rules/legacy-files.mjs";
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   ...layerRules(),
+  {
+    files: ["src/ui/**/*.{ts,tsx}"],
+    ignores: LEGACY_RAW_PALETTE_FILES,
+    plugins: { agri: { rules: { "no-raw-palette": noRawPalette } } },
+    rules: { "agri/no-raw-palette": "error" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

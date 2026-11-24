@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import type { VariantProps } from "class-variance-authority";
+import type { button } from "./Button";
 
-export type ButtonVariant = "primary" | "secondary" | "link";
-
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant };
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof button>;

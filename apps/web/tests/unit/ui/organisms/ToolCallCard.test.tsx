@@ -23,12 +23,12 @@ describe("ToolCallCard", () => {
   it("shows the tool, its input and the spray decision", () => {
     render(<ToolCallCard part={sprayWindowPart} />);
 
-    expect(screen.getByText("🔧 sprayWindow")).toBeTruthy();
+    expect(screen.getByText("sprayWindow")).toBeTruthy();
     expect(screen.getByText("done")).toBeTruthy();
     expect(screen.getByText('"Lyon"')).toBeTruthy();
-    expect(screen.getByText(/Spraying possible · Lyon, 2026-11-13/)).toBeTruthy();
-    expect(screen.getByText(/Best window: 2026-11-13 09:00 → 2026-11-13 13:00 \(4 h/)).toBeTruthy();
-    expect(screen.getByText("Rejected hours: wind too strong (5 h), rain nearby (2 h)")).toBeTruthy();
+    expect(screen.getByText("Можна обприскувати")).toBeTruthy();
+    expect(screen.getByText("09:00–13:00")).toBeTruthy();
+    expect(screen.getByText("Відхилено: wind too strong (5 h), rain nearby (2 h)")).toBeTruthy();
   });
 
   it("shows tool errors returned as data", () => {

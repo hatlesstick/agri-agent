@@ -1,25 +1,23 @@
 "use client";
 
 import type React from "react";
-import { useAgentChat } from "@/ui/hooks/useAgentChat";
-import { AgentStatus } from "@/ui/molecules/AgentStatus";
 import { AccountPanel } from "@/ui/organisms/AccountPanel";
-import { ErrorBanner } from "@/ui/molecules/ErrorBanner";
-import { ChatComposer } from "@/ui/organisms/ChatComposer";
-import { MessageList } from "@/ui/organisms/MessageList";
-import { ChatTemplate } from "@/ui/templates/ChatTemplate";
+import { ChatPanel } from "@/ui/organisms/ChatPanel";
+import { useT } from "@/ui/hooks/useT";
+import { AppShell } from "@/ui/templates/AppShell";
 
 export const ChatPage: React.FC = () => {
-  const chat = useAgentChat();
-
+  const t = useT();
   return (
-    <ChatTemplate
-      title="Agri Agent"
+    <AppShell
       account={<AccountPanel />}
-      messages={<MessageList messages={chat.messages} lastIsComplete={chat.lastIsComplete} />}
-      status={chat.isBusy && <AgentStatus activity={chat.activity} startedAt={chat.startedAt} />}
-      error={chat.errorMessage && <ErrorBanner message={chat.errorMessage} onRetry={chat.retry} />}
-      composer={<ChatComposer isBusy={chat.isBusy} onSend={chat.send} onStop={chat.stop} />}
+      main={
+        <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3">
+          <h1 className="font-display text-3xl font-bold">{t("app.name")}</h1>
+          <ChatPanel />
+        </section>
+      }
+      chat={null}
     />
   );
 };
