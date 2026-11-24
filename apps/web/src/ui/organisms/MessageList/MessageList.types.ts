@@ -1,3 +1,3 @@
 import type { AgriChatMessage } from "@agri/shared/contracts";
 
-export type MessageListProps = { messages: AgriChatMessage[]; lastIsComplete: boolean };
+export type MessageListProps = { messages: AgriChatMessage[]; lastIsComplete: boolean; onSuggest?: (text: string) => void };

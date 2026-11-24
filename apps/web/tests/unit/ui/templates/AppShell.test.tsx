@@ -7,9 +7,9 @@ describe("AppShell", () => {
     render(<AppShell main={<p>Сьогодні</p>} chat={<p>Чат</p>} />);
     const navs = screen.getAllByRole("navigation", { name: "Навігація" });
     expect(navs).toHaveLength(3);
-    expect(navs[0].className).toContain("xl:block");
-    expect(navs[1].className).toContain("xl:hidden");
-    expect(navs[2].className).toContain("md:hidden");
+    expect(navs.some((nav) => nav.className.includes("xl:block"))).toBe(true);
+    expect(navs.some((nav) => nav.className.includes("md:block xl:hidden"))).toBe(true);
+    expect(navs.some((nav) => nav.className.includes("md:hidden"))).toBe(true);
   });
 
   it("links the four core screens", () => {
@@ -24,5 +24,14 @@ describe("AppShell", () => {
     render(<AppShell main={<p>основне</p>} chat={<p>панель</p>} />);
     expect(screen.getByText("основне")).toBeTruthy();
     expect(screen.getByText("панель")).toBeTruthy();
+  });
+
+  it("lets the chat column be hidden and shown again", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    render(<AppShell main={<p>основне</p>} chat={<p>панель</p>} />);
+    const toggle = screen.getByRole("button", { name: "Сховати чат" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    await userEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Показати чат" }).getAttribute("aria-expanded")).toBe("false");
   });
 });
