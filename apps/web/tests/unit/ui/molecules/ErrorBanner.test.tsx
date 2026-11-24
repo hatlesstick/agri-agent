@@ -9,7 +9,7 @@ describe("ErrorBanner", () => {
     render(<ErrorBanner message="The AI service is busy" onRetry={onRetry} />);
 
     expect(screen.getByRole("alert").textContent).toContain("The AI service is busy");
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await userEvent.click(screen.getByRole("button", { name: "Повторити" }));
 
     expect(onRetry).toHaveBeenCalledOnce();
   });

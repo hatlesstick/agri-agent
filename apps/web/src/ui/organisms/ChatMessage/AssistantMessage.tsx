@@ -10,7 +10,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({ message, isC
   const view = assistantMessageView(message, isComplete);
 
   return (
-    <li className="w-full max-w-xl self-start rounded-lg bg-zinc-100 px-4 py-2 text-zinc-900">
+    <li className="w-full max-w-xl self-start rounded-2xl border border-rule bg-surface px-4 py-2 text-ink">
       {view.showTimeline && <StepTimeline steps={view.steps} />}
       {message.parts.map((part, index) => {
         const key = `${message.id}-${index}`;
@@ -18,7 +18,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({ message, isC
         if (isToolPart(part)) return <ToolCallCard key={key} part={part} />;
         return null;
       })}
-      {view.showEmptyNotice && <p className="text-sm italic text-zinc-500">{EMPTY_ANSWER_NOTICE}</p>}
+      {view.showEmptyNotice && <p className="text-sm italic text-ink-soft">{EMPTY_ANSWER_NOTICE}</p>}
     </li>
   );
 };

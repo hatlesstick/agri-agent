@@ -8,13 +8,13 @@ function setup(isBusy = false) {
   const onSend = vi.fn();
   const onStop = vi.fn();
   render(<ChatComposer isBusy={isBusy} onSend={onSend} onStop={onStop} />);
-  return { onSend, onStop, input: screen.getByRole("textbox", { name: "Message" }) as HTMLInputElement };
+  return { onSend, onStop, input: screen.getByRole("textbox", { name: "Повідомлення" }) as HTMLInputElement };
 }
 
 describe("ChatComposer", () => {
   it("keeps Send disabled until there is text", async () => {
     const { input } = setup();
-    const send = screen.getByRole("button", { name: "Send" }) as HTMLButtonElement;
+    const send = screen.getByRole("button", { name: "Надіслати" }) as HTMLButtonElement;
     expect(send.disabled).toBe(true);
 
     await userEvent.type(input, "   ");
@@ -48,8 +48,8 @@ describe("ChatComposer", () => {
     const { onStop, input } = setup(true);
 
     expect(input.disabled).toBe(true);
-    expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: "Stop" }));
+    expect(screen.queryByRole("button", { name: "Надіслати" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Зупинити" }));
 
     expect(onStop).toHaveBeenCalledOnce();
   });
