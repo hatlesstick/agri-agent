@@ -51,7 +51,7 @@ export function checkLimits(limiters: Array<{ limiter: RateLimiter; key: string 
   return { allowed: true, retryAfterMs: 0 };
 }
 
-export type RateLimitedRoute = "chat" | "sprayCheck";
+export type RateLimitedRoute = "chat" | "sprayCheck" | "session";
 
 export type RateLimiters = { global: RateLimiter; routes: Record<RateLimitedRoute, RateLimiter> };
 
@@ -66,6 +66,7 @@ export function createRateLimiters(
     routes: {
       chat: create({ limit: perClientPerMinute, windowMs: WINDOW_MS }),
       sprayCheck: create({ limit: perClientPerMinute, windowMs: WINDOW_MS }),
+      session: create({ limit: perClientPerMinute, windowMs: WINDOW_MS }),
     },
   };
 }
