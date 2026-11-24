@@ -86,6 +86,14 @@ chmod 600 .env api.env
 - A database restore from a snapshot rolls sessions back too: browsers holding a cookie for a session created after the snapshot get a new anonymous user on their next visit. Nothing fails; their chat history from that window is gone with the rolled-back rows.
 - The migration that adds `sessions` is additive, so the previous image keeps working against the new schema (rollback drill in Stage 2.3).
 
+## Sign-in (GitHub and Google)
+
+- Providers are enabled per deployment: a provider appears in `GET /auth/providers` only when both its keys and `PUBLIC_APP_ORIGIN` are set. Its routes answer 404 otherwise.
+- Keys in `/opt/agri-agent/api.env`: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `PUBLIC_APP_ORIGIN=https://agri-agent-m.vercel.app`. Never commit them.
+- Callback URLs to register with the providers: `https://agri-agent-m.vercel.app/api/auth/github/callback` (GitHub OAuth App) and `https://agri-agent-m.vercel.app/api/auth/google/callback` (Google OAuth client, type Web application). Use separate OAuth apps for local development on `http://localhost:3000/api/auth/<provider>/callback`.
+- Google's consent screen is in "External, testing" until it is published; add the developer's accounts as test users.
+- Sign-in keeps the anonymous history: the first sign-in attaches the provider to the current anonymous user. A provider account already linked to another user switches the session to that user and leaves the anonymous user's data alone.
+
 ## Swagger
 
 Production serves Swagger UI at `/docs` and `/openapi.json` because `api.env` sets `SWAGGER_ENABLED=1` (developer decision: the same contract is already public in `apps/api/openapi.json`; browser routes still answer 403 without `X-Proxy-Auth`). Remove the line and redeploy to hide it.
