@@ -170,6 +170,6 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 - `infra/api.env.example` = `apps/api/.env.example` minus Compose-set keys (`NODE_ENV`, `PORT`, `DATABASE_URL`, `TRUSTED_PROXY_HOPS`, `TEST_DATABASE_URL`) — checked by `infra/smoke/run.sh`.
 
 ## Commands
-- `pnpm --filter @agri/api dev | build | start | test | test:db | eval | openapi | db:generate | db:check | db:verify | db:migrate | db:seed`
+- `pnpm --filter @agri/api dev | build | start | test | test:db | eval | openapi | db:generate | db:check | db:verify | db:migrate | db:seed | db:studio` (Drizzle Studio on 127.0.0.1:4983; needs `DATABASE_URL`, read-write, local only)
 - From the root: `pnpm eval:real [files]`, `pnpm eval:summary`, `pnpm eval:compare`, `pnpm eval:baseline <runId>`, `pnpm langfuse:dataset`, `pnpm langfuse:experiment --model <id>` (`AI_MOCK=1 … --dry-run` locally), `pnpm index` — real-model runs and Langfuse writes only when the developer asks.
 - `pnpm db:up` (Compose Postgres), `docker compose up` (API + db), `docker compose --profile cache up` (with Redis), `docker compose exec api node dist/migrate.js`.

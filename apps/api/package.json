@@ -28,6 +28,7 @@
     "db:check": "drizzle-kit check",
     "db:migrate": "tsx --env-file-if-exists=.env src/migrate.ts",
     "test:db": "vitest run tests/db",
+    "db:studio": "node --env-file-if-exists=.env node_modules/drizzle-kit/bin.cjs studio --host 127.0.0.1",
     "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
     "db:verify": "bash scripts/check-migrations.sh"
   },
