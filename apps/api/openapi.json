@@ -66,7 +66,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "The API is up; points to the health endpoints."
+            "description": "The API is up. Browsers get an HTML status page; other clients get JSON."
           }
         },
         "tags": [

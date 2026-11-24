@@ -41,5 +41,14 @@ describe("GET /", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ name: "agri-agent API", status: "ok", health: "/health/ready" });
   });
+
+  it("serves a status page to browsers", async () => {
+    app = await testApp([{ token: DATABASE, useValue: databaseThatPings(true) }]);
+    const response = await request(app.getHttpServer()).get("/").set("Accept", "text/html,application/xhtml+xml");
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toMatch(/^text\/html/);
+    expect(response.text).toContain("agri-agent API");
+    expect(response.text).toContain("/health/ready");
+  });
 });
 
