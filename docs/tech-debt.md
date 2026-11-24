@@ -10,8 +10,8 @@ Known gaps that are deliberately deferred. Each item says where it is planned to
 | Spray rules are generic: one threshold set, no crop, growth stage, product type (herbicide / fungicide / insecticide) or product-specific rainfast time | The same verdict for every crop and product | E1 / E4 (crop and product profiles) |
 | Rules use mean wind speed only: no gusts, no Delta T rule, no inversion detection (both only explained from RAG documents) | Calm-morning inversions and gusty hours can be shown as "can spray" | 2.4b |
 | RAG corpus is six English documents; no Ukrainian guidance, no product labels or state register | Ukrainian answers are translated from English sources; no dose checks (R5) | 2.4 (corpus) + E3 (labels) |
-| Ukrainian inflected place names ("у Луцьку") are normalised only in the Telegram plan | Geocoding can miss a city typed in the web chat | 2.7, check for web in 2.3c |
-| UI is English-only text; agent replies in the user's language | Ukrainian users see an English interface | 2.3c (UA / EN dictionaries) |
+| Ukrainian inflected place names ("у Луцьку") are normalised only in the Telegram plan; the web chat check is not done yet | Geocoding can miss a city typed in the web chat | 2.7; web check needs a local run with AI_MOCK=1 |
+| Some labels still come from helpers in English: rejected-hour reasons, sign-in error messages, tool state names | Parts of the Ukrainian interface still show English | 2.5 (move to dictionaries) |
 | Identity: anonymous only; no sign-in, no account linking, no `/forget` | No access from a second device; no way to delete one's data | 2.3b, 2.7, 2.5 |
 | Every cookie-less `GET /session` or `POST /chat` creates a user and a session; expired sessions and users that never came back are never deleted | Storage grows with anonymous visitors (bounded by the rate limits: 10 per IP and 60 globally per minute); the database has no cleanup | 2.6 (scheduled cleanup job), 2.8 (hardening) |
 | Signing in with an identity owned by another user switches users instead of merging | Anonymous work stays with the old user | After 2.3b, if users ask |
@@ -20,7 +20,6 @@ Known gaps that are deliberately deferred. Each item says where it is planned to
 | Conversation summary for long chats deferred (only the last N turns are kept) | Very long chats forget early context | 2.5 or later |
 | Hybrid search (full text + vector), `docs/reindex` job and reminders deferred | Lower recall on keyword questions; manual re-indexing | 2.4, 2.6, 2.7 |
 | `POST /spray-check` has no session or user context | Structured checks cannot use saved fields | 2.5 |
-| Default mock data and examples use Lyon while the target users are Ukrainian farms | Demos feel foreign to the audience | 2.3c (examples), evals keep Lyon |
 
 ## Production and infrastructure
 | Item | Risk if left | Planned |
@@ -50,7 +49,6 @@ Known gaps that are deliberately deferred. Each item says where it is planned to
 ## Web, CI and tooling
 | Item | Risk if left | Planned |
 |---|---|---|
-| Unstyled UI (Tailwind defaults, raw palette classes, no dark theme, inline strings) | Weak first impression; i18n retrofit grows | 2.3c |
 | CI uploads `apps/web/.evals/results`, which web evals no longer write | Empty artifact | any (CI) |
 | Unused `vite` dev dependency in `packages/shared` | Extra install time | any |
 | No LICENSE file | Unclear terms for a public repo | Developer decision |

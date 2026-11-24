@@ -19,6 +19,13 @@ An AI assistant for farmers and agronomists. It plans field work around the weat
 - **Channels.** Web app, Telegram bot with inline approvals, morning alerts, and an MCP server for other AI clients.
 - **Field operations ahead.** Field map, work log with voice input, irrigation and frost alerts, agro models, satellite monitoring and farm teams are on the [roadmap](docs/product-scope.md#backlog-after-the-core).
 
+## Screens
+
+Home screen in the dark theme with the Ukrainian interface, on desktop and on a phone:
+
+![Home screen on desktop, dark theme](docs/screenshots/prod-desktop-dark-ua.jpg)
+![Home screen on a phone, dark theme](docs/screenshots/prod-phone-dark-ua.jpg)
+
 ## Principles
 
 - **Code decides, the model explains.** Decisions and numbers come from deterministic rules; the model chooses tools and explains the result. When they disagree, the code wins.
