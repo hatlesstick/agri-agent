@@ -18,10 +18,10 @@ export class ChatService {
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
-  async streamReply({ messages, abortSignal }: ChatReplyInput, response: ServerResponse): Promise<void> {
+  async streamReply({ userId, messages, abortSignal }: ChatReplyInput, response: ServerResponse): Promise<void> {
     const screen = screenInput(latestUserText(messages));
     if (screen.verdict === "block") {
-      this.logger.warn({ reason: screen.reason }, "guardrail: chat input blocked");
+      this.logger.warn({ reason: screen.reason, userId }, "guardrail: chat input blocked");
       await pipeUIMessageStreamToResponse({ response, stream: refusalStream(SCREEN_REFUSAL) });
       return;
     }
