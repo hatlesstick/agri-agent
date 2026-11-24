@@ -13,6 +13,7 @@ Known gaps that are deliberately deferred. Each item says where it is planned to
 | Ukrainian inflected place names ("у Луцьку") are normalised only in the Telegram plan | Geocoding can miss a city typed in the web chat | 2.7, check for web in 2.3c |
 | UI is English-only text; agent replies in the user's language | Ukrainian users see an English interface | 2.3c (UA / EN dictionaries) |
 | Identity: anonymous only; no sign-in, no account linking, no `/forget` | No access from a second device; no way to delete one's data | 2.3b, 2.7, 2.5 |
+| Every cookie-less `GET /session` or `POST /chat` creates a user and a session; expired sessions and users that never came back are never deleted | Storage grows with anonymous visitors (bounded by the rate limits: 10 per IP and 60 globally per minute); the database has no cleanup | 2.6 (scheduled cleanup job), 2.8 (hardening) |
 | Signing in with an identity owned by another user switches users instead of merging | Anonymous work stays with the old user | After 2.3b, if users ask |
 | Sign-in does not work on Vercel preview deployments | Previews are anonymous-only | Accepted |
 | No per-user token budget; only IP rate limits and the global AI Gateway cap | One user can use up the daily budget for everyone | 2.5 (`usage_daily`) |
