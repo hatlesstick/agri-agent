@@ -42,6 +42,7 @@ export const uk = {
   "theme.system": "Системна",
   "theme.light": "Світла",
   "theme.dark": "Темна",
+  "account.settings": "Налаштування",
   "tool.error": "Помилка: {error}",
   "tool.possible": "✅ Обприскування можливе",
   "tool.notPossible": "❌ Немає придатного вікна",

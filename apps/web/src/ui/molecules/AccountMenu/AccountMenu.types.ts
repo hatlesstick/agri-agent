@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { MeResponse } from "@agri/shared/contracts";
 import type { SignInProvider } from "@/ui/helpers/account";
 
@@ -9,4 +10,5 @@ export type AccountMenuProps = {
   menuOpen: boolean;
   onToggle: () => void;
   onSignOut: () => void;
+  settings?: ReactNode;
 };

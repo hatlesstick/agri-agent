@@ -44,6 +44,7 @@ export const en: Record<MessageKey, string> = {
   "theme.system": "System",
   "theme.light": "Light",
   "theme.dark": "Dark",
+  "account.settings": "Settings",
   "tool.error": "Error: {error}",
   "tool.possible": "✅ Spraying possible",
   "tool.notPossible": "❌ No suitable window",
