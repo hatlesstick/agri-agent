@@ -34,7 +34,7 @@ describe("ToolCallCard", () => {
   it("shows tool errors returned as data", () => {
     render(<ToolCallCard part={{ ...sprayWindowPart, output: { error: "city_not_found" } } as unknown as ToolPart} />);
 
-    expect(screen.getByText("⚠️ city not found")).toBeTruthy();
+    expect(screen.getByText("Помилка: city not found")).toBeTruthy();
   });
 
   it("marks failed calls", () => {
