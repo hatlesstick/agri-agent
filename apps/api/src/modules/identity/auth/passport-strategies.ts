@@ -15,18 +15,21 @@ type GoogleProfile = { id?: unknown; displayName?: unknown; photos?: Array<{ val
 
 const text = (value: unknown): string | null => (typeof value === "string" && value.length > 0 ? value : null);
 
-export function githubIdentity(user: GitHubUser): ProviderIdentity {
+export function githubIdentity(user: GitHubUser): ProviderIdentity | undefined {
+  if (typeof user.id !== "number" || !Number.isSafeInteger(user.id)) return undefined;
   return { providerUserId: String(user.id), displayName: text(user.name) ?? text(user.login), avatarUrl: text(user.avatar_url) };
 }
 
-export function googleIdentity(profile: GoogleProfile): ProviderIdentity {
-  return { providerUserId: String(profile.id), displayName: text(profile.displayName), avatarUrl: text(profile.photos?.[0]?.value) };
+export function googleIdentity(profile: GoogleProfile): ProviderIdentity | undefined {
+  const id = text(profile.id);
+  if (!id) return undefined;
+  return { providerUserId: id, displayName: text(profile.displayName), avatarUrl: text(profile.photos?.[0]?.value) };
 }
 
 class GitHubOAuthStrategy extends OAuth2Strategy {
   userProfile(accessToken: string, done: (error: unknown, profile?: unknown) => void): void {
     fetch("https://api.github.com/user", { headers: { accept: "application/vnd.github+json", authorization: `Bearer ${accessToken}`, "user-agent": "agri-agent" } })
-      .then((response) => response.json())
+      .then(async (response) => (response.ok ? response.json() : Promise.reject(new Error(`GitHub profile request failed: ${response.status}`))))
       .then((profile) => done(null, profile), (error: unknown) => done(error));
   }
 }
@@ -53,9 +56,9 @@ export function createOAuthRuntime(env: ApiEnv): OAuthRuntime {
     };
     const endpoint = ENDPOINTS[provider];
     if (provider === "github") {
-      passport.use(provider, new GitHubOAuthStrategy({ ...common, authorizationURL: endpoint.authorizationURL, tokenURL: endpoint.tokenURL, scope: [...endpoint.scope] } as StrategyOptions, (_accessToken: string, _refreshToken: string, profile: unknown, done: (error: unknown, user?: unknown) => void) => done(null, githubIdentity(profile as GitHubUser))));
+      passport.use(provider, new GitHubOAuthStrategy({ ...common, authorizationURL: endpoint.authorizationURL, tokenURL: endpoint.tokenURL, scope: [...endpoint.scope] } as StrategyOptions, (_accessToken: string, _refreshToken: string, profile: unknown, done: (error: unknown, user?: unknown) => void) => done(null, githubIdentity(profile as GitHubUser) ?? false)));
     } else {
-      passport.use(provider, new GoogleStrategy({ ...common, scope: [...endpoint.scope] } as GoogleStrategyOptions, (_accessToken: string, _refreshToken: string, profile: GoogleOAuthProfile, done: GoogleVerifyCallback) => done(null, googleIdentity(profile as GoogleProfile))));
+      passport.use(provider, new GoogleStrategy({ ...common, scope: [...endpoint.scope] } as GoogleStrategyOptions, (_accessToken: string, _refreshToken: string, profile: GoogleOAuthProfile, done: GoogleVerifyCallback) => done(null, googleIdentity(profile as GoogleProfile) ?? false)));
     }
     providers.push(provider);
   }

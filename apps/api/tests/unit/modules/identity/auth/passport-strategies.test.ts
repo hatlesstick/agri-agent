@@ -17,6 +17,18 @@ describe("provider profile mapping", () => {
   });
 });
 
+describe("identity validation", () => {
+  it("refuses a GitHub response without a numeric id instead of inventing an identity", () => {
+    expect(githubIdentity({ message: "Bad credentials" } as Parameters<typeof githubIdentity>[0])).toBeUndefined();
+    expect(githubIdentity({ id: "42", login: "ann" })).toBeUndefined();
+  });
+
+  it("refuses a Google profile without a string id", () => {
+    expect(googleIdentity({ displayName: "Ann" })).toBeUndefined();
+    expect(googleIdentity({ id: "", displayName: "Ann" })).toBeUndefined();
+  });
+});
+
 describe("OAuth runtime", () => {
   it("enables a provider only with its keys and a public origin", () => {
     expect(createOAuthRuntime(loadApiEnv({ ...base, ...origin, GITHUB_CLIENT_ID: "id", GITHUB_CLIENT_SECRET: "s" })).providers).toEqual(["github"]);

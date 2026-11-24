@@ -13,6 +13,10 @@ export class UsersRepository {
     return user ?? null;
   }
 
+  async updateProfile(userId: string, profile: { displayName: string | null; avatarUrl: string | null }): Promise<void> {
+    await this.database.get().update(users).set({ ...profile, updatedAt: new Date() }).where(eq(users.id, userId));
+  }
+
   async delete(userId: string): Promise<boolean> {
     const deleted = await this.database.get().delete(users).where(eq(users.id, userId)).returning({ id: users.id });
     return deleted.length > 0;

@@ -35,6 +35,9 @@ export function fakeIdentityRepositories(clock: () => Date) {
   const touches: string[] = [];
 
   const identitiesRepository: IdentitiesPort = {
+    async listProviders(userId) {
+      return [...identityOwners.entries()].filter(([, owner]) => owner === userId).map(([key]) => key.split(":")[0]);
+    },
     async findUserId(provider, externalId) {
       return identityOwners.get(`${provider}:${externalId}`) ?? null;
     },
@@ -49,7 +52,7 @@ export function fakeIdentityRepositories(clock: () => Date) {
       const existing = identityOwners.get(key);
       if (existing) return { userId: existing, created: false };
       const now = clock();
-      const user: User = { id: randomUUID(), displayName: null, locale: "en", createdAt: now, updatedAt: now };
+      const user: User = { id: randomUUID(), displayName: null, avatarUrl: null, locale: "en", createdAt: now, updatedAt: now };
       users.set(user.id, user);
       identityOwners.set(key, user.id);
       return { userId: user.id, created: true };
@@ -59,6 +62,10 @@ export function fakeIdentityRepositories(clock: () => Date) {
   const usersRepository: UsersPort = {
     async getById(userId) {
       return users.get(userId) ?? null;
+    },
+    async updateProfile(userId, profile) {
+      const user = users.get(userId);
+      if (user) users.set(userId, { ...user, ...profile });
     },
   };
 

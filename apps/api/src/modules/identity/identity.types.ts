@@ -13,12 +13,14 @@ export type Session = typeof sessions.$inferSelect;
 
 export type IdentitiesPort = {
   findOrCreateUser(input: FindOrCreateUserInput): Promise<FindOrCreateUserResult>;
+  listProviders(userId: string): Promise<string[]>;
   findUserId(provider: IdentityProvider, externalId: string): Promise<string | null>;
   attach(userId: string, provider: IdentityProvider, externalId: string): Promise<boolean>;
 };
 
 export type UsersPort = {
   getById(userId: string): Promise<User | null>;
+  updateProfile(userId: string, profile: { displayName: string | null; avatarUrl: string | null }): Promise<void>;
 };
 
 export type SessionsPort = {

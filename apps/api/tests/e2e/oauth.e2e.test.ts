@@ -1,7 +1,5 @@
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { eq } from "drizzle-orm";
-import type { Request } from "express";
-import { Passport } from "passport";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DATABASE } from "@/database";
@@ -9,39 +7,9 @@ import { identities, users } from "@/database/schema";
 import { OAUTH_RUNTIME } from "@/modules/identity/auth/auth.tokens";
 import { OAUTH_FLOW_COOKIE } from "@/modules/identity/auth/oauth-flow";
 import { FlowStateStore } from "@/modules/identity/auth/FlowStateStore";
-import type { OAuthRuntime } from "@/modules/identity/auth/passport-strategies";
+import { ORIGIN, cookieValue, runtimeWithStub } from "@tests/support/oauth-stub";
 import { testApp } from "@tests/support/create-test-app";
 import { databaseHandle, testDatabase, type TestDatabase } from "@tests/support/test-database";
-
-const ORIGIN = "https://agri-agent-m.vercel.app";
-
-function providerStub(store: FlowStateStore) {
-  return {
-    name: "github",
-    authenticate(this: Record<string, (...args: unknown[]) => void>, req: Request) {
-      if (req.path.endsWith("/start")) {
-        store.store(req, "verifier-stub", undefined, {}, (error, state) => (error ? this.error(error) : this.redirect(`https://github.com/login/oauth/authorize?state=${state}`)));
-        return;
-      }
-      store.verify(req, req.query.state as string | undefined, {}, (error, ok) => {
-        if (error) return this.error(error);
-        if (!ok) return this.fail(403);
-        if (req.query.code === "bad") return this.error(new Error("exchange failed"));
-        this.success({ providerUserId: "42", displayName: "Ann", avatarUrl: null });
-      });
-    },
-  };
-}
-
-function runtimeWithStub(): OAuthRuntime {
-  const passport = new Passport();
-  passport.use("github", providerStub(new FlowStateStore("github")) as never);
-  return { passport, providers: ["github"] };
-}
-
-function cookieValue(setCookie: string[] | string | undefined, name: string): string | undefined {
-  return [setCookie ?? []].flat().find((value) => value.startsWith(`${name}=`))?.split(";")[0];
-}
 
 describe("OAuth sign-in", () => {
   let test: TestDatabase;
@@ -50,7 +18,7 @@ describe("OAuth sign-in", () => {
   beforeEach(async () => {
     test = await testDatabase();
     await test.reset();
-    app = await testApp([{ token: DATABASE, useValue: databaseHandle(test.db) }, { token: OAUTH_RUNTIME, useValue: runtimeWithStub() }], { PUBLIC_APP_ORIGIN: ORIGIN });
+    app = await testApp([{ token: DATABASE, useValue: databaseHandle(test.db) }, { token: OAUTH_RUNTIME, useValue: runtimeWithStub(new FlowStateStore("github")) }], { PUBLIC_APP_ORIGIN: ORIGIN });
   });
 
   afterEach(async () => {
@@ -123,6 +91,21 @@ describe("OAuth sign-in", () => {
     expect(after.body.userId).toBe(ownerRecord.body.userId);
     expect(await test.db.$count(identities, eq(identities.provider, "github"))).toBe(1);
     expect(await test.db.$count(users)).toBe(2);
+  });
+
+  it("gives a signed-in visitor who signs in with a different account of the same provider a separate user", async () => {
+    const first = await visitor();
+    const firstStart = await start(first);
+    const firstDone = await callback(firstStart.flow, { code: "ok", state: firstStart.state }, first);
+    const signedIn = cookieValue(firstDone.headers["set-cookie"], "__Host-agri_session") ?? "";
+    const otherStart = await start(signedIn);
+    const otherDone = await callback(otherStart.flow, { code: "ok-43", state: otherStart.state }, signedIn);
+    const switched = cookieValue(otherDone.headers["set-cookie"], "__Host-agri_session") ?? "";
+    const before = await http().get("/me").set("Cookie", signedIn);
+    const after = await http().get("/me").set("Cookie", switched);
+    expect(after.body.userId).not.toBe(before.body.userId);
+    expect(await test.db.$count(identities, eq(identities.provider, "github"))).toBe(2);
+    expect(before.body.providers.filter((provider: string) => provider === "github")).toHaveLength(0);
   });
 
   it("rejects a state that does not match the flow cookie", async () => {

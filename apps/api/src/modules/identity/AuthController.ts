@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Param, Query, Req, Res, Next, UseGuards } from "@nestjs/common";
+import { Controller, Get, HttpCode, Inject, Param, Post, Query, Req, Res, Next, UseGuards } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { NextFunction, Request, Response } from "express";
 import { authProvidersResponseSchema, type AuthProvidersResponse } from "@agri/shared/contracts";
@@ -14,6 +14,7 @@ import { OAUTH_FLOW_COOKIE, decodeFlowCookie } from "@/modules/identity/auth/oau
 import { isOAuthProvider } from "@/modules/identity/auth/oauth-providers";
 import { type OAuthRuntime } from "@/modules/identity/auth/passport-strategies";
 import { OAuthService, type AuthorizeQuery } from "@/modules/identity/auth/OAuthService";
+import { SessionService } from "@/modules/identity/session/SessionService";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -22,7 +23,15 @@ export class AuthController {
   constructor(
     @Inject(OAUTH_RUNTIME) private readonly runtime: OAuthRuntime,
     @Inject(OAuthService) private readonly oauth: OAuthService,
+    @Inject(SessionService) private readonly sessions: SessionService,
   ) {}
+
+  @Post("sign-out")
+  @HttpCode(204)
+  async signOut(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
+    await this.sessions.signOut(readSessionCookie(req.headers.cookie));
+    res.clearCookie(SESSION_COOKIE, { httpOnly: true, secure: true, sameSite: "lax", path: "/" });
+  }
 
   @Get("providers")
   @ApiResponse({

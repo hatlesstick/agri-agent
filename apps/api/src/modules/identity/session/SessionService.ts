@@ -31,6 +31,10 @@ export class SessionService {
     return { userId: user.id, createdAt: user.createdAt.toISOString() };
   }
 
+  async signOut(token: string | undefined): Promise<void> {
+    if (token) await this.sessions.delete(hashSessionToken(token));
+  }
+
   async rotate(oldToken: string | undefined, userId: string): Promise<string> {
     if (oldToken) await this.sessions.delete(hashSessionToken(oldToken));
     const token = newSessionToken();

@@ -33,6 +33,11 @@ export class IdentitiesRepository {
     }
   }
 
+  async listProviders(userId: string): Promise<string[]> {
+    const rows = await this.database.get().selectDistinct({ provider: identities.provider }).from(identities).where(eq(identities.userId, userId));
+    return rows.map((row) => row.provider);
+  }
+
   async attach(userId: string, provider: IdentityProvider, externalId: string): Promise<boolean> {
     const inserted = await this.database
       .get()
