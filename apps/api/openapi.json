@@ -74,6 +74,43 @@
         ]
       }
     },
+    "/auth/providers": {
+      "get": {
+        "operationId": "AuthController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "providers": {
+                      "items": {
+                        "enum": [
+                          "github",
+                          "google"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The sign-in providers configured on this deployment."
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/chat": {
       "post": {
         "operationId": "ChatController_reply",

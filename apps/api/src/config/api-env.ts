@@ -27,6 +27,11 @@ const apiEnvSchema = z.object({
   SWAGGER_ENABLED: flag,
   CACHE_DRIVER: z.enum(["memory", "redis"]).default("memory"),
   REDIS_URL: z.url({ protocol: /^rediss?$/ }).optional(),
+  PUBLIC_APP_ORIGIN: z.url({ protocol: /^https?$/ }).optional(),
+  GITHUB_CLIENT_ID: z.string().min(1).optional(),
+  GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 });
 
 const validatedApiEnvSchema = apiEnvSchema.superRefine((env, context) => {

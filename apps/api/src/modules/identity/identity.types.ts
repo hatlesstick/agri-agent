@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import type { sessions, users } from "@/database/schema";
 
-export type IdentityProvider = "web" | "telegram" | "mcp";
+export type IdentityProvider = "web" | "telegram" | "mcp" | "github" | "google";
 
 export type FindOrCreateUserInput = { provider: IdentityProvider; externalId: string; displayName?: string; locale?: string };
 

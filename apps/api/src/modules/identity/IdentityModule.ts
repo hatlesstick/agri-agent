@@ -3,12 +3,13 @@ import { IDENTITIES_REPOSITORY, SESSIONS_REPOSITORY, USERS_REPOSITORY } from "@/
 import { IdentitiesRepository } from "@/modules/identity/repositories/IdentitiesRepository";
 import { SessionsRepository } from "@/modules/identity/repositories/SessionsRepository";
 import { UsersRepository } from "@/modules/identity/repositories/UsersRepository";
+import { AuthController } from "@/modules/identity/AuthController";
 import { SessionController } from "@/modules/identity/SessionController";
 import { SessionGuard } from "@/modules/identity/session/SessionGuard";
 import { SessionService } from "@/modules/identity/session/SessionService";
 
 @Module({
-  controllers: [SessionController],
+  controllers: [SessionController, AuthController],
   providers: [
     { provide: USERS_REPOSITORY, useClass: UsersRepository },
     { provide: IDENTITIES_REPOSITORY, useClass: IdentitiesRepository },
