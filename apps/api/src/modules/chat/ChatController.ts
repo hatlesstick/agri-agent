@@ -8,11 +8,12 @@ import { ApiProblemResponses, openApiSchema } from "@/common/openapi";
 import { TelemetryFlushInterceptor } from "@/observability";
 import { parseChatRequest } from "@/modules/chat/validation/chat-request";
 import { ChatService } from "@/modules/chat/ChatService";
+import { CurrentUserId, SessionGuard } from "@/modules/identity";
 
 
 @ApiTags("chat")
 @Controller("chat")
-@UseGuards(ProxyAuthGuard, RateLimitGuard)
+@UseGuards(ProxyAuthGuard, RateLimitGuard, SessionGuard)
 @UseInterceptors(TelemetryFlushInterceptor)
 export class ChatController {
   constructor(@Inject(ChatService) private readonly chat: ChatService) {}
@@ -26,10 +27,10 @@ export class ChatController {
     content: { "text/event-stream": { schema: { type: "string" } } },
   })
   @ApiProblemResponses({ 400: ["invalid_request"], 403: ["forbidden"], 413: ["payload_too_large", "part_too_large", "message_too_long", "conversation_too_long"], 429: ["rate_limited"], 500: ["internal_error"] })
-  async reply(@Body() body: unknown, @Req() req: Request, @Res() res: Response): Promise<void> {
+  async reply(@Body() body: unknown, @Req() req: Request, @Res() res: Response, @CurrentUserId() userId: string): Promise<void> {
     const abortSignal = abortOnClose(req, res);
     const request = await parseChatRequest(body);
     if (!request.ok) throw problem(request.error, request.status);
-    await this.chat.streamReply({ messages: request.messages, abortSignal }, res);
+    await this.chat.streamReply({ userId, messages: request.messages, abortSignal }, res);
   }
 }

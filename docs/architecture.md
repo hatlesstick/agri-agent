@@ -102,6 +102,13 @@ A module's root contains only `<Name>Module.ts`, its controllers and services (P
 - `ProxyAuthGuard` on browser routes (`X-Proxy-Auth` from Vercel `proxy.ts`), `X-Client-IP` trusted only with a valid secret; Telegram / Inngest / MCP routes use their own auth.
 - Rate limits per client and global; JSON body cap 256 KiB; CORS closed for browsers; baseline security headers (nosniff, frame deny, no-referrer, CORP same-site); secrets only from env; non-root container.
 
+### Identity and sessions
+
+- Every browser visitor is an anonymous `web` user (`identities` row with a random `external_id`) behind a server-side session. The session token is 32 random bytes in cookie `__Host-agri_session` (`HttpOnly; Secure; SameSite=Lax; Path=/`, no `Domain`, 400 days); the `sessions` table stores only `sha256(token)`.
+- `SessionGuard` runs after `ProxyAuthGuard` and `RateLimitGuard`, so forbidden or rate-limited requests never create users or sessions. It resolves `userId` (`@CurrentUserId()`), slides the session at most once per 24 h, and sets the cookie on the first visit or after a slide. An unknown, tampered or expired token is treated as no session: a fresh user, never another user's id and never a 4xx.
+- Repositories outside `modules/identity` take `userId` first; `tests/unit/architecture` enforces this by scanning source.
+- Revocation is deleting the session row (sign-out, 2.3b) or the user (`/forget`, 2.5); both are cascades, so a stale cookie gets a new user.
+
 ### Testing
 
 - **Unit:** services, pure rules, adapters (with stubbed HTTP), guards, filter; ports replaced by fakes.

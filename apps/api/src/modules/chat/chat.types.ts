@@ -1,3 +1,3 @@
 import type { UIMessage } from "ai";
 
-export type ChatReplyInput = { messages: UIMessage[]; abortSignal?: AbortSignal };
+export type ChatReplyInput = { userId: string; messages: UIMessage[]; abortSignal?: AbortSignal };

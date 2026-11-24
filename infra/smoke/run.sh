@@ -34,6 +34,14 @@ chat_status() { curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/chat" -H '
 [ "$(chat_status -H 'x-proxy-auth: wrong-secret')" = "403" ] || fail "chat with a wrong X-Proxy-Auth must be 403"
 pass "chat without a valid proxy secret is forbidden"
 
+[ "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/session")" = "403" ] || fail "session without X-Proxy-Auth must be 403"
+session_cookie="$(curl -s -D - -o /dev/null -H "x-proxy-auth: $SECRET" "$BASE/session" | tr -d '\r' | grep -i '^set-cookie: __Host-agri_session=' || true)"
+if [ -n "$session_cookie" ] && echo "$session_cookie" | grep -q 'HttpOnly' && echo "$session_cookie" | grep -q 'Secure' && echo "$session_cookie" | grep -q 'Path=/' && ! echo "$session_cookie" | grep -qi 'Domain='; then
+  pass "session cookie through Caddy is host-only and HttpOnly"
+else
+  fail "session cookie through Caddy: ${session_cookie:-none}"
+fi
+
 python3 "$ROOT/infra/smoke/stream-timing.py" "$BASE/chat" "$SECRET" "please repeat these few words back to me one by one slowly" || fail "chat stream through Caddy"
 pass "chat streams incrementally through Caddy"
 

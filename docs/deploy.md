@@ -80,6 +80,12 @@ chmod 600 .env api.env
   docker compose -f docker-compose.prod.yml start api
   ```
 
+## Sessions
+
+- Browsers get a host-only `__Host-agri_session` cookie through the Vercel rewrite; the session row lives in the `sessions` table (`token_hash` only, 400-day sliding expiry).
+- A database restore from a snapshot rolls sessions back too: browsers holding a cookie for a session created after the snapshot get a new anonymous user on their next visit. Nothing fails; their chat history from that window is gone with the rolled-back rows.
+- The migration that adds `sessions` is additive, so the previous image keeps working against the new schema (rollback drill in Stage 2.3).
+
 ## Swagger
 
 Production serves Swagger UI at `/docs` and `/openapi.json` because `api.env` sets `SWAGGER_ENABLED=1` (developer decision: the same contract is already public in `apps/api/openapi.json`; browser routes still answer 403 without `X-Proxy-Auth`). Remove the line and redeploy to hide it.
@@ -92,7 +98,7 @@ infra/check-production.sh --api https://<api-host> --web https://<app>.vercel.ap
 infra/check-production.sh --api https://<api-host> --web https://<app>.vercel.app --stream   # + one real streamed answer
 ```
 
-It checks readiness, TLS (≥ 14 days left), HTTP→HTTPS, 403 on browser routes without a valid `X-Proxy-Auth`, security headers, closed 4000/5432/6379, and, with `--web`, that the Vercel rewrite and `proxy.ts` reach the API. The smoke test runs it against the local stack.
+It checks readiness, TLS (≥ 14 days left), HTTP→HTTPS, 403 on browser routes without a valid `X-Proxy-Auth` (including `/session`), security headers, closed 4000/5432/6379, and, with `--web`, that the Vercel rewrite and `proxy.ts` reach the API and that `/api/session` sets the host-only cookie and keeps the same user across two calls (this proves Vercel forwards `Set-Cookie`). The smoke test runs it against the local stack.
 
 ## Troubleshooting
 

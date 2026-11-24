@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { auditLog, conversations, fields, identities, messages, pendingActions, usageDaily, users } from "@/database/schema";
 import { testDatabase, type TestDatabase } from "@tests/support/test-database";
 
-const TABLES = ["audit_log", "conversations", "fields", "identities", "messages", "pending_actions", "usage_daily", "users"];
+const TABLES = ["audit_log", "conversations", "fields", "identities", "messages", "pending_actions", "sessions", "usage_daily", "users"];
 
 describe("database schema", () => {
   let test: TestDatabase;
