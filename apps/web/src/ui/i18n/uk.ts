@@ -38,6 +38,8 @@ export const uk = {
   "tool.decision": "Рішення",
   "tool.rejected": "Відхилено",
   "chat.title": "Чат",
+  "chat.hide": "Сховати чат",
+  "chat.show": "Показати чат",
   "account.menu": "Акаунт",
   "account.signIn": "Увійти",
   "account.signOut": "Вийти",

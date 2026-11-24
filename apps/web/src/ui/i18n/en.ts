@@ -40,6 +40,8 @@ export const en: Record<MessageKey, string> = {
   "tool.decision": "Decision",
   "tool.rejected": "Rejected",
   "chat.title": "Chat",
+  "chat.hide": "Hide chat",
+  "chat.show": "Show chat",
   "account.menu": "Account",
   "account.signIn": "Sign in",
   "account.signOut": "Sign out",

@@ -1,5 +1,5 @@
 import type React from "react";
-import { CircleUser } from "lucide-react";
+import { CircleUser, LogIn } from "lucide-react";
 import { Button } from "@/ui/atoms/Button";
 import { Icon } from "@/ui/atoms/Icon";
 import { SIGN_IN_KEY, signInHref, type SignInProvider } from "@/ui/helpers/account";
@@ -53,8 +53,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
                 key={provider}
                 role="menuitem"
                 href={signInHref(provider, returnTo)}
-                className="inline-flex min-h-11 items-center rounded-xl border border-ink px-4 font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink px-4 font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky"
               >
+                <Icon icon={LogIn} size={18} />
                 {t(SIGN_IN_KEY[provider])}
               </a>
             ))
