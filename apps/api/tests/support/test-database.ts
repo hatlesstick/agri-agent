@@ -10,7 +10,7 @@ import * as schema from "@/database/schema";
 
 export type TestDatabase = { db: Database; reset(): Promise<void>; close(): Promise<void> };
 
-const TABLES = sql.raw("audit_log, pending_actions, messages, conversations, fields, identities, usage_daily, users");
+const TABLES = sql.raw("audit_log, pending_actions, messages, conversations, fields, identities, sessions, usage_daily, users");
 
 async function onPostgres(url: string): Promise<TestDatabase> {
   const pool = new Pool({ connectionString: url, max: 5 });

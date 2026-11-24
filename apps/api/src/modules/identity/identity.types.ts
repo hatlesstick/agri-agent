@@ -1,4 +1,4 @@
-import type { users } from "@/database/schema";
+import type { sessions, users } from "@/database/schema";
 
 export type IdentityProvider = "web" | "telegram" | "mcp";
 
@@ -7,3 +7,5 @@ export type FindOrCreateUserInput = { provider: IdentityProvider; externalId: st
 export type FindOrCreateUserResult = { userId: string; created: boolean };
 
 export type User = typeof users.$inferSelect;
+
+export type Session = typeof sessions.$inferSelect;
