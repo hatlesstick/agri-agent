@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import noRawPalette from "./eslint-rules/no-raw-palette.mjs";
 
 const ATOMIC_LEVELS = ["atoms", "molecules", "organisms", "templates", "pages"];
 
@@ -57,10 +58,35 @@ function layerRules() {
   return [...layers, ...atomic, foundations];
 }
 
+const LEGACY_RAW_PALETTE_FILES = [
+  "src/ui/molecules/AgentStatus/AgentStatus.tsx",
+  "src/ui/molecules/ToolOutputSummary/SprayOutlookSummary.tsx",
+  "src/ui/molecules/ToolOutputSummary/SearchDocsSummary.tsx",
+  "src/ui/molecules/ToolOutputSummary/SprayWindowSummary.tsx",
+  "src/ui/molecules/ToolOutputSummary/ToolOutputSummary.tsx",
+  "src/ui/molecules/ErrorBanner/ErrorBanner.tsx",
+  "src/ui/molecules/StepTimeline/StepTimeline.tsx",
+  "src/ui/atoms/TextInput/TextInput.tsx",
+  "src/ui/atoms/Spinner/Spinner.tsx",
+  "src/ui/atoms/Button/Button.tsx",
+  "src/ui/atoms/Badge/Badge.tsx",
+  "src/ui/organisms/ToolCallCard/ToolCallCard.tsx",
+  "src/ui/organisms/ChatComposer/ChatComposer.tsx",
+  "src/ui/organisms/ToolCallCard/ToolInput.tsx",
+  "src/ui/organisms/ChatMessage/UserMessage.tsx",
+  "src/ui/organisms/ChatMessage/AssistantMessage.tsx",
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   ...layerRules(),
+  {
+    files: ["src/ui/**/*.{ts,tsx}"],
+    ignores: LEGACY_RAW_PALETTE_FILES,
+    plugins: { agri: { rules: { "no-raw-palette": noRawPalette } } },
+    rules: { "agri/no-raw-palette": "error" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
