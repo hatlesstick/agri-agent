@@ -11,7 +11,7 @@ const base = { returnTo: "/chat", authError: undefined, onToggle: () => {}, onSi
 describe("AccountMenu", () => {
   it("explains when sign-in is not set up instead of opening an empty menu", () => {
     render(<AccountMenu {...base} me={guest} providers={[]} menuOpen onToggle={() => {}} />);
-    expect(screen.queryByRole("menuitem")).toBeNull();
+    expect(screen.queryByRole("link")).toBeNull();
     expect(screen.getByText("Вхід на цьому сервері не налаштовано.")).toBeTruthy();
   });
 
@@ -31,8 +31,8 @@ describe("AccountMenu", () => {
 
   it("offers only the configured providers to a guest", () => {
     render(<AccountMenu {...base} me={guest} providers={["github"]} menuOpen onToggle={() => {}} />);
-    expect(screen.getByRole("menuitem", { name: "Увійти через GitHub" }).getAttribute("href")).toBe("/api/auth/github/start?returnTo=%2Fchat");
-    expect(screen.queryByRole("menuitem", { name: /Google/ })).toBeNull();
+    expect(screen.getByRole("link", { name: "Увійти через GitHub" }).getAttribute("href")).toBe("/api/auth/github/start?returnTo=%2Fchat");
+    expect(screen.queryByRole("link", { name: /Google/ })).toBeNull();
   });
 
   it("shows the avatar and the name, and signs out from the menu", async () => {
@@ -40,12 +40,18 @@ describe("AccountMenu", () => {
     render(<AccountMenu {...base} me={member} providers={["github", "google"]} menuOpen onSignOut={onSignOut} onToggle={() => {}} />);
     expect(document.querySelector("img")?.getAttribute("src")).toBe("https://a.example/42");
     expect(screen.getByText("Ann")).toBeTruthy();
-    await userEvent.click(screen.getByRole("menuitem", { name: "Вийти" }));
+    await userEvent.click(screen.getByRole("button", { name: "Вийти" }));
     expect(onSignOut).toHaveBeenCalledOnce();
   });
 
   it("announces a sign-in failure", () => {
     render(<AccountMenu {...base} me={guest} providers={["github"]} menuOpen={false} authError="Sign-in was cancelled." />);
     expect(screen.getByRole("alert").textContent).toContain("Sign-in was cancelled.");
+  });
+
+  it("keeps language and theme settings in the account menu", () => {
+    render(<AccountMenu {...base} me={guest} providers={[]} menuOpen onToggle={() => {}} settings={<p>налаштування</p>} />);
+    expect(screen.getByText("Налаштування")).toBeTruthy();
+    expect(screen.getByText("налаштування")).toBeTruthy();
   });
 });

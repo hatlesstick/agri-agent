@@ -9,7 +9,7 @@ import type { AccountMenuProps } from "./AccountMenu.types";
 
 const PROVIDER_NAME: Record<SignInProvider, string> = { github: "GitHub", google: "Google" };
 
-export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnTo, authError, menuOpen, onToggle, onSignOut }) => {
+export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnTo, authError, menuOpen, onToggle, onSignOut, settings }) => {
   const t = useT();
   const signedIn = me?.signedIn === true;
   const initials = me?.displayName?.trim().charAt(0).toUpperCase() ?? "";
@@ -37,14 +37,14 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
         )}
       </button>
       {menuOpen && (
-        <div role="menu" aria-label={t("account.menu")} className="absolute right-0 top-14 z-10 flex w-64 flex-col gap-2 rounded-2xl border border-rule bg-surface p-3">
+        <div role="dialog" aria-label={t("account.menu")} className="absolute right-0 top-14 z-10 flex w-72 flex-col gap-3 rounded-2xl border border-rule bg-surface p-3">
           {signedIn ? (
             <>
               <p className="font-semibold">{me.displayName ?? t("account.signedInAs")}</p>
               <p className="text-sm text-ink-soft">
                 {t("account.signedInWith")}: {me.providers.filter((p) => p === "github" || p === "google").map((p) => PROVIDER_NAME[p as SignInProvider]).join(", ") || "—"}
               </p>
-              <Button role="menuitem" variant="secondary" onClick={onSignOut}>
+              <Button variant="secondary" onClick={onSignOut}>
                 {t("account.signOut")}
               </Button>
             </>
@@ -57,7 +57,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
             {providers.map((provider) => (
               <a
                 key={provider}
-                role="menuitem"
                 href={signInHref(provider, returnTo)}
                 className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink px-4 font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky"
               >
@@ -66,6 +65,12 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
               </a>
             ))}
             </>
+          )}
+          {settings && (
+            <section aria-label={t("account.settings")} className="flex flex-col gap-2 border-t border-rule pt-3">
+              <h2 className="text-sm font-semibold text-ink-soft">{t("account.settings")}</h2>
+              {settings}
+            </section>
           )}
         </div>
       )}
