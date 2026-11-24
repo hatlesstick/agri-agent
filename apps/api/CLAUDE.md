@@ -36,7 +36,7 @@ src/
     spray-rules/          assessSprayDay (pure), spray-rules.types, index
     chat/                 ChatController, ChatService, ChatModule, chat.types, index; validation/ (chat-request), streams/ (refusal stream)
     spray-check/          SprayCheckController, SprayCheckService, SprayCheckModule, spray-check.types, index
-    identity/             IdentityModule; repositories/ (UsersRepository, IdentitiesRepository.findOrCreateUser)
+    identity/             IdentityModule; repositories/ (UsersRepository, IdentitiesRepository.findOrCreateUser, SessionsRepository); session/ (SessionService, SessionGuard, @CurrentUserId, cookie + token helpers); SessionController (GET /session)
     fields/               FieldsModule; repositories/ (FieldsRepository, user-scoped CRUD)
     (later) actions/ conversations/ telegram/ jobs/ mcp/
 data/                     RAG corpus (docs/*.md) + index.json (until 2.4)
@@ -109,7 +109,7 @@ Dockerfile
 - Timeouts: agent 30 s (`AGENT_TIMEOUT_MS`), Open-Meteo 8 s; client disconnect aborts the agent run.
 
 ## Security
-- `ProxyAuthGuard` on browser routes; rate limits per client + global; JSON body cap 256 KiB (`CHAT_LIMITS.maxBodyBytes`); CORS closed for browsers; security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Resource-Policy: same-site`) from `common/http/security-headers.ts`; security headers; non-root container.
+- `ProxyAuthGuard` on browser routes; browser routes that touch user data also use `SessionGuard` and take `@CurrentUserId()`; rate limits per client + global; JSON body cap 256 KiB (`CHAT_LIMITS.maxBodyBytes`); CORS closed for browsers; security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Resource-Policy: same-site`) from `common/http/security-headers.ts`; security headers; non-root container.
 
 ## Agent domain (moved from the root rules)
 ### Tools
