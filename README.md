@@ -2,11 +2,6 @@
 
 An AI assistant for farmers and agronomists. It plans field work around the weather, keeps track of fields and what was done on them, answers crop-protection questions with sources, and reaches people where they work: on the web, in Telegram and through morning alerts.
 
-[![CI](https://github.com/hatlesstick/agri-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/hatlesstick/agri-agent/actions/workflows/ci.yml)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
-![NestJS](https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white)
-![Vercel AI SDK](https://img.shields.io/badge/Vercel%20AI%20SDK-7-000000?logo=vercel&logoColor=white)
 
 **[Open the app](https://agri-agent-m.vercel.app)** · **[API reference](https://vps-32155ccb.vps.ovh.ca/docs)** · [Product scope](docs/product-scope.md) · [Architecture](docs/architecture.md)
 
@@ -17,14 +12,6 @@ An AI assistant for farmers and agronomists. It plans field work around the weat
 - **Crop-protection knowledge.** Answers built from curated documents and product labels, always with the source.
 - **Approvals.** The assistant prepares changes, such as a new field or a log entry; nothing is saved until a person confirms it.
 - **Channels.** Web app, Telegram bot with inline approvals, morning alerts, and an MCP server for other AI clients.
-- **Field operations ahead.** Field map, work log with voice input, irrigation and frost alerts, agro models, satellite monitoring and farm teams are on the [roadmap](docs/product-scope.md#backlog-after-the-core).
-
-## Screens
-
-Home screen in the dark theme with the Ukrainian interface, on desktop and on a phone:
-
-![Home screen on desktop, dark theme](docs/screenshots/prod-desktop-dark-ua.jpg)
-![Home screen on a phone, dark theme](docs/screenshots/prod-phone-dark-ua.jpg)
 
 ## Principles
 
@@ -51,7 +38,7 @@ One NestJS API owns all backend logic and serves every channel; the web app is U
 
 ## Tech stack
 
-TypeScript · pnpm + Turborepo · Next.js 16, React 19, Tailwind 4 · NestJS 12 · Vercel AI SDK 7 with AI Gateway · LangChain.js RAG building blocks · Postgres 17 + pgvector, Drizzle · Inngest · Langfuse · Docker Compose, Caddy, GitHub Actions, GHCR · Vitest
+TypeScript, pnpm and Turborepo · Next.js and Tailwind · NestJS · Vercel AI SDK · Postgres with pgvector and Drizzle · Inngest · Langfuse · Docker, Caddy · Vitest
 
 ## Getting started
 
