@@ -47,8 +47,13 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
                 {t("account.signOut")}
               </Button>
             </>
+          ) : providers.length === 0 ? (
+            <p className="text-sm text-ink-soft">{t("account.unavailable")}</p>
           ) : (
-            providers.map((provider) => (
+            <>
+              <p className="font-semibold">{t("account.guestTitle")}</p>
+              <p className="text-sm text-ink-soft">{t("account.guestNote")}</p>
+            {providers.map((provider) => (
               <a
                 key={provider}
                 role="menuitem"
@@ -58,7 +63,8 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
                 <Icon icon={LogIn} size={18} />
                 {t(SIGN_IN_KEY[provider])}
               </a>
-            ))
+            ))}
+            </>
           )}
         </div>
       )}

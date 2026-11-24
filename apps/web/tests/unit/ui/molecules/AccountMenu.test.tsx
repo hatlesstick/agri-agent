@@ -9,6 +9,18 @@ const member = { userId: "11111111-1111-4111-8111-111111111111", displayName: "A
 const base = { returnTo: "/chat", authError: undefined, onToggle: () => {}, onSignOut: () => {} };
 
 describe("AccountMenu", () => {
+  it("explains when sign-in is not set up instead of opening an empty menu", () => {
+    render(<AccountMenu {...base} me={guest} providers={[]} menuOpen onToggle={() => {}} />);
+    expect(screen.queryByRole("menuitem")).toBeNull();
+    expect(screen.getByText("Вхід на цьому сервері не налаштовано.")).toBeTruthy();
+  });
+
+  it("tells a guest why signing in helps before the provider buttons", () => {
+    render(<AccountMenu {...base} me={guest} providers={["github"]} menuOpen onToggle={() => {}} />);
+    expect(screen.getByText("Увійти, щоб зберегти історію")).toBeTruthy();
+    expect(screen.getByText("Історія і прогнози залишаться з вами після входу.")).toBeTruthy();
+  });
+
   it("is closed by default and opens from the avatar button", async () => {
     const onToggle = vi.fn();
     render(<AccountMenu {...base} me={guest} providers={["github"]} menuOpen={false} onToggle={onToggle} />);
