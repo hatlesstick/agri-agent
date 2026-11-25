@@ -1,6 +1,7 @@
 # Temperature, humidity and Delta T
 
 Source: GRDC (Grains Research and Development Corporation), spray application guidance on Delta T
+Updated: 2026-11-25
 
 ## Evaporation of droplets
 

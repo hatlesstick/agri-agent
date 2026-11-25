@@ -1,6 +1,7 @@
 # Product labels, buffer zones and records
 
 Source: Directive 2009/128/EC of the European Parliament and of the Council on the sustainable use of pesticides; Defra/HSE (2006), Code of Practice for Using Plant Protection Products
+Updated: 2026-11-25
 
 ## The label comes first
 

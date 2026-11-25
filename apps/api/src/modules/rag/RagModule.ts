@@ -1,10 +1,18 @@
 import { Module } from "@nestjs/common";
-import { DocsRepository } from "@/modules/rag/adapters/DocsRepository";
-import { JsonRagEngine } from "@/modules/rag/adapters/JsonRagEngine";
+import { isMockMode } from "@/config";
+import { createDatabaseRagEngine, createMockRagEngine } from "@/modules/rag/create-rag-engine";
+import { DocChunksRepository } from "@/modules/rag/repositories/DocChunksRepository";
 import { RAG_ENGINE } from "@/modules/rag/rag.tokens";
 
 @Module({
-  providers: [{ provide: RAG_ENGINE, useFactory: () => new JsonRagEngine(new DocsRepository()) }],
+  providers: [
+    DocChunksRepository,
+    {
+      provide: RAG_ENGINE,
+      inject: [DocChunksRepository],
+      useFactory: (store: DocChunksRepository) => (isMockMode() ? createMockRagEngine() : createDatabaseRagEngine(store)),
+    },
+  ],
   exports: [RAG_ENGINE],
 })
 export class RagModule {}

@@ -28,8 +28,9 @@ src/
       errors/             classify agent errors → chat message / problem
       mock/               scripted mock model + tool matchers (AI_MOCK)
     rag/                  RagModule, rag.tokens, rag.types, index
-      domain/             searchDocs (sort + threshold + top-k), rank, chunk-markdown
-      adapters/           JsonRagEngine, DocsRepository (LangChain adapter in 2.4)
+      domain/             searchDocs (sort + threshold + top-k), clean/validate/chunk documents, content hash, normalize vector
+      adapters/           LangChainRagEngine, MemoryDocChunkStore, DocsRepository
+      repositories/       DocChunksRepository (pgvector, doc_chunks)
       embeddings/         embedding model id, mock embeddings
     weather/              WeatherModule, weather.tokens, weather.types (incl. WeatherPort), index
       adapters/           OpenMeteoClient, open-meteo.schemas, WeatherRepository (forecast cache via CacheStore)
@@ -39,9 +40,9 @@ src/
     identity/             IdentityModule; repositories/ (UsersRepository, IdentitiesRepository.findOrCreateUser, SessionsRepository); session/ (SessionService, SessionGuard, @CurrentUserId, cookie + token helpers); SessionController (GET /session)
     fields/               FieldsModule; repositories/ (FieldsRepository, user-scoped CRUD)
     (later) actions/ conversations/ telegram/ jobs/ mcp/
-data/                     RAG corpus (docs/*.md) + index.json (until 2.4)
+data/                     RAG corpus (docs/*.md); embeddings live in the doc_chunks table
 drizzle/                  generated SQL migrations + meta (committed)
-scripts/                  generate-openapi, build-index, eval summary/compare/baseline, langfuse-*
+scripts/                  generate-openapi, index-docs (pnpm index), eval summary/compare/baseline, langfuse-*
 tests/
   unit/<same path as src>/…
   e2e/<feature>.e2e.test.ts
@@ -157,7 +158,7 @@ Geocoding `$OPEN_METEO_GEOCODING_URL?name=<city>&count=1&language=en`; forecast 
 ## Lint-enforced boundaries
 - `common/`, `config/`, `observability/` never import `modules/`.
 - Modules, `bootstrap/` and root files import another module only via `@/modules/<name>`; no deep imports into another module.
-- Adapter classes (`WeatherRepository`, `OpenMeteoClient`, `JsonRagEngine`, `DocsRepository`) are imported only inside their own module and by `modules/agent/core/create-agent-ports.ts`; everything else depends on ports/tokens.
+- Adapter classes (`WeatherRepository`, `OpenMeteoClient`, `LangChainRagEngine`, `DocChunksRepository`, `DocsRepository`) are imported only inside their own module and by `modules/agent/core/create-agent-ports.ts`; everything else depends on ports/tokens.
 - Tools never import `createAgentPorts` or `AgentModule`.
 - No relative imports in `src/` (use `@/`); no `console.*` in `src/` (use Nest `Logger`, backed by pino).
 - No `next`, `react`, `react-dom` anywhere in `apps/api`.

@@ -1,6 +1,7 @@
 # Temperature inversions
 
 Source: GRDC (Grains Research and Development Corporation), Surface temperature inversions and spraying, fact sheet
+Updated: 2026-11-25
 
 ## What an inversion is
 

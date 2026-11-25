@@ -69,6 +69,21 @@ chmod 600 .env api.env
 - The full log of the last run is `/opt/agri-agent/state/deploy.log`; the script ignores a dropped SSH session (it keeps going and still rolls back), so check that log when the workflow lost its connection.
 - `deploy.sh <tag>`: refuses an unknown tag or an invalid changed `Caddyfile` before touching anything → snapshot (`pg_dump -Fc`) → one-off migration container from the new image (a failed migration leaves the running API untouched) → `up -d` → readiness check through the container → on success records the tag; on failure starts the previous tag again and exits non-zero.
 
+## Document index (RAG)
+
+The corpus in `apps/api/data/docs` lives in the `doc_chunks` table in the database. Deploys do not write it; run this by hand, once, and again only when the documents change.
+
+Order for the first production index (the search code reads from the table, so an empty table answers without sources until the index exists):
+
+1. Check what would change, using the image the server already runs:
+   `docker compose -f docker-compose.prod.yml run --rm api node dist/scripts/index-docs.js --check`
+   (if the built image does not ship the script yet, skip to step 2 with the new tag from step 2 of the deploy)
+2. Index: `docker compose -f docker-compose.prod.yml run --rm api node dist/scripts/index-docs.js`
+   Expect `added` 19 and `rejected` empty on the first run; a second run must report `added` 0.
+3. Check a real question with `infra/check-production.sh` plus one streamed answer that cites a source.
+
+Ingest calls the embeddings gateway, which allows 5 requests per minute. Each document is one request, so the six corpus files fit; a larger corpus needs pauses in the script first.
+
 ## Rollback
 
 - GitHub → Actions → **Deploy** → *Run workflow* → `tag` = the previous tag (`cat /opt/agri-agent/state/previous-tag` on the server, or any `sha-<7>` from GHCR).

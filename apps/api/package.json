@@ -23,7 +23,7 @@
     "eval:summary": "tsx scripts/eval-summary.ts",
     "langfuse:dataset": "tsx --env-file-if-exists=.env scripts/langfuse-dataset-sync.ts",
     "langfuse:experiment": "tsx --env-file-if-exists=.env scripts/langfuse-experiment.ts",
-    "index": "tsx --env-file-if-exists=.env scripts/build-index.ts",
+    "index": "tsx --env-file-if-exists=.env scripts/index-docs.ts",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
     "db:migrate": "tsx --env-file-if-exists=.env src/migrate.ts",
@@ -35,6 +35,8 @@
   "dependencies": {
     "@agri/shared": "workspace:*",
     "@ai-sdk/otel": "^1.0.170",
+    "@langchain/core": "^1.5.1",
+    "@langchain/textsplitters": "^1.0.2",
     "@langfuse/otel": "^6.1.1",
     "@nestjs/common": "^12.5.0",
     "@nestjs/core": "^12.5.0",

@@ -1,37 +1,7 @@
-import { Logger } from "@nestjs/common";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usableIndex } from "@/modules/rag/adapters/JsonRagEngine";
 import { MOCK_MIN_SCORE, REAL_MIN_SCORE, searchDocs } from "@/modules/rag/domain/search";
 import type { RagCandidate } from "@/modules/rag";
 import { fakeRag } from "@tests/support/fake-ports";
-import type { RagIndex } from "@/modules/rag/rag.types";
-
-const index = (model: string, dims: number): RagIndex => ({
-  model,
-  createdAt: "2026-11-11T00:00:00.000Z",
-  chunks: [{ id: "a", source: "s", title: "t", heading: "h", text: "x", embedding: new Array(dims).fill(0.1) }],
-});
-
-describe("usableIndex", () => {
-  afterEach(() => vi.restoreAllMocks());
-
-  it("accepts an index built with the configured embedding model", () => {
-    const built = index("google/gemini-embedding-001", 3);
-    expect(usableIndex(built, "google/gemini-embedding-001")).toBe(built);
-  });
-
-  it("rejects and warns when the index was built with another model", () => {
-    const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
-    expect(usableIndex(index("openai/text-embedding-3-small", 3), "google/gemini-embedding-001")).toBeNull();
-    expect(warn).toHaveBeenCalled();
-  });
-
-  it("rejects a missing or empty index", () => {
-    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
-    expect(usableIndex(null, "m")).toBeNull();
-    expect(usableIndex({ ...index("m", 3), chunks: [] }, "m")).toBeNull();
-  });
-});
 
 const hit = (id: string, score: number): RagCandidate => ({ id, source: "s", title: "t", heading: id, text: id, score });
 
