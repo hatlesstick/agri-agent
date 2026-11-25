@@ -56,3 +56,19 @@ Result against the pass criteria:
 - Score movement below 0.01: not met. The shift is 0.018 on the lowest on-corpus score and 0.031 on the highest off-corpus score. This is expected: the vectors have a different dimension (1536 against 3072), so the two sets of scores are not on the same scale.
 
 Threshold decision: `REAL_MIN_SCORE` stays at 0.64 for now. On the 1536 vectors it still separates the two groups: the lowest on-corpus score is 0.708 and the highest off-corpus score is 0.520. The midpoint of 0.614 would also work, but changing it on this evidence alone would be premature. It will be rechecked when the corpus grows (Stage 2.4c, the embedding comparison).
+
+## Chunk size: sections against packed chunks (2026-11-25)
+
+Same model and dimensions as above (1536), same 15 questions, same retrieval check. Variant A is one chunk per section (on production now). Variant B packs neighbouring short sections of the same document up to 500 characters.
+
+| Measure | A: sections | B: packed to 500 |
+| --- | --- | --- |
+| Chunks | 19 | 17 |
+| Length min / median / max | 232 / 277 / 353 | 232 / 295 / 500 |
+| recall@3, 12 retrieval questions | 12 / 12 | 12 / 12 |
+| Top score, on-corpus questions | 0.708 – 0.858 | 0.699 – 0.819 |
+| Top score, off-corpus questions (max) | 0.520 | 0.523 |
+| Gap between the groups | 0.188 | 0.175 |
+| Top-1 agreement with A, on-corpus questions | (reference) | 10 / 12 |
+
+Decision: keep one chunk per section. Recall is the same, B separates the two groups slightly less, and B changes the top-1 chunk on two corpus questions because merged chunks mix topics. The 300–500 guidance matters for longer sections; our sections are already 232–353 characters. Revisit when the corpus grows. Twelve questions is a small sample, so this holds for this corpus only.
