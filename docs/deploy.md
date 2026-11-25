@@ -76,9 +76,8 @@ The corpus in `apps/api/data/docs` lives in the `doc_chunks` table in the databa
 Order for the first production index (the search code reads from the table, so an empty table answers without sources until the index exists):
 
 1. Check what would change, using the image the server already runs:
-   `docker compose -f docker-compose.prod.yml run --rm api node dist/scripts/index-docs.js --check`
-   (if the built image does not ship the script yet, skip to step 2 with the new tag from step 2 of the deploy)
-2. Index: `docker compose -f docker-compose.prod.yml run --rm api node dist/scripts/index-docs.js`
+   `docker compose -f docker-compose.prod.yml run --rm api node dist/index-docs.js --check`
+2. Index: `docker compose -f docker-compose.prod.yml run --rm api node dist/index-docs.js`
    Expect `added` 19 and `rejected` empty on the first run; a second run must report `added` 0.
 3. Check a real question with `infra/check-production.sh` plus one streamed answer that cites a source.
 
