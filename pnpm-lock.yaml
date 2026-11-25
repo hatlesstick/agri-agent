@@ -23,9 +23,6 @@ importers:
       '@langchain/core':
         specifier: ^1.5.1
         version: 1.5.1(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.1(@opentelemetry/api@1.9.1))
-      '@langchain/pgvector':
-        specifier: ^0.1.0
-        version: 0.1.0(@langchain/core@1.5.1(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.1(@opentelemetry/api@1.9.1)))
       '@langchain/textsplitters':
         specifier: ^1.0.2
         version: 1.0.2(@langchain/core@1.5.1(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.1(@opentelemetry/api@1.9.1)))
@@ -1242,12 +1239,6 @@ packages:
   '@langchain/core@1.5.1':
     resolution: {integrity: sha512-vPtTZGYxzpJBDJ4BHkPJZpC4+ceAFl+Fs1YCXy2VQiUsPRvNEJmXIE/sJLza5MroKRltPLMfJ/qIsSPHqUBr1w==}
     engines: {node: '>=20'}
-
-  '@langchain/pgvector@0.1.0':
-    resolution: {integrity: sha512-1/3ahOTdYwstTXq7mLZWl1ri6C7RL/vALywieVglBZ1iY8ujH15WvI7Afare/OPbMUOIcL26/KmFs2Sqy9MPYA==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@langchain/core': ^1.0.0
 
   '@langchain/textsplitters@1.0.2':
     resolution: {integrity: sha512-UNCmlyFIRlRfVxqpmcRsp1jQrscnIVVqRKrrjFF2wHHq+VGTv+VDkGZLyEVUopJfHIdaiXfOKlSrROQui7VLFA==}
@@ -5615,13 +5606,6 @@ snapshots:
       - '@opentelemetry/sdk-trace-base'
       - openai
       - ws
-
-  '@langchain/pgvector@0.1.0(@langchain/core@1.5.1(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.1(@opentelemetry/api@1.9.1)))':
-    dependencies:
-      '@langchain/core': 1.5.1(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.1(@opentelemetry/api@1.9.1))
-      pg: 8.23.1
-    transitivePeerDependencies:
-      - pg-native
 
   '@langchain/textsplitters@1.0.2(@langchain/core@1.5.1(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.1(@opentelemetry/api@1.9.1)))':
     dependencies:
