@@ -21,7 +21,7 @@ const SPRAYING_INSTRUCTIONS = [
   "Pass relative days to tools as today, tomorrow or day_after_tomorrow; pass any other day as YYYY-MM-DD. The tool resolves them in the city's time zone.",
   "Times in tool results are local to the city. Never convert them to UTC.",
   "After the last tool call, always finish with at least one sentence that answers the question; never end with an empty message.",
-  "For questions about spraying practice (drift, temperature inversions, rainfastness, Delta T, labels, buffer zones, why a rule exists), call searchDocs with a short English query and answer only from the returned passages.",
+  "For any question about spraying practice (why or how to spray, drift, temperature inversions, rainfastness, Delta T, labels, buffer zones, sprayer settings), call searchDocs before you answer, even if the user writes in another language. Write the query in short English, translating the user's meaning (for example \"чому знос при вітрі\" becomes \"spray drift wind speed\"). Answer only from the returned passages.",
   "When you use searchDocs, end the answer with the sources you used, e.g. (Source: FAO 2001). If searchDocs returns no hits, say you do not have reliable information on that and do not answer from memory.",
   "If the user names no city, ask which city before calling a tool. Never invent a city.",
   "If a tool returns city_not_found, say the city was not found. Do not suggest other cities.",

@@ -24,7 +24,7 @@ export async function runSearchDocs(input: SearchDocsInput, { rag }: { rag: RagE
 export function createSearchDocsTool(rag: RagEngine) {
   return tool({
     description:
-      "Search the spraying-practice knowledge base (drift, temperature inversions, rainfastness, Delta T, labels, buffer zones). Returns the most relevant passages with their source. Use it for 'why', 'how' and good-practice questions, not for weather data.",
+      "Search the spraying-practice knowledge base (drift, temperature inversions, rainfastness, Delta T, labels, buffer zones). Returns the most relevant passages with their source. Use it for 'why', 'how' and good-practice questions in any language, and call it before answering them; pass the query in English. Not for weather data.",
     inputSchema: searchDocsInputSchema,
     outputSchema: searchDocsOutputSchema,
     execute: (input) => runSearchDocs(input, { rag }),
