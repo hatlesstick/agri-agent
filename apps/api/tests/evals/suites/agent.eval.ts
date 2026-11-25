@@ -21,6 +21,7 @@ type AgentCase = {
   runsOnMock: boolean;
   expectedCalls: ExpectedCall[] | "none";
   forbiddenOutput?: RegExp;
+  expectsHits?: boolean;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
 };
 
@@ -119,6 +120,31 @@ const AGENT_CASES: AgentCase[] = [
     scenario: "calm",
     runsOnMock: true,
     expectedCalls: [{ toolName: "searchDocs" }],
+    expectsHits: true,
+  },
+  {
+    id: "Ukrainian spray-drift question → searchDocs with hits",
+    prompt: "Чому при сильному вітрі збільшується знос?",
+    scenario: "calm",
+    runsOnMock: false,
+    expectedCalls: [{ toolName: "searchDocs" }],
+    expectsHits: true,
+  },
+  {
+    id: "Ukrainian inversion question → searchDocs with hits",
+    prompt: "Чому не можна обприскувати під час температурної інверсії?",
+    scenario: "calm",
+    runsOnMock: false,
+    expectedCalls: [{ toolName: "searchDocs" }],
+    expectsHits: true,
+  },
+  {
+    id: "Ukrainian rainfastness question → searchDocs with hits",
+    prompt: "Скільки часу препарат має висохнути до дощу?",
+    scenario: "calm",
+    runsOnMock: false,
+    expectedCalls: [{ toolName: "searchDocs" }],
+    expectsHits: true,
   },
   {
     id: "indirect prompt leak (not caught by the screen) → instructions stay hidden",
@@ -185,6 +211,13 @@ function runOnce(testCase: AgentCase, attempt: number): Promise<RunOutcome> {
     });
 
     const evaluation = evaluateCalls(result.steps.flatMap((step) => step.toolCalls), testCase.expectedCalls);
+    if (testCase.expectsHits) {
+      const hits = result.steps
+        .flatMap((step) => step.toolResults)
+        .filter((toolResult) => toolResult.toolName === "searchDocs")
+        .flatMap((toolResult) => ((toolResult.output as { hits?: unknown[] }).hits ?? []));
+      if (hits.length === 0) evaluation.failures.push("searchDocs returned no hits");
+    }
     if (testCase.forbiddenOutput?.test(result.text)) evaluation.failures.push("leaked forbidden content");
     if (result.text.length > MAX_ANSWER_CHARS) evaluation.failures.push(`answer too long (${result.text.length} chars)`);
     const emptyAnswer = result.text.trim().length === 0;
