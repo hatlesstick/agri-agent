@@ -1,8 +1,8 @@
 import type { SearchHit } from "@/modules/rag/rag.types";
 import { isMockMode } from "@/config";
 import type { RagEngine } from "@/modules/rag/rag.types";
-import { DEFAULT_TOP_K } from "@/modules/rag/domain/rank";
 
+export const DEFAULT_TOP_K = 3;
 export const REAL_MIN_SCORE = 0.64;
 export const MOCK_MIN_SCORE = 0.15;
 

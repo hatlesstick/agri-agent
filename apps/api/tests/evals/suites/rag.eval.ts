@@ -1,31 +1,40 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
+import { embedMany } from "ai";
 import { printEvalReport, recordEval } from "@tests/evals/support/report";
 import { MOCK } from "@tests/evals/support/harness";
+import { RETRIEVAL_CASES } from "@tests/evals/support/retrieval-cases";
 import { DocsRepository } from "@/modules/rag/adapters/DocsRepository";
-import { JsonRagEngine } from "@/modules/rag/adapters/JsonRagEngine";
+import { LangChainRagEngine } from "@/modules/rag/adapters/LangChainRagEngine";
+import { MemoryDocChunkStore } from "@/modules/rag/adapters/MemoryDocChunkStore";
 import { REAL_MIN_SCORE, searchDocs } from "@/modules/rag/domain/search";
-import { cosineSimilarity, embedMany } from "ai";
-import { existsSync, readFileSync } from "node:fs";
-import { EMBEDDING_MODEL } from "@/modules/rag";
-import { INDEX_FILE } from "@/modules/rag/adapters/DocsRepository";
-import type { RagIndex } from "@/modules/rag/rag.types";
-import { chunkMarkdown } from "@/modules/rag/domain/chunk-markdown";
-
-const docsRepository = new DocsRepository();
-const jsonRagEngine = new JsonRagEngine(docsRepository);
+import { chunkDocument } from "@/modules/rag/domain/chunk-document";
+import { contentHash } from "@/modules/rag/domain/content-hash";
+import { normalizeVector } from "@/modules/rag/domain/normalize-vector";
+import { createEmbeddingBackend, EMBEDDING_DIMENSIONS } from "@/modules/rag/embeddings/ai-sdk-embeddings";
+import { EMBEDDING_MODEL } from "@/modules/rag/embeddings/embedding-model";
+import { createMockRagEngine } from "@/modules/rag/create-rag-engine";
+import type { StoredChunk } from "@/modules/rag/doc-chunk-store.types";
 
 const SUITE = "rag evals (retrieval)";
 
-import { RETRIEVAL_CASES } from "@tests/evals/support/retrieval-cases";
-
 export const OFF_CORPUS_QUESTIONS = ["What is the price of glyphosate in France?", "Who won the football match yesterday?", "How do I bake bread?"];
 
+async function corpusChunks() {
+  const documents = new DocsRepository().readCorpusDocuments();
+  const chunks = [];
+  for (const document of documents) {
+    const result = await chunkDocument(document.fileName, document.markdown);
+    if ("error" in result) throw new Error(`${document.fileName}: ${result.error}`);
+    chunks.push(...result.chunks);
+  }
+  return chunks;
+}
+
 describe(SUITE, () => {
-  beforeEach(() => jsonRagEngine.reset());
   afterAll(() => printEvalReport(SUITE));
 
-  it("chunks every corpus document by section with its source", () => {
-    const chunks = docsRepository.readCorpusChunks();
+  it("chunks every corpus document by section with its source", async () => {
+    const chunks = await corpusChunks();
     const ids = new Set(chunks.map((chunk) => chunk.id));
     const missing = RETRIEVAL_CASES.map((testCase) => testCase.expectedId).filter((id) => !ids.has(id));
     const withoutSource = chunks.filter((chunk) => !chunk.source).map((chunk) => chunk.id);
@@ -34,35 +43,44 @@ describe(SUITE, () => {
     expect(withoutSource).toEqual([]);
   });
 
-  it("rejects documents without a source line", () => {
-    expect(() => chunkMarkdown("bad.md", "# Title\n\n## Section\n\nText")).toThrow(/Source/);
+  it("rejects documents without a source line", async () => {
+    expect(await chunkDocument("bad.md", "# Title\n\nUpdated: 2026-11-25\n\n## Section\n\nText")).toEqual({ error: "missing_source" });
   });
 
-  it.skipIf(MOCK || !existsSync(INDEX_FILE))("real retrieval: recall@3 and score calibration", async () => {
-    const index = JSON.parse(readFileSync(INDEX_FILE, "utf8")) as RagIndex;
+  it.skipIf(MOCK)("real retrieval: recall@3 and score calibration on the pgvector engine's embeddings", async () => {
+    const backend = createEmbeddingBackend(false);
+    const chunks = await corpusChunks();
+    const vectors = await backend.embedMany(chunks.map((chunk) => chunk.text));
+    const store = new MemoryDocChunkStore();
+    const stored: StoredChunk[] = chunks.map((chunk, position) => ({
+      ...chunk,
+      contentHash: contentHash(chunk.text),
+      embedding: normalizeVector(vectors[position]),
+    }));
+    await store.upsertMany(stored);
+
     const questions = [...RETRIEVAL_CASES.map((testCase) => testCase.question), ...OFF_CORPUS_QUESTIONS];
-    const { embeddings } = await embedMany({ model: EMBEDDING_MODEL, values: questions, maxRetries: 3 });
-    const vectorFor = new Map(questions.map((question, position) => [question, embeddings[position]]));
-    const topScore = (question: string) => {
-      const embedding = vectorFor.get(question);
-      if (!embedding) throw new Error(`no embedding for question: ${question}`);
-      const ranked = index.chunks
-        .map((chunk) => ({ id: chunk.id, score: cosineSimilarity(embedding, chunk.embedding) }))
-        .sort((left, right) => right.score - left.score);
-      return ranked;
-    };
+    const { embeddings } = await embedMany({ model: EMBEDDING_MODEL, values: questions, maxRetries: 3, providerOptions: { google: { outputDimensionality: EMBEDDING_DIMENSIONS } } });
+    const vectorFor = new Map(questions.map((question, position) => [question, normalizeVector(embeddings[position])]));
+    const engine = new LangChainRagEngine(store, {
+      embedQuery: async (question) => {
+        const vector = vectorFor.get(question);
+        if (!vector) throw new Error(`no embedding for question: ${question}`);
+        return vector;
+      },
+    });
 
     let found = 0;
     const onCorpusTop: number[] = [];
     const misses: string[] = [];
     for (const testCase of RETRIEVAL_CASES) {
-      const ranked = topScore(testCase.question);
-      onCorpusTop.push(ranked[0].score);
-      if (ranked.slice(0, 3).some((hit) => hit.id === testCase.expectedId)) found += 1;
-      else misses.push(`${testCase.expectedId} (top: ${ranked[0].id})`);
+      const hits = (await engine.search(testCase.question, { topK: 3 })) ?? [];
+      onCorpusTop.push(hits[0]?.score ?? 0);
+      if (hits.some((hit) => hit.id === testCase.expectedId)) found += 1;
+      else misses.push(`${testCase.expectedId} (top: ${hits[0]?.id ?? "none"})`);
     }
     const offCorpusTop: number[] = [];
-    for (const question of OFF_CORPUS_QUESTIONS) offCorpusTop.push(topScore(question)[0].score);
+    for (const question of OFF_CORPUS_QUESTIONS) offCorpusTop.push((await engine.search(question, { topK: 1 }))?.[0]?.score ?? 0);
 
     const range = (values: number[]) => `${Math.min(...values).toFixed(3)}–${Math.max(...values).toFixed(3)}`;
     console.log(`\nreal recall@3: ${found}/${RETRIEVAL_CASES.length}`);
@@ -75,10 +93,11 @@ describe(SUITE, () => {
   });
 
   it.skipIf(!MOCK)("mock retrieval: recall@3 on corpus questions", async () => {
+    const engine = createMockRagEngine();
     let found = 0;
     const misses: string[] = [];
     for (const testCase of RETRIEVAL_CASES) {
-      const hits = (await searchDocs(jsonRagEngine, testCase.question)) ?? [];
+      const hits = (await searchDocs(engine, testCase.question)) ?? [];
       if (hits.some((hit) => hit.id === testCase.expectedId)) found += 1;
       else misses.push(testCase.expectedId);
     }

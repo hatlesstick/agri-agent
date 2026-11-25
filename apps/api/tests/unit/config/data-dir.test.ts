@@ -1,7 +1,6 @@
-import { existsSync, readdirSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join, sep } from "node:path";
 import { describe, expect, it } from "vitest";
-import { INDEX_FILE } from "@/modules/rag/adapters/DocsRepository";
 import { DATA_DIR } from "@/config/data-dir";
 
 describe("DATA_DIR", () => {
@@ -10,8 +9,4 @@ describe("DATA_DIR", () => {
     expect(readdirSync(join(DATA_DIR, "docs")).filter((file) => file.endsWith(".md"))).toHaveLength(6);
   });
 
-  it("holds the RAG index used by DocsRepository", () => {
-    expect(existsSync(join(DATA_DIR, "index.json"))).toBe(true);
-    expect(INDEX_FILE).toBe(join(DATA_DIR, "index.json"));
-  });
 });

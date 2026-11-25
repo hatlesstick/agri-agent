@@ -1,11 +1,10 @@
-export { chunkMarkdown } from "@/modules/rag/domain/chunk-markdown";
-export type { Chunk, IndexedChunk, RagIndex, SearchHit } from "@/modules/rag/rag.types";
-export { DOCS_DIR, DocsRepository, INDEX_FILE } from "@/modules/rag/adapters/DocsRepository";
+export type { DocChunk, DocumentError, RagCandidate, RagEngine, SearchHit } from "@/modules/rag/rag.types";
+export { DOCS_DIR, DocsRepository } from "@/modules/rag/adapters/DocsRepository";
 export { EMBEDDING_MODEL } from "@/modules/rag/embeddings/embedding-model";
-export { JsonRagEngine, usableIndex } from "@/modules/rag/adapters/JsonRagEngine";
+export { LangChainRagEngine } from "@/modules/rag/adapters/LangChainRagEngine";
+export { createDatabaseRagEngine, createMockRagEngine, createStandaloneRagEngine } from "@/modules/rag/create-rag-engine";
 export { mockEmbedding } from "@/modules/rag/embeddings/mock-embedding";
 export { RAG_ENGINE } from "@/modules/rag/rag.tokens";
-export type { RagCandidate, RagEngine } from "@/modules/rag/rag.types";
 export { RagModule } from "@/modules/rag/RagModule";
-export { DEFAULT_TOP_K, rankChunks } from "@/modules/rag/domain/rank";
+export { DEFAULT_TOP_K } from "@/modules/rag/domain/search";
 export { MOCK_MIN_SCORE, REAL_MIN_SCORE, searchDocs } from "@/modules/rag/domain/search";

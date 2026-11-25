@@ -10,7 +10,7 @@ Details behind the README: decision rules, guardrails, quality gates, configurat
 
 **Spraying rules.** An hour is suitable when wind is 1–4 m/s, temperature is 10–25 °C and there is no precipitation (≥ 0.1 mm) within 3 hours before and after. A window is a run of consecutive suitable hours; the best window is the longest one (earliest on a tie). Past hours are never offered, and relative days (`today`, `tomorrow`) are resolved in the city's time zone.
 
-**RAG.** `apps/api/data/docs/*.md` is a curated corpus on spraying practice, each document with a `Source:` line. `pnpm index` chunks it by section and embeds it with `google/gemini-embedding-001`. `searchDocs` returns the top 3 passages above a calibrated similarity threshold (0.64); the agent answers only from them and cites the source. Stage 2.4 moves the index to pgvector behind the same tool.
+**RAG.** `apps/api/data/docs/*.md` is a curated corpus on spraying practice, each document with a `Source:` line. `pnpm index` writes it into the pgvector table `doc_chunks`: it chunks each document by section, embeds the new or changed chunks with `google/gemini-embedding-001` at 1536 dimensions, and skips the rest by content hash, so re-running it is safe. Deploys do not run it. `searchDocs` returns the top 3 passages above a calibrated similarity threshold (0.64); the agent answers only from them and cites the source. The same tool reads from pgvector.
 
 **Guardrails.** Request validation and size limits, proxy secret, per-client and global rate limits, a prompt-injection input screen, history sanitisation, step and output-token limits, a 30 s agent timeout, label-and-regulations reminder when an answer mentions application rates, safe markdown rendering, and RFC 9457 problem details for every HTTP error.
 
@@ -63,7 +63,8 @@ The web app needs `API_ORIGIN` (API base URL for the `/api/*` rewrites, read at 
 | `pnpm eval:compare` | Writes [docs/model-comparison.md](model-comparison.md) from the latest real run per model |
 | `pnpm langfuse:dataset` / `pnpm langfuse:experiment --model <id>` | Upsert the spray-check dataset / run an experiment on it |
 | `pnpm openapi` | Regenerate `apps/api/openapi.json` (commit it with API changes) |
-| `pnpm index` | Rebuild the RAG embeddings from `apps/api/data/docs/` |
+| `pnpm index` | Ingest `apps/api/data/docs/` into `doc_chunks` (changed chunks only; removes documents that are gone) |
+| `pnpm index -- --check` | Show what the ingest would add, keep and remove, without writing or embedding |
 | `pnpm db:up`, `pnpm --filter @agri/api db:migrate \| db:seed \| test:db` | Database: start, migrate, seed, Postgres tests |
 
 ## API

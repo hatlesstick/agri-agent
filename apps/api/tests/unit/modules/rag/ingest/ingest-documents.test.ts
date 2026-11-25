@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { MemoryDocChunkStore } from "@/modules/rag/adapters/MemoryDocChunkStore";
-import { ingestDocuments, type DocumentEmbedder } from "@/modules/rag/ingest/ingest-documents";
+import { ingestDocuments, planIngest, removeDocumentsNotIn, type DocumentEmbedder } from "@/modules/rag/ingest/ingest-documents";
 
 const SHARED_SOURCE = "FAO (2001), Guidelines on good practice";
 
@@ -119,5 +119,26 @@ describe("ingestDocuments", () => {
     expect(report).toEqual({ added: 0, unchanged: 0, rejected: [{ fileName: "spray.md", error: "embedding_failed" }] });
     const texts = (await store.search([1, 0, 0, 0], 10)).map((match) => match.chunk.text);
     expect(texts).toContain("Spray drift — Nozzles\n\nUse coarse droplets.");
+  });
+});
+
+describe("planIngest and removeDocumentsNotIn", () => {
+  it("reports what a run would add, keep and remove without embedding or writing", async () => {
+    const store = new MemoryDocChunkStore();
+    const embedder = new CountingEmbedder();
+    await ingestDocuments([{ fileName: "spray.md", markdown: SPRAY }, { fileName: "old.md", markdown: WEATHER }], store, embedder);
+    embedder.calls = [];
+    const plan = await planIngest([{ fileName: "spray.md", markdown: SPRAY.replace("Use coarse droplets.", "Use fine droplets.") }, { fileName: "bad.md", markdown: INVALID }], store);
+    expect(plan).toEqual({ wouldAdd: 1, unchanged: 1, wouldRemove: ["old.md"], rejected: [{ fileName: "bad.md", error: "missing_source" }] });
+    expect(embedder.calls).toEqual([]);
+    expect((await store.documentKeys()).sort()).toEqual(["old.md", "spray.md"]);
+  });
+
+  it("removes every stored document that is no longer in the corpus and keeps the rest", async () => {
+    const store = new MemoryDocChunkStore();
+    await ingestDocuments([{ fileName: "spray.md", markdown: SPRAY }, { fileName: "old.md", markdown: WEATHER }], store, new CountingEmbedder());
+    const removed = await removeDocumentsNotIn(["spray.md"], store);
+    expect(removed).toBe(1);
+    expect(await store.documentKeys()).toEqual(["spray.md"]);
   });
 });

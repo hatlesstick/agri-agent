@@ -9,4 +9,5 @@ export type DocChunkStore = {
   search(vector: number[], topK: number): Promise<ChunkMatch[]>;
   existingHashes(hashes: string[]): Promise<Set<string>>;
   pruneDocument(documentKey: string, keepHashes: string[]): Promise<number>;
+  documentKeys(): Promise<string[]>;
 };

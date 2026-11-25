@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { sql, type SQL } from "drizzle-orm";
+import { LazyDatabase } from "@/database";
 import { DATABASE, type DatabaseHandle } from "@/database";
 import type { ChunkMatch, DocChunkStore, StoredChunk } from "@/modules/rag/doc-chunk-store.types";
 
@@ -54,6 +55,13 @@ export class DocChunksRepository implements DocChunkStore {
     return new Set(result.rows.map((row) => row.content_hash));
   }
 
+  async documentKeys(): Promise<string[]> {
+    const result = (await this.database.get().execute(sql`
+      select distinct split_part(chunk_key, '#', 1) as document_key from doc_chunks order by 1
+    `)) as unknown as Rows<{ document_key: string }>;
+    return result.rows.map((row) => row.document_key);
+  }
+
   async pruneDocument(documentKey: string, keepHashes: string[]): Promise<number> {
     const prefix = `${documentKey}#`;
     const keep = keepHashes.length === 0
@@ -64,4 +72,8 @@ export class DocChunksRepository implements DocChunkStore {
     `)) as unknown as Rows<{ id: string }>;
     return result.rows.length;
   }
+}
+
+export function openDocChunksRepository(url: string): DocChunksRepository {
+  return new DocChunksRepository(new LazyDatabase(url));
 }

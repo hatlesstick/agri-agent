@@ -93,6 +93,11 @@ export function describeDocChunkStore(name: string, create: () => Promise<StoreU
       expect(left.map((match) => match.chunk.id)).toEqual([second.id]);
     });
 
+    it("lists each document that has stored chunks once", async () => {
+      await under.store.upsertMany([near, far, other]);
+      expect((await under.store.documentKeys()).sort()).toEqual(["rainfastness.md", "spray-drift.md"]);
+    });
+
     it("a changed chunk is a new row, and pruning removes the old version", async () => {
       await under.store.upsertMany([near]);
       const changed = chunk("spray-drift.md", "Wind", "Wind speed above 4 m/s raises drift.", vec(1, 0, 0));

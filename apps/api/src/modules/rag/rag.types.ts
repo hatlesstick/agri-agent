@@ -4,10 +4,6 @@ export type DocChunk = Chunk & { updatedAt: string };
 
 export type DocumentError = "missing_title" | "missing_source" | "missing_updated" | "invalid_updated";
 
-export type IndexedChunk = Chunk & { embedding: number[] };
-
-export type RagIndex = { model: string; createdAt: string; chunks: IndexedChunk[] };
-
 export type SearchHit = { id: string; source: string; title: string; heading: string; text: string; score: number };
 
 export type RagCandidate = SearchHit;

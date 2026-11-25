@@ -12,7 +12,7 @@ const LANGCHAIN_CHAT_MODELS = ["@langchain/openai", "@langchain/openai/*", "@lan
 const DEEP_MODULE_IMPORTS = ["@/modules/*/**"];
 const WEB = ["@agri/web", "@agri/web/*"];
 
-const ADAPTERS = { weather: ["WeatherRepository", "OpenMeteoClient"], rag: ["JsonRagEngine", "DocsRepository"] };
+const ADAPTERS = { weather: ["WeatherRepository", "OpenMeteoClient"], rag: ["LangChainRagEngine", "DocChunksRepository", "MemoryDocChunkStore", "DocsRepository"] };
 const ADAPTER_MESSAGE = "Business code receives ports through DI; concrete adapters are wired only by their Nest module or createAgentPorts().";
 const RELATIVE_IMPORTS = { regex: "^\\.{1,2}/", message: "Use the @/ alias instead of relative imports." };
 

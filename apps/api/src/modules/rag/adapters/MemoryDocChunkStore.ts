@@ -25,6 +25,10 @@ export class MemoryDocChunkStore implements DocChunkStore {
     return new Set(hashes.filter((hash) => this.rows.has(hash)));
   }
 
+  async documentKeys(): Promise<string[]> {
+    return [...new Set([...this.rows.values()].map((row) => row.id.split("#")[0]))];
+  }
+
   async pruneDocument(documentKey: string, keepHashes: string[]): Promise<number> {
     const keep = new Set(keepHashes);
     const prefix = `${documentKey}#`;
