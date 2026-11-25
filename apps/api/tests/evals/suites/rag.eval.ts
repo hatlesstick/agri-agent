@@ -4,7 +4,7 @@ import { MOCK } from "@tests/evals/support/harness";
 import { DocsRepository } from "@/modules/rag/adapters/DocsRepository";
 import { JsonRagEngine } from "@/modules/rag/adapters/JsonRagEngine";
 import { REAL_MIN_SCORE, searchDocs } from "@/modules/rag/domain/search";
-import { cosineSimilarity, embed } from "ai";
+import { cosineSimilarity, embedMany } from "ai";
 import { existsSync, readFileSync } from "node:fs";
 import { EMBEDDING_MODEL } from "@/modules/rag";
 import { INDEX_FILE } from "@/modules/rag/adapters/DocsRepository";
@@ -40,8 +40,12 @@ describe(SUITE, () => {
 
   it.skipIf(MOCK || !existsSync(INDEX_FILE))("real retrieval: recall@3 and score calibration", async () => {
     const index = JSON.parse(readFileSync(INDEX_FILE, "utf8")) as RagIndex;
-    const topScore = async (question: string) => {
-      const { embedding } = await embed({ model: EMBEDDING_MODEL, value: question, maxRetries: 3 });
+    const questions = [...RETRIEVAL_CASES.map((testCase) => testCase.question), ...OFF_CORPUS_QUESTIONS];
+    const { embeddings } = await embedMany({ model: EMBEDDING_MODEL, values: questions, maxRetries: 3 });
+    const vectorFor = new Map(questions.map((question, position) => [question, embeddings[position]]));
+    const topScore = (question: string) => {
+      const embedding = vectorFor.get(question);
+      if (!embedding) throw new Error(`no embedding for question: ${question}`);
       const ranked = index.chunks
         .map((chunk) => ({ id: chunk.id, score: cosineSimilarity(embedding, chunk.embedding) }))
         .sort((left, right) => right.score - left.score);
@@ -52,13 +56,13 @@ describe(SUITE, () => {
     const onCorpusTop: number[] = [];
     const misses: string[] = [];
     for (const testCase of RETRIEVAL_CASES) {
-      const ranked = await topScore(testCase.question);
+      const ranked = topScore(testCase.question);
       onCorpusTop.push(ranked[0].score);
       if (ranked.slice(0, 3).some((hit) => hit.id === testCase.expectedId)) found += 1;
       else misses.push(`${testCase.expectedId} (top: ${ranked[0].id})`);
     }
     const offCorpusTop: number[] = [];
-    for (const question of OFF_CORPUS_QUESTIONS) offCorpusTop.push((await topScore(question))[0].score);
+    for (const question of OFF_CORPUS_QUESTIONS) offCorpusTop.push(topScore(question)[0].score);
 
     const range = (values: number[]) => `${Math.min(...values).toFixed(3)}–${Math.max(...values).toFixed(3)}`;
     console.log(`\nreal recall@3: ${found}/${RETRIEVAL_CASES.length}`);
