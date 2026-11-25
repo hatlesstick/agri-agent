@@ -12,6 +12,8 @@ function repositoryFiles(directory: string): string[] {
   });
 }
 
+const SHARED_CORPUS_REPOSITORIES = ["/modules/rag/repositories/DocChunksRepository.ts"];
+
 const METHOD = /^ {2}(?:async\s+)?(\w+)\(([^)]*)\)/gm;
 
 export function userScopeViolations(file: string, source: string): string[] {
@@ -27,7 +29,7 @@ export function userScopeViolations(file: string, source: string): string[] {
 
 describe("repository user scope", () => {
   it("every public repository method outside identity takes userId first", () => {
-    const files = repositoryFiles(SRC).filter((file) => !file.includes("/modules/identity/"));
+    const files = repositoryFiles(SRC).filter((file) => !file.includes("/modules/identity/") && !SHARED_CORPUS_REPOSITORIES.some((shared) => file.endsWith(shared)));
     expect(files.length).toBeGreaterThan(0);
     const violations = files.flatMap((file) => userScopeViolations(relative(SRC, file), readFileSync(file, "utf8")));
     expect(violations).toEqual([]);
