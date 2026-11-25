@@ -1,10 +1,11 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { chunkDocument, CHUNK_OVERLAP, CHUNK_SIZE } from "@/modules/rag/domain/chunk-document";
 import { chunkMarkdown } from "@/modules/rag/domain/chunk-markdown";
 
-const DOCS_DIR = join(process.cwd(), "data", "docs");
+const DOCS_DIR = fileURLToPath(new URL("../../../../../data/docs", import.meta.url));
 const SPRAY_DRIFT = "# Spray drift\n\nSource: FAO 2001\nUpdated: 2026-11-25\n\n## Main factors\n\nWind and droplet size.\n\n## Empty\n\n## Practical measures\n\nUse low pressure nozzles.";
 
 function longBody(sentences: number): string {
