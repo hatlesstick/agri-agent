@@ -8,5 +8,5 @@ export type DocChunkStore = {
   upsertMany(chunks: StoredChunk[]): Promise<number>;
   search(vector: number[], topK: number): Promise<ChunkMatch[]>;
   existingHashes(hashes: string[]): Promise<Set<string>>;
-  pruneSource(source: string, keepHashes: string[]): Promise<number>;
+  pruneDocument(documentKey: string, keepHashes: string[]): Promise<number>;
 };

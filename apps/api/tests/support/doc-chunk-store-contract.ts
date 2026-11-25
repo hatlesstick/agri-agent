@@ -76,18 +76,28 @@ export function describeDocChunkStore(name: string, create: () => Promise<StoreU
       expect(await under.store.search(vec(0, 1, 0), 10)).toHaveLength(2);
     });
 
-    it("prunes only the given source, keeping the listed hashes", async () => {
+    it("prunes only the given document, keeping the listed hashes", async () => {
       await under.store.upsertMany([near, far, other]);
-      expect(await under.store.pruneSource("spray-drift.md", [near.contentHash])).toBe(1);
+      expect(await under.store.pruneDocument("spray-drift.md", [near.contentHash])).toBe(1);
       const remaining = await under.store.search(vec(0.5, 0.5, 0), 10);
       expect(remaining.map((match) => match.chunk.id).sort()).toEqual([near.id, other.id].sort());
+    });
+
+    it("does not prune another document that shares the same source citation", async () => {
+      const shared = "FAO (2001), Guidelines on good practice";
+      const first = { ...chunk("spray-drift.md", "Wind", "Wind matters.", vec(1, 0, 0)), source: shared };
+      const second = { ...chunk("weather.md", "Wind", "Wind matters too.", vec(0, 1, 0)), source: shared };
+      await under.store.upsertMany([first, second]);
+      expect(await under.store.pruneDocument("spray-drift.md", [])).toBe(1);
+      const left = await under.store.search(vec(0, 1, 0), 10);
+      expect(left.map((match) => match.chunk.id)).toEqual([second.id]);
     });
 
     it("a changed chunk is a new row, and pruning removes the old version", async () => {
       await under.store.upsertMany([near]);
       const changed = chunk("spray-drift.md", "Wind", "Wind speed above 4 m/s raises drift.", vec(1, 0, 0));
       expect(await under.store.upsertMany([changed])).toBe(1);
-      expect(await under.store.pruneSource("spray-drift.md", [changed.contentHash])).toBe(1);
+      expect(await under.store.pruneDocument("spray-drift.md", [changed.contentHash])).toBe(1);
       const matches = await under.store.search(vec(1, 0, 0), 10);
       expect(matches.map((match) => match.chunk.text)).toEqual([changed.text]);
     });

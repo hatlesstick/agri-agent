@@ -54,12 +54,13 @@ export class DocChunksRepository implements DocChunkStore {
     return new Set(result.rows.map((row) => row.content_hash));
   }
 
-  async pruneSource(source: string, keepHashes: string[]): Promise<number> {
+  async pruneDocument(documentKey: string, keepHashes: string[]): Promise<number> {
+    const prefix = `${documentKey}#`;
     const keep = keepHashes.length === 0
       ? sql``
       : sql` and content_hash not in (${list(keepHashes)})`;
     const result = (await this.database.get().execute(sql`
-      delete from doc_chunks where source = ${source}${keep} returning id
+      delete from doc_chunks where starts_with(chunk_key, ${prefix})${keep} returning id
     `)) as unknown as Rows<{ id: string }>;
     return result.rows.length;
   }

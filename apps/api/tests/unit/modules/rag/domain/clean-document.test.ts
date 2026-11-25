@@ -17,6 +17,10 @@ describe("cleanDocument", () => {
     expect(cleanDocument("# T  \n\nWind \t \nfine")).toBe("# T\n\nWind\nfine");
   });
 
+  it("collapses runs of spaces inside a line into one space", () => {
+    expect(cleanDocument("Wind   above\t4  m/s")).toBe("Wind above 4 m/s");
+  });
+
   it("collapses runs of blank lines into one blank line", () => {
     expect(cleanDocument("# T\n\n\n\n## S\n\n\ntext")).toBe("# T\n\n## S\n\ntext");
   });

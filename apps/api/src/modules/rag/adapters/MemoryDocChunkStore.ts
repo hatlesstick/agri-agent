@@ -25,11 +25,12 @@ export class MemoryDocChunkStore implements DocChunkStore {
     return new Set(hashes.filter((hash) => this.rows.has(hash)));
   }
 
-  async pruneSource(source: string, keepHashes: string[]): Promise<number> {
+  async pruneDocument(documentKey: string, keepHashes: string[]): Promise<number> {
     const keep = new Set(keepHashes);
+    const prefix = `${documentKey}#`;
     let removed = 0;
     for (const [hash, row] of this.rows) {
-      if (row.source !== source || keep.has(hash)) continue;
+      if (!row.id.startsWith(prefix) || keep.has(hash)) continue;
       this.rows.delete(hash);
       removed += 1;
     }
