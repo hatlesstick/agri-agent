@@ -1,6 +1,7 @@
 # Rain after application and rainfastness
 
 Source: Defra/HSE (2006), Code of Practice for Using Plant Protection Products; product labels
+Updated: 2026-11-25
 
 ## Rainfastness
 

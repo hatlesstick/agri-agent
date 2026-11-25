@@ -1,6 +1,7 @@
 # Spray drift and how to reduce it
 
 Source: FAO (2001), Guidelines on good practice for ground application of pesticides; Defra/HSE (2006), Code of Practice for Using Plant Protection Products
+Updated: 2026-11-25
 
 ## What spray drift is
 
