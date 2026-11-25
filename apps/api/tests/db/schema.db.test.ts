@@ -25,9 +25,11 @@ describe("database schema", () => {
     return user.id;
   }
 
-  it("creates every Step 2 table", async () => {
+  it("creates every Step 2 table, plus doc_chunks where pgvector is available", async () => {
+    const extension = (await test.db.execute(sql`select 1 from pg_available_extensions where name = 'vector'`)) as unknown as { rows: unknown[] };
+    const expected = extension.rows.length > 0 ? [...TABLES, "doc_chunks"].sort() : TABLES;
     const result = (await test.db.execute(sql`select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'`)) as unknown as { rows: Array<{ table_name: string }> };
-    expect(result.rows.map((row) => row.table_name).sort()).toEqual(TABLES);
+    expect(result.rows.map((row) => row.table_name).sort()).toEqual(expected);
   });
 
   it("allows one identity per provider and external id", async () => {
