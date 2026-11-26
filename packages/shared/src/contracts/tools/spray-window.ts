@@ -5,6 +5,7 @@ import { RELATIVE_DAYS } from "@/relative-day";
 const REJECTION_REASONS = [
   "wind_too_low",
   "wind_too_high",
+  "gusts_too_high",
   "too_cold",
   "too_hot",
   "precipitation_nearby",

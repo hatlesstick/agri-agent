@@ -11,7 +11,7 @@ function hourIso(date: string, hour: number): string {
 }
 
 function calmHour(time: string): HourlyPoint {
-  return { time, temperature: 15, windSpeed: 2, precipitation: 0, precipitationProbability: 0, humidity: 70 };
+  return { time, temperature: 15, windSpeed: 2, windGusts: 3, precipitation: 0, precipitationProbability: 0, humidity: 70 };
 }
 
 function makeHours(overrides: Record<string, Partial<HourlyPoint>> = {}): HourlyPoint[] {

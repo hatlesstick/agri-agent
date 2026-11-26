@@ -22,6 +22,7 @@ function roundPoint(point: HourlyPoint): HourlyPoint {
     time: point.time,
     temperature: roundToTenth(point.temperature),
     windSpeed: roundToTenth(point.windSpeed),
+    windGusts: roundToTenth(point.windGusts),
     precipitation: roundToTenth(point.precipitation),
     precipitationProbability: roundToTenth(point.precipitationProbability),
     humidity: roundToTenth(point.humidity),

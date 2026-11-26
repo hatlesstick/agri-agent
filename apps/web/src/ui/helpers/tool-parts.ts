@@ -17,6 +17,7 @@ export const TOOL_STATE_LABEL: Record<ToolPart["state"], string> = {
 export const REJECTION_REASON_LABEL: Record<string, string> = {
   wind_too_low: "wind too low",
   wind_too_high: "wind too strong",
+  gusts_too_high: "gusts too strong",
   too_cold: "too cold",
   too_hot: "too hot",
   precipitation_nearby: "rain nearby",

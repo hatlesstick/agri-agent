@@ -56,6 +56,7 @@ export function scenarioForecast(scenario: WeatherScenario, timezone = "Europe/P
       time: times,
       temperature_2m: values.map((value) => value.temperature),
       wind_speed_10m: values.map((value) => value.wind),
+      wind_gusts_10m: values.map((value) => Math.round(value.wind * 1.5 * 10) / 10),
       precipitation: values.map((value) => value.precipitation),
       precipitation_probability: values.map((value) => (value.precipitation > 0 ? 90 : 0)),
       relative_humidity_2m: values.map(() => 70),
