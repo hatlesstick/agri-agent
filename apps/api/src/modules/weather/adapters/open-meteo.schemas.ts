@@ -3,6 +3,7 @@ import { z } from "zod";
 export const HOURLY_VARIABLES = {
   temperature: "temperature_2m",
   windSpeed: "wind_speed_10m",
+  windGusts: "wind_gusts_10m",
   precipitation: "precipitation",
   precipitationProbability: "precipitation_probability",
   humidity: "relative_humidity_2m",
@@ -33,6 +34,7 @@ export const forecastResponseSchema = z.object({
     time: z.array(z.number().int()),
     [HOURLY_VARIABLES.temperature]: hourlySeriesSchema,
     [HOURLY_VARIABLES.windSpeed]: hourlySeriesSchema,
+    [HOURLY_VARIABLES.windGusts]: hourlySeriesSchema,
     [HOURLY_VARIABLES.precipitation]: hourlySeriesSchema,
     [HOURLY_VARIABLES.precipitationProbability]: hourlySeriesSchema,
     [HOURLY_VARIABLES.humidity]: hourlySeriesSchema,

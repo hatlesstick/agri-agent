@@ -11,6 +11,7 @@ import type {
 export const DEFAULT_SPRAY_THRESHOLDS: SprayThresholds = {
   minWindSpeed: 1,
   maxWindSpeed: 4,
+  maxWindGust: 10,
   minTemperature: 10,
   maxTemperature: 25,
   dryHoursBefore: 3,
@@ -47,12 +48,14 @@ function isInversionHour(time: string, thresholds: SprayThresholds): boolean {
 }
 
 function hourReasons(hourly: HourlyPoint[], index: number, thresholds: SprayThresholds): RejectionReason[] {
-  const { time, windSpeed, temperature, humidity } = hourly[index];
+  const { time, windSpeed, windGusts, temperature, humidity } = hourly[index];
   const reasons = new Set<RejectionReason>();
 
   if (windSpeed === null || temperature === null) reasons.add("insufficient_data");
   if (windSpeed !== null && windSpeed < thresholds.minWindSpeed) reasons.add("wind_too_low");
   if (windSpeed !== null && windSpeed > thresholds.maxWindSpeed) reasons.add("wind_too_high");
+  if (windGusts === null) reasons.add("insufficient_data");
+  if (windGusts !== null && windGusts > thresholds.maxWindGust) reasons.add("gusts_too_high");
   if (temperature !== null && temperature < thresholds.minTemperature) reasons.add("too_cold");
   if (temperature !== null && temperature > thresholds.maxTemperature) reasons.add("too_hot");
 

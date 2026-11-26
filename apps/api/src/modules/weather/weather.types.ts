@@ -2,6 +2,7 @@ export type HourlyPoint = {
   time: string;
   temperature: number | null;
   windSpeed: number | null;
+  windGusts: number | null;
   precipitation: number | null;
   precipitationProbability: number | null;
   humidity: number | null;

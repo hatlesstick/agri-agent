@@ -65,6 +65,7 @@ export class OpenMeteoClient {
       time: currentLocalHour(timezone, new Date(unixSeconds * 1000)),
       temperature: valueAt(hourly[HOURLY_VARIABLES.temperature], index),
       windSpeed: valueAt(hourly[HOURLY_VARIABLES.windSpeed], index),
+      windGusts: valueAt(hourly[HOURLY_VARIABLES.windGusts], index),
       precipitation: valueAt(hourly[HOURLY_VARIABLES.precipitation], index),
       precipitationProbability: valueAt(hourly[HOURLY_VARIABLES.precipitationProbability], index),
       humidity: valueAt(hourly[HOURLY_VARIABLES.humidity], index),

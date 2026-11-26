@@ -38,7 +38,7 @@ const SPRAY_CASES: SprayCase[] = [
     id: "windy day: no window, wind is the reason",
     scenario: "windy",
     input: LYON_TOMORROW,
-    expected: { canSpray: false, bestWindow: null, windows: [], rejectedReasons: { wind_too_high: 24 } },
+    expected: { canSpray: false, bestWindow: null, windows: [], rejectedReasons: { wind_too_high: 24, gusts_too_high: 24 } },
   },
   {
     id: "rain 08:00-10:00: best window after the rain buffer",

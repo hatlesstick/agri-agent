@@ -13,7 +13,7 @@ function hours(base: Partial<HourlyPoint>, overrides: Record<string, Partial<Hou
   return DAYS.flatMap((date) =>
     Array.from({ length: 24 }, (_, hour) => {
       const time = hourIso(date, hour);
-      return { time, temperature: 15, windSpeed: 2, precipitation: 0, precipitationProbability: 0, humidity: 70, ...base, ...overrides[time] };
+      return { time, temperature: 15, windSpeed: 2, windGusts: 3, precipitation: 0, precipitationProbability: 0, humidity: 70, ...base, ...overrides[time] };
     }),
   );
 }
@@ -56,5 +56,19 @@ describe("inversion rule", () => {
 
   it("does not flag light breeze at night (force 2 and above)", () => {
     expect(reasonsAt(hourIso(DATE, 22), { windSpeed: 2 })).not.toContain("inversion_risk");
+  });
+});
+
+describe("gust rule (developer rule: 10 m/s, whole hour)", () => {
+  it("rejects an hour whose gusts exceed 10 m/s as gusts_too_high", () => {
+    expect(reasonsAt(hourIso(DATE, 14), { windGusts: 11 })).toContain("gusts_too_high");
+  });
+
+  it("accepts an hour whose gusts are exactly 10 m/s", () => {
+    expect(reasonsAt(hourIso(DATE, 14), { windGusts: 10 })).not.toContain("gusts_too_high");
+  });
+
+  it("reports insufficient data when gusts are missing", () => {
+    expect(reasonsAt(hourIso(DATE, 14), { windGusts: null })).toContain("insufficient_data");
   });
 });

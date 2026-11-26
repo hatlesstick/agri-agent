@@ -60,6 +60,7 @@ describe("getForecast", () => {
       time: "2026-11-11T00:00",
       temperature: 15.9,
       windSpeed: 1.5,
+      windGusts: 2.2,
       precipitation: 0,
       precipitationProbability: 3,
       humidity: 89,
@@ -142,7 +143,7 @@ describe("getForecast", () => {
     expect(url.searchParams.get("timezone")).toBe("auto");
     expect(url.searchParams.get("forecast_days")).toBe("3");
     expect(url.searchParams.get("hourly")?.split(",").sort()).toEqual(
-      ["precipitation", "precipitation_probability", "relative_humidity_2m", "temperature_2m", "wind_speed_10m"],
+      ["precipitation", "precipitation_probability", "relative_humidity_2m", "temperature_2m", "wind_gusts_10m", "wind_speed_10m"],
     );
   });
 
@@ -229,6 +230,7 @@ describe("getForecast", () => {
             time: switchNight,
             temperature_2m: series,
             wind_speed_10m: series,
+            wind_gusts_10m: series,
             precipitation: series,
             precipitation_probability: series,
             relative_humidity_2m: series,

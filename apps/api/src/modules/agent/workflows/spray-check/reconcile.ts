@@ -54,6 +54,7 @@ export function reconcileSprayCheck(modelOutput: SprayCheck, toolResults: ToolRe
 const REASON_TEXT: Record<string, string> = {
   wind_too_low: "wind too low",
   wind_too_high: "wind too strong",
+  gusts_too_high: "gusts too strong",
   too_cold: "too cold",
   too_hot: "too hot",
   precipitation_nearby: "rain within 3 hours",

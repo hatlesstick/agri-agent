@@ -3,6 +3,7 @@ import type { HourlyPoint } from "@/modules/weather";
 export type SprayThresholds = {
   minWindSpeed: number;
   maxWindSpeed: number;
+  maxWindGust: number;
   minTemperature: number;
   maxTemperature: number;
   dryHoursBefore: number;
@@ -19,6 +20,7 @@ export type SprayThresholds = {
 export type RejectionReason =
   | "wind_too_low"
   | "wind_too_high"
+  | "gusts_too_high"
   | "too_cold"
   | "too_hot"
   | "precipitation_nearby"
