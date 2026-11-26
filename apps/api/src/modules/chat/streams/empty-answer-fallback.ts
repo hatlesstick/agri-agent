@@ -8,7 +8,7 @@ export function withEmptyAnswerFallback(stream: ReadableStream<UIMessageChunk>, 
   return stream.pipeThrough(
     new TransformStream<UIMessageChunk, UIMessageChunk>({
       transform(chunk, controller) {
-        if (chunk.type === "text-delta") sawText = true;
+        if (chunk.type === "text-delta" && chunk.delta.trim().length > 0) sawText = true;
         if (chunk.type === "finish") {
           finish = chunk;
           return;

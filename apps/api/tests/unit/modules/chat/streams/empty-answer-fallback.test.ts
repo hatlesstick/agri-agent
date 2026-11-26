@@ -54,6 +54,16 @@ describe("withEmptyAnswerFallback", () => {
     expect(out.map((chunk) => chunk.type)).toEqual(["start", "text-start", "text-delta", "text-end", "finish"]);
   });
 
+  it("adds the fallback when the only text deltas are empty strings", async () => {
+    const out = await collect(
+      withEmptyAnswerFallback(
+        streamOf([...tool, { type: "text-start", id: "t" }, { type: "text-delta", id: "t", delta: "" }, { type: "text-end", id: "t" }, { type: "finish" }]),
+        EMPTY_ANSWER_FALLBACK,
+      ),
+    );
+    expect(out.find((chunk) => chunk.type === "text-delta" && chunk.id === "empty-answer-fallback")).toMatchObject({ delta: EMPTY_ANSWER_FALLBACK });
+  });
+
   it("does not add a fallback when the stream ends without a finish chunk", async () => {
     const out = await collect(withEmptyAnswerFallback(streamOf([...tool]), EMPTY_ANSWER_FALLBACK));
     expect(out.some((chunk) => chunk.type === "text-delta")).toBe(false);
