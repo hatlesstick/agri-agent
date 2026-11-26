@@ -1,11 +1,12 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { ServerResponse } from "node:http";
-import { pipeAgentUIStreamToResponse, pipeUIMessageStreamToResponse } from "ai";
+import { createAgentUIStream, pipeUIMessageStreamToResponse } from "ai";
 import { AGENT_PORTS, AGENT_TIMEOUT_MS, chatErrorMessage, createAgriAgent, SCREEN_REFUSAL, screenInput, type AgentPorts } from "@/modules/agent";
 import { CLOCK, type Clock } from "@/common/clock";
 import { dropBlockedHistory, latestUserText } from "@/modules/chat/validation/chat-request";
 import type { ChatReplyInput } from "@/modules/chat/chat.types";
 import { refusalStream } from "@/modules/chat/streams/refusal-stream";
+import { EMPTY_ANSWER_FALLBACK, withEmptyAnswerFallback } from "@/modules/chat/streams/empty-answer-fallback";
 
 const isBlocked = (text: string) => screenInput(text).verdict === "block";
 
@@ -26,8 +27,7 @@ export class ChatService {
       return;
     }
 
-    await pipeAgentUIStreamToResponse({
-      response,
+    const stream = await createAgentUIStream({
       agent: createAgriAgent({ ports: this.ports }),
       uiMessages: dropBlockedHistory(messages, isBlocked),
       options: { now: this.clock() },
@@ -35,5 +35,6 @@ export class ChatService {
       timeout: AGENT_TIMEOUT_MS,
       onError: chatErrorMessage,
     });
+    await pipeUIMessageStreamToResponse({ response, stream: withEmptyAnswerFallback(stream, EMPTY_ANSWER_FALLBACK) });
   }
 }
