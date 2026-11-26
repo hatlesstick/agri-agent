@@ -5,7 +5,7 @@ Updated: 2026-11-25
 
 ## Wind speed
 
-Spray in a steady, light breeze. Very strong wind carries droplets off target, and dead calm is also risky because it often comes with temperature inversions. A light breeze of roughly 1 to 4 m/s is commonly treated as the working range for boom sprayers; always follow stricter limits on the product label.
+Spray in a steady, light breeze. Very strong wind carries droplets off target, and dead calm is also risky because it often comes with temperature inversions. A light breeze is the working range for boom sprayers. The wind speed limits for field-crop sprayers are given in the Code of Practice guide in the wind speed document; always follow stricter limits on the product label.
 
 ## Wind direction
 
