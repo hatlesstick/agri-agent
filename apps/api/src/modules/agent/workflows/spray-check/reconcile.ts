@@ -58,6 +58,8 @@ const REASON_TEXT: Record<string, string> = {
   too_hot: "too hot",
   precipitation_nearby: "rain within 3 hours",
   humidity_too_low: "humidity too low",
+  delta_t_out_of_range: "delta T out of range",
+  inversion_risk: "inversion risk",
   insufficient_data: "missing forecast data",
 };
 

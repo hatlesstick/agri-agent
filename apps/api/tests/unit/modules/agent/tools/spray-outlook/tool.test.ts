@@ -43,7 +43,9 @@ describe("sprayOutlook", () => {
     const today = output.days[0];
     expect(today.date).toBe("2026-11-11");
     if (today.bestWindow) expect(today.bestWindow.from >= "2026-11-11T19:00").toBe(true);
-    expect(Object.values(today.rejectedReasons).reduce((total, hours) => total + (hours ?? 0), 0)).toBeLessThanOrEqual(5);
+    const hoursLeftToday = 5;
+    const reasonsPerHourAtMost = 4;
+    expect(Object.values(today.rejectedReasons).reduce((total, count) => total + (count ?? 0), 0)).toBeLessThanOrEqual(hoursLeftToday * reasonsPerHourAtMost);
   });
 
   it("propagates city_not_found", async () => {

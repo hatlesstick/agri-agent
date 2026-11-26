@@ -9,6 +9,11 @@ export type SprayThresholds = {
   dryHoursAfter: number;
   minPrecipitationMm: number;
   minHumidity: number | null;
+  minDeltaT: number;
+  maxDeltaT: number;
+  calmWindSpeed: number;
+  inversionStartHour: number;
+  inversionEndHour: number;
 };
 
 export type RejectionReason =
@@ -18,6 +23,8 @@ export type RejectionReason =
   | "too_hot"
   | "precipitation_nearby"
   | "humidity_too_low"
+  | "delta_t_out_of_range"
+  | "inversion_risk"
   | "insufficient_data";
 
 export type SprayWindow = { from: string; to: string; hours: number };
