@@ -1,4 +1,5 @@
 import type { HourlyPoint } from "@/modules/weather";
+import { deltaT } from "@/modules/spray-rules/delta-t";
 import type {
   RejectionReason,
   SprayAssessment,
@@ -16,6 +17,11 @@ export const DEFAULT_SPRAY_THRESHOLDS: SprayThresholds = {
   dryHoursAfter: 3,
   minPrecipitationMm: 0.1,
   minHumidity: null,
+  minDeltaT: 2,
+  maxDeltaT: 8,
+  calmWindSpeed: 1.6,
+  inversionStartHour: 20,
+  inversionEndHour: 10,
 };
 
 function oneHourAfter(time: string): string {
@@ -35,8 +41,13 @@ function precipitationReasons(hourly: HourlyPoint[], index: number, thresholds: 
   return [];
 }
 
+function isInversionHour(time: string, thresholds: SprayThresholds): boolean {
+  const hour = Number(time.slice(11, 13));
+  return hour >= thresholds.inversionStartHour || hour < thresholds.inversionEndHour;
+}
+
 function hourReasons(hourly: HourlyPoint[], index: number, thresholds: SprayThresholds): RejectionReason[] {
-  const { windSpeed, temperature, humidity } = hourly[index];
+  const { time, windSpeed, temperature, humidity } = hourly[index];
   const reasons = new Set<RejectionReason>();
 
   if (windSpeed === null || temperature === null) reasons.add("insufficient_data");
@@ -49,6 +60,14 @@ function hourReasons(hourly: HourlyPoint[], index: number, thresholds: SprayThre
     if (humidity === null) reasons.add("insufficient_data");
     else if (humidity < thresholds.minHumidity) reasons.add("humidity_too_low");
   }
+
+  if (temperature !== null && humidity === null) reasons.add("insufficient_data");
+  if (temperature !== null && humidity !== null) {
+    const spread = deltaT(temperature, humidity);
+    if (spread < thresholds.minDeltaT || spread > thresholds.maxDeltaT) reasons.add("delta_t_out_of_range");
+  }
+
+  if (windSpeed !== null && windSpeed < thresholds.calmWindSpeed && isInversionHour(time, thresholds)) reasons.add("inversion_risk");
 
   for (const reason of precipitationReasons(hourly, index, thresholds)) reasons.add(reason);
   return [...reasons];

@@ -9,6 +9,8 @@ const REJECTION_REASONS = [
   "too_hot",
   "precipitation_nearby",
   "humidity_too_low",
+  "delta_t_out_of_range",
+  "inversion_risk",
   "insufficient_data",
 ] as const;
 
