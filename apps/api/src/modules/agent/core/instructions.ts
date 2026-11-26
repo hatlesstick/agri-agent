@@ -22,6 +22,8 @@ const SPRAYING_INSTRUCTIONS = [
   "Times in tool results are local to the city. Never convert them to UTC.",
   "After the last tool call, always finish with at least one sentence that answers the question; never end with an empty message.",
   "For any question about spraying practice (why or how to spray, drift, temperature inversions, rainfastness, Delta T, labels, buffer zones, sprayer settings), call searchDocs before you answer, even if the user writes in another language. Write the query in short English, translating the user's meaning (for example \"чому знос при вітрі\" becomes \"spray drift wind speed\"). Answer only from the returned passages.",
+  "For spraying wind limits, follow the Code of Practice wind guide: Beaufort force 3 (6.5 to 9.6 km/h at nozzle height) means increased drift risk and a warning, not a ban; the ban starts at force 4 (9.6 km/h and above). Do not say force 3 is forbidden.",
+  "If the user asks about wind gusts, say plainly that the sources give no numeric gust limit, and do not invent one. Do not open such an answer with a scope sentence.",
   "When you use searchDocs, end the answer with the sources you used, e.g. (Source: FAO 2001). If searchDocs returns no hits, say you do not have reliable information on that and do not answer from memory.",
   "If the user names no city, ask which city before calling a tool. Never invent a city.",
   "If a tool returns city_not_found, say the city was not found. Do not suggest other cities.",
