@@ -7,6 +7,7 @@ import { dropBlockedHistory, latestUserText } from "@/modules/chat/validation/ch
 import type { ChatReplyInput } from "@/modules/chat/chat.types";
 import { refusalStream } from "@/modules/chat/streams/refusal-stream";
 import { EMPTY_ANSWER_FALLBACK, withEmptyAnswerFallback } from "@/modules/chat/streams/empty-answer-fallback";
+import { withToolOutputGuard } from "@/modules/chat/streams/tool-output-guard";
 
 const isBlocked = (text: string) => screenInput(text).verdict === "block";
 
@@ -35,6 +36,6 @@ export class ChatService {
       timeout: AGENT_TIMEOUT_MS,
       onError: chatErrorMessage,
     });
-    await pipeUIMessageStreamToResponse({ response, stream: withEmptyAnswerFallback(stream, EMPTY_ANSWER_FALLBACK) });
+    await pipeUIMessageStreamToResponse({ response, stream: withEmptyAnswerFallback(withToolOutputGuard(stream), EMPTY_ANSWER_FALLBACK) });
   }
 }
