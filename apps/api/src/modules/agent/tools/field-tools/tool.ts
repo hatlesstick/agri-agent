@@ -69,7 +69,7 @@ export function createFieldTools({ fields, approvals }: FieldToolPorts) {
           userId: context.userId,
           channel: "web",
           type: "field.update",
-          payload: { id, patch },
+          payload: { id, patch, fieldName: field.name },
           expiresAt: new Date(context.now.getTime() + PROPOSAL_MINUTES * 60_000),
           idempotencyKey: `field.update:${toolCallId}`,
         });
@@ -89,7 +89,7 @@ export function createFieldTools({ fields, approvals }: FieldToolPorts) {
           userId: context.userId,
           channel: "web",
           type: "field.delete",
-          payload: { id },
+          payload: { id, fieldName: field.name },
           expiresAt: new Date(context.now.getTime() + PROPOSAL_MINUTES * 60_000),
           idempotencyKey: `field.delete:${toolCallId}`,
         });

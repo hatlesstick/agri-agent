@@ -3,7 +3,7 @@ import { Button } from "@/ui/atoms/Button";
 import { useT } from "@/ui/hooks/useT";
 import type { ApprovalCardProps } from "./ApprovalCard.types";
 
-export const ApprovalCard: React.FC<ApprovalCardProps> = ({ title, rows, status, onConfirm, onReject }) => {
+export const ApprovalCard: React.FC<ApprovalCardProps> = ({ title, rows, status, confirmable = true, onConfirm, onReject }) => {
   const t = useT();
   return (
     <article className="flex flex-col overflow-hidden rounded-[20px] border border-rule bg-surface">
@@ -20,7 +20,7 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({ title, rows, status,
       </dl>
       {status === "awaiting" && (
         <div className="flex flex-wrap gap-2 border-t border-rule px-4 py-3">
-          <Button onClick={onConfirm}>{t("approval.confirm")}</Button>
+          {confirmable && <Button onClick={onConfirm}>{t("approval.confirm")}</Button>}
           <Button variant="quiet" onClick={onReject}>{t("approval.reject")}</Button>
         </div>
       )}

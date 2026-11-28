@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { ApprovalCard } from "@/ui/organisms/ApprovalCard";
-import { describeApproval, FIELD_LABEL_KEYS, KIND_LABEL_KEYS } from "@/ui/helpers/approval-description";
+import { CLEARED, describeApproval, FIELD_LABEL_KEYS, KIND_LABEL_KEYS } from "@/ui/helpers/approval-description";
 import { useT } from "@/ui/hooks/useT";
 import type { ApprovalsListProps } from "@/ui/organisms/ApprovalsList/ApprovalsList.types";
 
@@ -24,14 +24,17 @@ export const ApprovalsList: React.FC<ApprovalsListProps> = ({ actions, loadFaile
         const description = describeApproval(action);
         if (!description) return null;
         return (
+          <div key={action.id} className="flex flex-col gap-2">
           <ApprovalCard
-            key={action.id}
             title={t(KIND_LABEL_KEYS[description.kind])}
-            rows={description.fields.map((field) => ({ label: t(FIELD_LABEL_KEYS[field.key]), value: field.value }))}
+            rows={description.fields.map((field) => ({ label: t(FIELD_LABEL_KEYS[field.key]), value: field.value === CLEARED ? t("approval.cleared") : field.value }))}
             status="awaiting"
+            confirmable={!description.unsafe}
             onConfirm={() => onDecide(action.id, "confirmed")}
             onReject={() => onDecide(action.id, "rejected")}
           />
+          {description.unsafe && <p className="text-stop">{t("approval.unsafe")}</p>}
+          </div>
         );
       })}
       {deciding && <p className="text-ink-soft">{t("approval.saving")}</p>}
