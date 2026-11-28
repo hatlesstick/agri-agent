@@ -1,0 +1,2 @@
+ALTER TABLE "pending_actions" DROP CONSTRAINT "pending_actions_idempotency_key_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "pending_actions_user_idempotency_unique" ON "pending_actions" USING btree ("user_id","idempotency_key");
