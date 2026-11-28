@@ -4,7 +4,7 @@ import { fieldIdSchema, fieldInputSchema, fieldPatchSchema } from "@agri/shared/
 import type { AgentApprovalsPort, AgentFieldsPort } from "@/modules/agent/agent.types";
 import { userContextSchema } from "@/modules/agent/tools/shared/schemas";
 
-const PROPOSAL_MINUTES = 30;
+const PROPOSAL_MINUTES = 240;
 
 export type FieldToolPorts = { fields: AgentFieldsPort; approvals: AgentApprovalsPort };
 
