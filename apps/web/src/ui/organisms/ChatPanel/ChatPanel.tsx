@@ -5,6 +5,7 @@ import { useAgentChat } from "@/ui/hooks/useAgentChat";
 import { AgentStatus } from "@/ui/molecules/AgentStatus";
 import { ErrorBanner } from "@/ui/molecules/ErrorBanner";
 import { ChatComposer } from "@/ui/organisms/ChatComposer";
+import { ConversationHistory } from "@/ui/organisms/ConversationHistory";
 import { ChatScroller } from "@/ui/molecules/ChatScroller";
 import { ForecastSaver } from "@/ui/organisms/ForecastSaver";
 import { MessageList } from "@/ui/organisms/MessageList";
@@ -14,6 +15,12 @@ export const ChatPanel: React.FC = () => {
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-4 rounded-[20px] border border-rule bg-surface p-4">
       <ForecastSaver messages={chat.messages} />
+      <ConversationHistory
+        activeId={chat.conversationId}
+        onOpen={chat.openConversation}
+        onNew={chat.startNew}
+        onDeleted={() => chat.startNew()}
+      />
       <ChatScroller watch={chat.messages}>
         <MessageList messages={chat.messages} lastIsComplete={chat.lastIsComplete} onSuggest={chat.send} />
       </ChatScroller>
