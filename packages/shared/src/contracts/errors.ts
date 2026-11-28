@@ -12,6 +12,7 @@ export const ERROR_CODES = [
   "action_not_awaiting",
   "action_expired",
   "action_failed",
+  "daily_limit_reached",
   "blocked_input",
   "spray_window_not_called",
   "invalid_model_output",

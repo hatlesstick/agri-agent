@@ -8,6 +8,7 @@ import type { ChatReplyInput } from "@/modules/chat/chat.types";
 import { refusalStream } from "@/modules/chat/streams/refusal-stream";
 import { EMPTY_ANSWER_FALLBACK, withEmptyAnswerFallback } from "@/modules/chat/streams/empty-answer-fallback";
 import { withToolOutputGuard } from "@/modules/chat/streams/tool-output-guard";
+import { UsageService, type TokenUsage } from "@/modules/usage";
 
 const isBlocked = (text: string) => screenInput(text).verdict === "block";
 
@@ -18,6 +19,7 @@ export class ChatService {
   constructor(
     @Inject(AGENT_PORTS) private readonly ports: AgentPorts,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(UsageService) private readonly usage: UsageService,
   ) {}
 
   async streamReply({ userId, messages, abortSignal }: ChatReplyInput, response: ServerResponse): Promise<void> {
@@ -28,14 +30,22 @@ export class ChatService {
       return;
     }
 
+    const now = this.clock();
+    await this.usage.assertWithinDailyLimit(userId, now);
+    const spent: TokenUsage = { inputTokens: 0, outputTokens: 0 };
     const stream = await createAgentUIStream({
       agent: createAgriAgent({ ports: this.ports }),
       uiMessages: dropBlockedHistory(messages, isBlocked),
-      options: { now: this.clock(), userId },
+      options: { now, userId },
       abortSignal,
       timeout: AGENT_TIMEOUT_MS,
       onError: chatErrorMessage,
+      onStepEnd: ({ usage }) => {
+        spent.inputTokens += usage.inputTokens ?? 0;
+        spent.outputTokens += usage.outputTokens ?? 0;
+      },
     });
     await pipeUIMessageStreamToResponse({ response, stream: withEmptyAnswerFallback(withToolOutputGuard(stream), EMPTY_ANSWER_FALLBACK) });
+    await this.usage.record(userId, now, spent);
   }
 }

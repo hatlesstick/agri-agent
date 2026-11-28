@@ -1,3 +1,4 @@
+import { UsageRepository } from "@/modules/usage/repositories/UsageRepository";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "@/AppModule";
@@ -22,6 +23,7 @@ function fakeDatabaseDefaults(): ProviderOverride[] {
   const identity = fakeIdentityRepositories(systemClock);
   return [
     { token: DATABASE, useValue: NO_DATABASE },
+    { token: UsageRepository, useValue: { totalTokens: async () => 0, add: async () => undefined } },
     { token: IDENTITIES_REPOSITORY, useValue: identity.identitiesRepository },
     { token: USERS_REPOSITORY, useValue: identity.usersRepository },
     { token: SESSIONS_REPOSITORY, useValue: identity.sessionsRepository },

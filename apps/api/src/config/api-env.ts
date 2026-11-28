@@ -20,6 +20,7 @@ const apiEnvSchema = z.object({
   LANGFUSE_SECRET_KEY: z.string().startsWith("sk-lf-").optional(),
   LANGFUSE_BASE_URL: httpsUrl.default("https://cloud.langfuse.com"),
   LANGFUSE_ENVIRONMENT: z.string().regex(/^[a-z0-9-_]+$/).default("development"),
+  DAILY_TOKEN_LIMIT: z.coerce.number().int().positive().max(100_000_000).default(200_000),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().max(1000).default(10),
   GLOBAL_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().max(10_000).default(60),
   TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).optional(),
