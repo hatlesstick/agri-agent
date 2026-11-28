@@ -10,7 +10,7 @@ import { Icon } from "@/ui/atoms/Icon";
 import { Skeleton } from "@/ui/atoms/Skeleton";
 import type { ConversationHistoryProps } from "./ConversationHistory.types";
 
-const ICON_BUTTON = "grid min-h-11 min-w-11 place-items-center rounded-xl text-ink-soft hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky";
+const ICON_BUTTON = "cursor-pointer grid min-h-11 min-w-11 place-items-center rounded-xl text-ink-soft hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky";
 
 export const ConversationHistory: React.FC<ConversationHistoryProps> = ({ activeId, onOpen, onNew, onDeleted }) => {
   const t = useT();
@@ -55,7 +55,7 @@ export const ConversationHistory: React.FC<ConversationHistoryProps> = ({ active
           aria-expanded={expanded}
           aria-controls="conversation-history-list"
           onClick={() => setExpanded((value) => !value)}
-          className="flex min-h-11 min-w-0 items-center gap-1 rounded-xl px-2 text-left text-[15px] font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky"
+          className="cursor-pointer flex min-h-11 min-w-0 items-center gap-1 rounded-xl px-2 text-left text-[15px] font-semibold text-ink hover:bg-brand-wash focus-visible:outline-2 focus-visible:outline-sky"
         >
           <span className="truncate">{activeTitle ?? t("chat.history")}</span>
           <Icon icon={ChevronDown} size={16} className={expanded ? "rotate-180 transition-transform motion-reduce:transition-none" : "transition-transform motion-reduce:transition-none"} />
@@ -116,7 +116,7 @@ export const ConversationHistory: React.FC<ConversationHistoryProps> = ({ active
                         setExpanded(false);
                         onOpen(conversation.id);
                       }}
-                      className="flex min-h-11 min-w-0 flex-1 flex-col justify-center rounded-xl px-3 text-left focus-visible:outline-2 focus-visible:outline-sky"
+                      className="cursor-pointer flex min-h-11 min-w-0 flex-1 flex-col justify-center rounded-xl px-3 text-left focus-visible:outline-2 focus-visible:outline-sky"
                     >
                       <span className="truncate text-sm font-semibold text-ink">{conversation.title ?? t("chat.untitled")}</span>
                       <span className="text-xs tabular-nums text-ink-soft">{formatDay(conversation.updatedAt)}</span>
