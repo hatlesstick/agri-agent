@@ -42,15 +42,15 @@ describe("ConversationHistory", () => {
     );
     renderHistory();
     await userEvent.click(screen.getByRole("button", { name: "Розмови" }));
-    expect(await screen.findByRole("button", { name: "Пшениця біля Ліона" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Без назви" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /Пшениця біля Ліона/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Без назви/ })).toBeTruthy();
   });
 
   it("opens a conversation and starts a new one", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ conversations: [{ id: ID_A, title: "Пшениця", createdAt: "2026-11-28T10:00:00.000Z", updatedAt: "2026-11-28T10:00:00.000Z" }], nextCursor: null })));
     const handlers = renderHistory();
     await userEvent.click(screen.getByRole("button", { name: "Розмови" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Пшениця" }));
+    await userEvent.click(await screen.findByRole("button", { name: /Пшениця/ }));
     expect(handlers.onOpen).toHaveBeenCalledWith(ID_A);
     await userEvent.click(screen.getByRole("button", { name: "Нова розмова" }));
     expect(handlers.onNew).toHaveBeenCalled();
