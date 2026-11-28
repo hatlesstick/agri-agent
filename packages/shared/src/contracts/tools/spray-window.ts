@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { cityNameSchema } from "@/contracts/tools/shared";
 import { RELATIVE_DAYS } from "@/relative-day";
+import { fieldIdSchema } from "@/contracts/tools/fields";
 
 const REJECTION_REASONS = [
   "wind_too_low",
@@ -16,7 +17,8 @@ const REJECTION_REASONS = [
 ] as const;
 
 export const sprayWindowInputSchema = z.object({
-  city: cityNameSchema,
+  city: cityNameSchema.optional().describe("City name, when the question is about a city; omit when it is about a saved field"),
+  fieldId: fieldIdSchema.optional().describe("Id of one of the user's saved fields from listFields; use it for questions about 'my field'"),
   date: z
     .union([z.enum(RELATIVE_DAYS), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)])
     .describe("Day to assess: today, tomorrow, day_after_tomorrow, or an explicit YYYY-MM-DD date"),
@@ -29,7 +31,15 @@ const sprayWindowSlotSchema = z.object({
 });
 
 export const sprayWindowErrorSchema = z.object({
-  error: z.enum(["city_not_found", "weather_unavailable", "date_out_of_range", "date_in_past"]),
+  error: z.enum([
+    "city_not_found",
+    "city_required",
+    "weather_unavailable",
+    "date_out_of_range",
+    "date_in_past",
+    "field_not_found",
+    "not_signed_in",
+  ]),
 });
 
 export const sprayAssessmentSchema = z.object({

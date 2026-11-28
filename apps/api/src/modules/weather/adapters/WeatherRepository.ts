@@ -42,6 +42,26 @@ export class WeatherRepository implements WeatherPort {
     }
   }
 
+  async getForecastAt(place: { name: string; latitude: number; longitude: number }): Promise<WeatherResult> {
+    const key = `at:${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}`;
+    const cached = await this.readCache(key);
+    if (cached) return cached;
+
+    try {
+      const forecast = await this.client.fetchHourlyForecast({
+        name: place.name,
+        country: "",
+        region: null,
+        latitude: place.latitude,
+        longitude: place.longitude,
+      });
+      await this.cache.set<CacheEntry>(CACHE_PREFIX + key, { localDate: todayIn(forecast.timezone), forecast }, CACHE_TTL_MS);
+      return forecast;
+    } catch {
+      return { error: "weather_unavailable" };
+    }
+  }
+
   private async readCache(key: string): Promise<Forecast | null> {
     const entry = await this.cache.get<CacheEntry>(CACHE_PREFIX + key);
     if (!entry) return null;

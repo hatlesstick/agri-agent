@@ -8,8 +8,8 @@ import { createFieldTools } from "@/modules/agent/tools/field-tools/tool";
 export function createAgentTools({ weather, rag, fields, approvals }: AgentPorts) {
   return {
     getWeather: createGetWeatherTool(weather),
-    sprayWindow: createSprayWindowTool(weather),
-    sprayOutlook: createSprayOutlookTool(weather),
+    sprayWindow: createSprayWindowTool(weather, fields),
+    sprayOutlook: createSprayOutlookTool(weather, fields),
     searchDocs: createSearchDocsTool(rag),
     ...(fields && approvals ? createFieldTools({ fields, approvals }) : {}),
   };
@@ -21,8 +21,8 @@ export function agentToolsContext(now: Date = new Date(), userId?: string) {
   const user = { now, userId };
   return {
     getWeather: { now },
-    sprayWindow: { now },
-    sprayOutlook: { now },
+    sprayWindow: { now, userId },
+    sprayOutlook: { now, userId },
     listFields: user,
     getField: user,
     proposeSaveField: user,

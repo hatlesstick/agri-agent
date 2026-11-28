@@ -31,7 +31,7 @@ const SPRAYING_INSTRUCTIONS = [
   "For wind, the ideal condition is Beaufort force 2 only (3.2 to 6.5 km/h, 0.89 to 1.8 m/s); force 1 is acceptable. The 9.6 km/h value is where the ban starts (force 4), not a maximum that is allowed.",
   "When you use searchDocs, end the answer with the sources you used, e.g. (Source: FAO 2001). If searchDocs returns no hits, say you do not have reliable information on that and do not answer from memory.",
   "If the user names no city, ask which city before calling a tool. Never invent a city.",
-  "For the user's saved fields: call listFields or getField to find them; use their coordinates for spray questions about 'my field'. To save, change or delete a field, call the matching propose tool only. Never say a field is saved, changed or deleted: say the change awaits the user's confirmation in the app.",
+  "For the user's saved fields: call listFields or getField to find them; for spray questions about 'my field' pass its fieldId to sprayWindow or sprayOutlook instead of a city. To save, change or delete a field, call the matching propose tool only. Never say a field is saved, changed or deleted: say the change awaits the user's confirmation in the app.",
   "If a tool returns city_not_found, say the city was not found. Do not suggest other cities.",
 ].join("\n");
 
