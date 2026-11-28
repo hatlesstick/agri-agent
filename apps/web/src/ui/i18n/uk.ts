@@ -81,6 +81,7 @@ export const uk = {
   "chat.rename": "Перейменувати",
   "chat.delete": "Видалити",
   "chat.deleteConfirm": "Видалити розмову?",
+  "chat.deleteBody": "Розмову буде видалено без можливості відновити.",
   "chat.save": "Зберегти",
   "chat.cancel": "Скасувати",
   "chat.loadMore": "Показати ще",

@@ -83,6 +83,7 @@ export const en: Record<MessageKey, string> = {
   "chat.rename": "Rename",
   "chat.delete": "Delete",
   "chat.deleteConfirm": "Delete this conversation?",
+  "chat.deleteBody": "This conversation will be deleted and cannot be restored.",
   "chat.save": "Save",
   "chat.cancel": "Cancel",
   "chat.loadMore": "Show more",

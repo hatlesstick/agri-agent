@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { useChatHistory } from "@/ui/hooks/useChatHistory";
 import { useT } from "@/ui/hooks/useT";
@@ -19,6 +19,19 @@ export const ConversationHistory: React.FC<ConversationHistoryProps> = ({ active
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (confirmingId && !dialog.open) {
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    }
+    if (!confirmingId && dialog.open) {
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+    }
+  }, [confirmingId]);
   const activeTitle = history.conversations.find((conversation) => conversation.id === activeId)?.title;
   const formatDay = (iso: string) => new Intl.DateTimeFormat(t("chat.dateLocale"), { day: "numeric", month: "short" }).format(new Date(iso));
 
@@ -125,13 +138,6 @@ export const ConversationHistory: React.FC<ConversationHistoryProps> = ({ active
                     </button>
                   </div>
                 )}
-                {confirmingId === conversation.id && (
-                  <div className="flex flex-wrap items-center gap-2 px-3 pb-2 text-sm">
-                    <span className="text-ink">{t("chat.deleteConfirm")}</span>
-                    <Button variant="secondary" onClick={() => confirmDelete(conversation.id)} className="min-h-11 px-3 text-sm text-stop">{t("chat.delete")}</Button>
-                    <Button variant="quiet" onClick={() => setConfirmingId(null)} className="min-h-11 px-2 text-sm">{t("chat.cancel")}</Button>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -142,6 +148,27 @@ export const ConversationHistory: React.FC<ConversationHistoryProps> = ({ active
           )}
         </div>
       )}
+      <dialog
+          ref={dialogRef}
+          aria-labelledby="delete-conversation-title"
+          onClose={() => setConfirmingId(null)}
+          className="m-auto w-[min(92vw,360px)] rounded-2xl border border-rule bg-surface p-5 text-ink backdrop:bg-ink/40"
+        >
+          <form method="dialog" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <h2 id="delete-conversation-title" className="font-display text-lg font-bold">{t("chat.deleteConfirm")}</h2>
+              <p className="text-sm text-ink-soft">{t("chat.deleteBody")}</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" autoFocus onClick={() => setConfirmingId(null)} className="min-h-11 px-4 text-sm">
+                {t("chat.cancel")}
+              </Button>
+              <Button variant="primary" onClick={() => confirmingId && confirmDelete(confirmingId)} className="min-h-11 bg-stop px-4 text-sm text-paper">
+                {t("chat.delete")}
+              </Button>
+            </div>
+          </form>
+        </dialog>
     </section>
   );
 };
