@@ -69,7 +69,7 @@ describe("field tools", () => {
     const { tools, approvals } = fakes();
     const owned = await run(tools.proposeUpdateField, { id: FIELD_ID, patch: { crop: "barley" } }, { toolCallId: "c4", context: { userId: USER, now: NOW } });
     expect(owned).toMatchObject({ status: "awaiting_confirmation" });
-    expect(approvals.propose).toHaveBeenCalledWith(expect.objectContaining({ type: "field.update", payload: { id: FIELD_ID, patch: { crop: "barley" } } }));
+    expect(approvals.propose).toHaveBeenCalledWith(expect.objectContaining({ type: "field.update", payload: { id: FIELD_ID, patch: { crop: "barley" }, fieldName: "Wheat near Lyon" } }));
     const other = await run(tools.proposeUpdateField, { id: "44444444-4444-4444-8444-444444444444", patch: { crop: "x" } }, { toolCallId: "c5", context: { userId: USER, now: NOW } });
     expect(other).toEqual({ error: "field_not_found" });
     expect(approvals.propose).toHaveBeenCalledTimes(1);
@@ -79,7 +79,7 @@ describe("field tools", () => {
     const { tools, approvals } = fakes();
     const result = await run(tools.proposeDeleteField, { id: FIELD_ID }, { toolCallId: "c6", context: { userId: USER, now: NOW } });
     expect(result).toMatchObject({ status: "awaiting_confirmation" });
-    expect(approvals.propose).toHaveBeenCalledWith(expect.objectContaining({ type: "field.delete", payload: { id: FIELD_ID } }));
+    expect(approvals.propose).toHaveBeenCalledWith(expect.objectContaining({ type: "field.delete", payload: { id: FIELD_ID, fieldName: "Wheat near Lyon" } }));
   });
 
   it("without a signed-in user every field tool refuses and touches nothing", async () => {

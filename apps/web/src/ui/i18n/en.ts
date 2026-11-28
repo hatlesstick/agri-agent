@@ -20,6 +20,8 @@ export const en: Record<MessageKey, string> = {
   "sources.updated": "updated {time}",
   "strip.headline": "{count} hours to spray",
   "approval.confirmed": "Saved",
+  "approval.cleared": "cleared",
+  "approval.unsafe": "This change has fields the app cannot show. It cannot be confirmed.",
   "approval.confirm": "Confirm",
   "approval.reject": "Reject",
   "approval.saving": "Saving…",

@@ -19,31 +19,45 @@ export const FIELD_LABEL_KEYS = {
 export type ApprovalKind = keyof typeof KIND_LABEL_KEYS;
 export type ApprovalFieldKey = keyof typeof FIELD_LABEL_KEYS;
 export type ApprovalField = { key: ApprovalFieldKey; value: string };
-export type ApprovalDescription = { kind: ApprovalKind; fields: ApprovalField[] };
+export type ApprovalDescription = { kind: ApprovalKind; fields: ApprovalField[]; unsafe: boolean };
 
-const FIELD_KEYS: ApprovalFieldKey[] = ["name", "crop", "lat", "lon", "areaHa", "notes"];
+export const CLEARED = "—";
 
-function text(value: unknown): string | null {
-  if (value === null || value === undefined || value === "") return null;
-  return typeof value === "number" ? String(value) : typeof value === "string" ? value : null;
-}
+const PATCH_KEYS = ["name", "crop", "lat", "lon", "areaHa", "notes"] as const satisfies readonly ApprovalFieldKey[];
 
-function fieldRows(source: Record<string, unknown>): ApprovalField[] {
-  const rows: ApprovalField[] = [];
-  for (const key of FIELD_KEYS) {
-    const value = text(source[key]);
-    if (value !== null) rows.push({ key, value });
-  }
-  return rows;
+function plainText(value: unknown): string | null {
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") return value;
+  return null;
 }
 
 export function describeApproval(action: PendingAction): ApprovalDescription | null {
   const payload = action.payload;
-  if (action.type === "field.save") return { kind: "save", fields: fieldRows(payload) };
+  const fieldName = plainText(payload.fieldName);
+  if (action.type === "field.save") {
+    const rows: ApprovalField[] = [];
+    for (const key of PATCH_KEYS) {
+      const value = plainText(payload[key]);
+      if (value !== null && value !== "") rows.push({ key, value });
+    }
+    return { kind: "save", fields: rows, unsafe: false };
+  }
   if (action.type === "field.update") {
     const patch = typeof payload.patch === "object" && payload.patch !== null ? (payload.patch as Record<string, unknown>) : {};
-    return { kind: "update", fields: [{ key: "id", value: String(payload.id ?? "") }, ...fieldRows(patch)] };
+    const rows: ApprovalField[] = [{ key: "name", value: fieldName ?? String(payload.id ?? "") }];
+    let unsafe = false;
+    for (const [key, value] of Object.entries(patch)) {
+      if (!(PATCH_KEYS as readonly string[]).includes(key)) {
+        unsafe = true;
+        continue;
+      }
+      const text = plainText(value);
+      rows.push({ key: key as ApprovalFieldKey, value: text === null || text === "" ? CLEARED : text });
+    }
+    return { kind: "update", fields: rows, unsafe };
   }
-  if (action.type === "field.delete") return { kind: "delete", fields: [{ key: "id", value: String(payload.id ?? "") }] };
+  if (action.type === "field.delete") {
+    return { kind: "delete", fields: [{ key: "name", value: fieldName ?? String(payload.id ?? "") }], unsafe: false };
+  }
   return null;
 }

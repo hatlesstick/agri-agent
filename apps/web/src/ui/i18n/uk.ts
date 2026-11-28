@@ -18,6 +18,8 @@ export const uk = {
   "sources.updated": "оновлено {time}",
   "strip.headline": "{count} годин можна обприскувати",
   "approval.confirmed": "Збережено",
+  "approval.cleared": "очищено",
+  "approval.unsafe": "Ця зміна містить поля, яких застосунок не може показати. Підтвердити не можна.",
   "approval.confirm": "Підтвердити",
   "approval.reject": "Відхилити",
   "approval.saving": "Зберігаємо…",

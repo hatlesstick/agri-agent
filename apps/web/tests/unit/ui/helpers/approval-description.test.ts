@@ -14,6 +14,7 @@ describe("describeApproval", () => {
   it("describes a field save with its name, crop and coordinates", () => {
     expect(describeApproval(action("field.save", { name: "Wheat", crop: "wheat", lat: 45.76, lon: 4.84 }))).toEqual({
       kind: "save",
+      unsafe: false,
       fields: [
         { key: "name", value: "Wheat" },
         { key: "crop", value: "wheat" },
@@ -23,13 +24,23 @@ describe("describeApproval", () => {
     });
   });
 
-  it("describes an update as the field id plus the changed values", () => {
-    const result = describeApproval(action("field.update", { id: "f1", patch: { crop: "barley" } }));
-    expect(result).toEqual({ kind: "update", fields: [{ key: "id", value: "f1" }, { key: "crop", value: "barley" }] });
+  it("names the field and shows the changed values", () => {
+    const result = describeApproval(action("field.update", { id: "f1", fieldName: "Wheat", patch: { crop: "barley" } }));
+    expect(result).toEqual({ kind: "update", unsafe: false, fields: [{ key: "name", value: "Wheat" }, { key: "crop", value: "barley" }] });
   });
 
-  it("describes a delete by the field id only", () => {
-    expect(describeApproval(action("field.delete", { id: "f1" }))).toEqual({ kind: "delete", fields: [{ key: "id", value: "f1" }] });
+  it("shows a cleared value explicitly instead of dropping it", () => {
+    const result = describeApproval(action("field.update", { id: "f1", fieldName: "Wheat", patch: { notes: null } }));
+    expect(result?.fields).toContainEqual({ key: "notes", value: "—" });
+  });
+
+  it("marks an update with an unknown key as unsafe", () => {
+    const result = describeApproval(action("field.update", { id: "f1", fieldName: "Wheat", patch: { owner: "x" } }));
+    expect(result?.unsafe).toBe(true);
+  });
+
+  it("describes a delete by the field name", () => {
+    expect(describeApproval(action("field.delete", { id: "f1", fieldName: "Wheat" }))).toEqual({ kind: "delete", unsafe: false, fields: [{ key: "name", value: "Wheat" }] });
   });
 
   it("returns null for an action type this page does not know", () => {
