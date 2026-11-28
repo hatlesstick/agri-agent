@@ -5,9 +5,10 @@ import { AppShell } from "@/ui/templates/AppShell";
 import { AccountPanel } from "@/ui/organisms/AccountPanel";
 import { ChatPanel } from "@/ui/organisms/ChatPanel";
 import { ApprovalsList } from "@/ui/organisms/ApprovalsList";
+import { QueryProvider } from "@/ui/organisms/QueryProvider";
 import { useApprovalsPanel } from "@/ui/hooks/useApprovalsPanel";
 
-export const ApprovalsPage: React.FC = () => {
+const ApprovalsBody: React.FC = () => {
   const panel = useApprovalsPanel();
   return (
     <AppShell
@@ -27,3 +28,9 @@ export const ApprovalsPage: React.FC = () => {
     />
   );
 };
+
+export const ApprovalsPage: React.FC = () => (
+  <QueryProvider>
+    <ApprovalsBody />
+  </QueryProvider>
+);
