@@ -1,9 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, desc, eq, lt, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { DATABASE, type DatabaseHandle } from "@/database";
 import { conversations, messages } from "@/database/schema";
 
 export type ConversationRecord = typeof conversations.$inferSelect;
+
+export type MessageRecord = typeof messages.$inferSelect;
 
 export type NewMessage = { role: "user" | "assistant"; parts: unknown[]; createdAt: Date };
 
@@ -16,6 +18,18 @@ export class ConversationsRepository {
       ? and(eq(conversations.userId, userId), lt(conversations.updatedAt, before))
       : eq(conversations.userId, userId);
     return this.database.get().select().from(conversations).where(where).orderBy(desc(conversations.updatedAt)).limit(limit);
+  }
+
+  async listMessages(userId: string, conversationId: string, before: Date | null, limit: number): Promise<MessageRecord[]> {
+    const owned = this.database
+      .get()
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(and(eq(conversations.id, conversationId), eq(conversations.userId, userId)));
+    const where = before
+      ? and(inArray(messages.conversationId, owned), lt(messages.createdAt, before))
+      : inArray(messages.conversationId, owned);
+    return this.database.get().select().from(messages).where(where).orderBy(desc(messages.createdAt)).limit(limit);
   }
 
   async create(userId: string, title: string | null, now: Date): Promise<ConversationRecord> {
