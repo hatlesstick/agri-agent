@@ -32,7 +32,6 @@ export class ChatService {
 
     const now = this.clock();
     await this.usage.assertWithinDailyLimit(userId, now);
-    const spent: TokenUsage = { inputTokens: 0, outputTokens: 0 };
     const stream = await createAgentUIStream({
       agent: createAgriAgent({ ports: this.ports }),
       uiMessages: dropBlockedHistory(messages, isBlocked),
@@ -41,11 +40,10 @@ export class ChatService {
       timeout: AGENT_TIMEOUT_MS,
       onError: chatErrorMessage,
       onStepEnd: ({ usage }) => {
-        spent.inputTokens += usage.inputTokens ?? 0;
-        spent.outputTokens += usage.outputTokens ?? 0;
+        const step: TokenUsage = { inputTokens: usage.inputTokens ?? 0, outputTokens: usage.outputTokens ?? 0 };
+        this.usage.record(userId, now, step).catch((error: unknown) => this.logger.warn({ userId, error: String(error) }, "usage: step not recorded"));
       },
     });
     await pipeUIMessageStreamToResponse({ response, stream: withEmptyAnswerFallback(withToolOutputGuard(stream), EMPTY_ANSWER_FALLBACK) });
-    await this.usage.record(userId, now, spent);
   }
 }
