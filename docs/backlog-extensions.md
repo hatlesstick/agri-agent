@@ -231,9 +231,16 @@ Turn agri-agent from a "chat about weather and spraying" into an **agronomist's 
 - **User memory:** machinery, favorite products, usual doses, preferred form of address — with confirmation before saving.
 - **Proactivity:** the agent suggests (digest at 6:00, "good window today on field X"), the human confirms.
 - **Confidence and sources** in every response (R3).
+- **Grounding evals (anti-hallucination):** eval suites check that every number, product, dose and source in an answer comes from a tool result, a RAG passage or a human-entered value (R1, R5). Cases include invented doses and products, a wrong window, and a question with no data. Each new agent behaviour adds cases, and a failing grounding case blocks the merge.
+- **Agronomist review of low-confidence answers (R3):** an answer below the confidence threshold is marked and goes to a review queue; an agronomist approves, corrects or rejects it, and the decision becomes an eval case.
+- **Context management for long chats:** a running summary of older turns (today only the last N turns are kept, see tech debt), with the summary itself grounded in saved messages.
 - **Cost-based model routing:** simple queries — a cheap model, complex ones — a stronger model, based on evals.
 - **UA / EN** (R8).
 - **Feedback:** 👍/👎 → Langfuse → new eval cases.
+
+## Platform backlog (not scheduled)
+- **Sessions to JWT (decision needed first).** Today: opaque session token, hash stored in `sessions`, sign-out deletes the row. JWT removes the per-request lookup but needs a revocation story (short lifetime plus a deny list, or keep the table).
+- **Sign-up and sign-in screens.** Separate screens for sign-up, sign-in and account: GitHub, Google and email (magic link or password, decided when the stage starts). Email sign-in needs a mail provider and a verification flow.
 
 ## Client UI (summary)
 - **Web:** field map with colored status; field card (today + 7 days); chat panel with tool-call cards and sources; confirmation inbox; work log; charts (weather, ET0, GDD, NDVI); threshold and notification time settings.
