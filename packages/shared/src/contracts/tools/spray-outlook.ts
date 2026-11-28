@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { cityNameSchema } from "@/contracts/tools/shared";
 import { sprayAssessmentSchema, sprayWindowErrorSchema } from "@/contracts/tools/spray-window";
+import { fieldIdSchema } from "@/contracts/tools/fields";
 
 export const sprayOutlookInputSchema = z.object({
-  city: cityNameSchema,
+  city: cityNameSchema.optional().describe("City name, when the question is about a city; omit when it is about a saved field"),
+  fieldId: fieldIdSchema.optional().describe("Id of one of the user's saved fields from listFields; use it for questions about 'my field'"),
 });
 
 export const sprayOutlookDaySchema = sprayAssessmentSchema.pick({

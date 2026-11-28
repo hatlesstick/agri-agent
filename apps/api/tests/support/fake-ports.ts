@@ -5,12 +5,18 @@ import { SESSION_TTL_MS } from "@/modules/identity/session/session.constants";
 import type { WeatherPort } from "@/modules/weather";
 import type { WeatherResult } from "@/modules/weather/weather.types";
 
-export function fakeWeather(result: WeatherResult): WeatherPort & { calls: string[] } {
+export function fakeWeather(result: WeatherResult): WeatherPort & { calls: string[]; placeCalls: Array<{ name: string; latitude: number; longitude: number }> } {
   const calls: string[] = [];
+  const placeCalls: Array<{ name: string; latitude: number; longitude: number }> = [];
   return {
     calls,
+    placeCalls,
     async getForecast(city) {
       calls.push(city);
+      return result;
+    },
+    async getForecastAt(place) {
+      placeCalls.push(place);
       return result;
     },
   };

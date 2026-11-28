@@ -11,4 +11,6 @@ export const userContextSchema = z.object({
   now: z.date(),
 });
 
+export const weatherContextSchema = userContextSchema;
+
 export type UserContext = z.infer<typeof userContextSchema>;

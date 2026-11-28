@@ -1,5 +1,6 @@
 import { tool } from "ai";
 import type { WeatherPort } from "@/modules/weather";
+import type { AgentFieldsPort } from "@/modules/agent/agent.types";
 import {
   sprayWindowInputSchema,
   sprayWindowOutputSchema,
@@ -7,14 +8,15 @@ import {
   type SprayWindowOutput,
 } from "@agri/shared/contracts";
 import type { WeatherToolDeps } from "@/modules/agent/tools/shared/deps";
-import { clockContextSchema } from "@/modules/agent/tools/shared/schemas";
+import { userContextSchema } from "@/modules/agent/tools/shared/schemas";
+import { forecastForSource } from "@/modules/agent/tools/shared/forecast-source";
 import { currentLocalHour, resolveDay, todayIn } from "@agri/shared";
 import { assessSprayDay } from "@/modules/spray-rules";
-import { isWeatherError } from "@/modules/weather";
 
-export async function sprayWindow(input: SprayWindowInput, { weather, now = new Date() }: WeatherToolDeps): Promise<SprayWindowOutput> {
-  const forecast = await weather.getForecast(input.city);
-  if (isWeatherError(forecast)) return sprayWindowOutputSchema.parse(forecast);
+export async function sprayWindow(input: SprayWindowInput, deps: WeatherToolDeps): Promise<SprayWindowOutput> {
+  const now = deps.now ?? new Date();
+  const forecast = await forecastForSource(input, deps);
+  if ("error" in forecast) return sprayWindowOutputSchema.parse(forecast);
 
   const date = resolveDay(input.date, forecast.timezone, now);
   if (date < todayIn(forecast.timezone, now)) {
@@ -32,13 +34,13 @@ export async function sprayWindow(input: SprayWindowInput, { weather, now = new 
   });
 }
 
-export function createSprayWindowTool(weather: WeatherPort) {
+export function createSprayWindowTool(weather: WeatherPort, fields?: AgentFieldsPort) {
   return tool({
     description:
       "Decide whether a field can be sprayed on a given day in a city. Applies fixed agronomic rules (wind 1–4 m/s, 10–25 °C, no rain 3 h before and after) to the hourly forecast and returns canSpray, the best window and all suitable windows in city-local time. This result is final: report it, never override it.",
     inputSchema: sprayWindowInputSchema,
     outputSchema: sprayWindowOutputSchema,
-    contextSchema: clockContextSchema,
-    execute: (input, { context }) => sprayWindow(input, { weather, now: context.now }),
+    contextSchema: userContextSchema,
+    execute: (input, { context }) => sprayWindow(input, { weather, fields, userId: context.userId, now: context.now }),
   });
 }
