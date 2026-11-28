@@ -42,6 +42,7 @@ export const en: Record<MessageKey, string> = {
   "approval.field.lon": "Longitude",
   "approval.field.areaHa": "Area, ha",
   "approval.field.notes": "Notes",
+  "fields.error": "Could not load fields. Try again later.",
   "fields.empty.title": "No fields yet",
   "fields.empty.body": "Fields appear here after you save one. Ask about your field in the chat.",
   "nav.label": "Navigation",

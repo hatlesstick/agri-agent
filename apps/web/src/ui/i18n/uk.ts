@@ -40,6 +40,7 @@ export const uk = {
   "approval.field.lon": "Довгота",
   "approval.field.areaHa": "Площа, га",
   "approval.field.notes": "Нотатки",
+  "fields.error": "Не вдалося завантажити поля. Спробуйте пізніше.",
   "fields.empty.title": "Поля ще не додані",
   "fields.empty.body": "Поля з'являться тут після збереження. Спитайте в чаті про своє поле.",
   "nav.label": "Навігація",
