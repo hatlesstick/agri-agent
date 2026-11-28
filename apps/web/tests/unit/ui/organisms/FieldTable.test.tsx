@@ -10,9 +10,23 @@ describe("FieldTable", () => {
   });
 
   it("lists fields as a table with a header row", () => {
-    render(<FieldTable fields={[{ name: "Північ", crop: "Пшениця", areaHa: 42 }]} />);
+    render(<FieldTable fields={[{ id: "f1", name: "Північ", crop: "Пшениця", areaHa: 42 }]} />);
     expect(screen.getByRole("table")).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Поле" })).toBeTruthy();
     expect(screen.getByRole("cell", { name: "Пшениця" })).toBeTruthy();
+  });
+});
+
+describe("FieldTable loading and failure", () => {
+  it("shows skeletons, not the empty state, while fields load", () => {
+    const { container } = render(<FieldTable fields={[]} loading />);
+    expect(screen.queryByText("Поля ще не додані")).toBeNull();
+    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
+  });
+
+  it("shows an error, not the empty state, when fields fail to load", () => {
+    render(<FieldTable fields={[]} failed />);
+    expect(screen.queryByText("Поля ще не додані")).toBeNull();
+    expect(screen.getByText("Не вдалося завантажити поля. Спробуйте пізніше.")).toBeTruthy();
   });
 });

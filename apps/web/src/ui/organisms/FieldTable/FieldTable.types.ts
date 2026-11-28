@@ -1,3 +1,3 @@
-export type FieldRow = { name: string; crop: string; areaHa: number };
+export type FieldRow = { id: string; name: string; crop: string | null; areaHa: number | null };
 
-export type FieldTableProps = { fields: FieldRow[] };
+export type FieldTableProps = { fields: FieldRow[]; loading?: boolean; failed?: boolean };
