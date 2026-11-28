@@ -9,7 +9,11 @@ import { API_ENV, type ApiEnv } from "@/config";
     {
       provide: RATE_LIMITERS,
       inject: [API_ENV],
-      useFactory: (env: ApiEnv) => createRateLimiters({ perClientPerMinute: env.RATE_LIMIT_PER_MINUTE, globalPerMinute: env.GLOBAL_RATE_LIMIT_PER_MINUTE }),
+      useFactory: (env: ApiEnv) => createRateLimiters({
+        perClientPerMinute: env.RATE_LIMIT_PER_MINUTE,
+        sessionPerClientPerMinute: env.SESSION_RATE_LIMIT_PER_MINUTE,
+        globalPerMinute: env.GLOBAL_RATE_LIMIT_PER_MINUTE,
+      }),
     },
   ],
   exports: [RATE_LIMITERS],

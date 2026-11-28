@@ -35,7 +35,7 @@ describe("GET /session", () => {
     now = initial;
     app = await testApp([{ token: DATABASE, useValue: databaseHandle(test.db) }, { token: CLOCK, useValue: () => now }], {
       PROXY_AUTH_SECRET: SECRET,
-      ...(rateLimitPerMinute ? { RATE_LIMIT_PER_MINUTE: rateLimitPerMinute } : {}),
+      ...(rateLimitPerMinute ? { SESSION_RATE_LIMIT_PER_MINUTE: rateLimitPerMinute } : {}),
     });
   }
 
