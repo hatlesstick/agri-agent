@@ -6,6 +6,7 @@ import { authErrorMessage, type SignInProvider } from "@/ui/helpers/account";
 
 export type Account = {
   me: MeResponse | null;
+  meLoading: boolean;
   providers: SignInProvider[];
   authError: string | undefined;
   returnTo: string;
@@ -36,6 +37,7 @@ async function getJson<T>(path: string): Promise<T | null> {
 export function useAccount(): Account {
   const href = useSyncExternalStore(subscribe, currentHref, serverHref);
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [meLoaded, setMeLoaded] = useState(false);
   const [providers, setProviders] = useState<SignInProvider[]>([]);
 
   const location = useMemo(() => new URL(href), [href]);
@@ -55,7 +57,10 @@ export function useAccount(): Account {
       if (active) setProviders(result?.providers ?? []);
     });
     void getJson<MeResponse>("/api/me").then((result) => {
-      if (active) setMe(result);
+      if (active) {
+        setMe(result);
+        setMeLoaded(true);
+      }
     });
     return () => {
       active = false;
@@ -86,5 +91,5 @@ export function useAccount(): Account {
 
   const toggleMenu = useCallback(() => setMenuOpen((open) => !open), []);
 
-  return { me, providers, authError, returnTo, signOut, menuOpen, toggleMenu };
+  return { me, meLoading: !meLoaded, providers, authError, returnTo, signOut, menuOpen, toggleMenu };
 }

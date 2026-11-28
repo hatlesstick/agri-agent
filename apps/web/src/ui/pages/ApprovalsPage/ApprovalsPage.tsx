@@ -16,6 +16,7 @@ const ApprovalsBody: React.FC = () => {
         <section className="flex flex-col gap-4">
           <ApprovalsList
             actions={panel.actions}
+            loading={panel.loading}
             loadFailed={panel.loadFailed}
             decideFailed={panel.decideFailed}
             deciding={panel.deciding}

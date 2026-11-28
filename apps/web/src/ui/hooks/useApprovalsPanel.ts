@@ -8,6 +8,7 @@ const POLL_MS = 15_000;
 
 export type ApprovalsPanel = {
   actions: PendingAction[];
+  loading: boolean;
   loadFailed: boolean;
   deciding: boolean;
   decideFailed: boolean;
@@ -27,6 +28,7 @@ export function useApprovalsPanel(): ApprovalsPanel {
   });
   return {
     actions: list.data?.actions ?? [],
+    loading: list.isPending,
     loadFailed: list.isError,
     deciding: decision.isPending,
     decideFailed: decision.isError,

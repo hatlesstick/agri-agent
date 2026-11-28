@@ -16,6 +16,7 @@ export const AccountPanel: React.FC = () => {
   return (
     <AccountMenu
       me={account.me}
+      meLoading={account.meLoading}
       providers={account.providers}
       returnTo={account.returnTo}
       authError={account.authError}

@@ -4,6 +4,7 @@ import type { SignInProvider } from "@/ui/helpers/account";
 
 export type AccountMenuProps = {
   me: MeResponse | null;
+  meLoading?: boolean;
   providers: SignInProvider[];
   returnTo: string;
   authError: string | undefined;

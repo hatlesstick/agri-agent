@@ -12,7 +12,7 @@ const saveAction: PendingAction = {
   payload: { name: "Wheat near Lyon", lat: 45.76, lon: 4.84 },
 };
 
-const base = { loadFailed: false, decideFailed: false, deciding: false };
+const base = { loading: false, loadFailed: false, decideFailed: false, deciding: false };
 
 describe("ApprovalsList", () => {
   it("shows the empty state when nothing waits for approval", () => {
@@ -33,6 +33,13 @@ describe("ApprovalsList", () => {
     expect(onDecide).toHaveBeenLastCalledWith(saveAction.id, "confirmed");
     await userEvent.click(screen.getByRole("button", { name: "Відхилити" }));
     expect(onDecide).toHaveBeenLastCalledWith(saveAction.id, "rejected");
+  });
+
+  it("shows skeleton cards, not the empty state, while the list is loading", () => {
+    const { container } = render(<ApprovalsList actions={[]} onDecide={() => {}} {...base} loading />);
+    expect(screen.queryByText("Записів для підтвердження немає")).toBeNull();
+    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
   });
 
   it("shows a message when the list could not be loaded", () => {
