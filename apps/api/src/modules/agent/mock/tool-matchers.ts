@@ -26,6 +26,16 @@ const PRACTICE_TOPIC = /\b(drift|inversion|rainfast\w*|delta t|label|buffer|nozz
 
 export const MOCK_TOOL_MATCHERS: MockToolMatcher[] = [
   {
+    toolName: "proposeSaveField",
+    matches: (text) => /\b(save|add|create)\b.*\bfield\b/i.test(text),
+    input: () => ({ name: "Wheat near Lyon", lat: 45.76, lon: 4.84 }),
+  },
+  {
+    toolName: "listFields",
+    matches: (text) => /\bmy fields\b|\blist (my )?fields\b/i.test(text),
+    input: () => ({}),
+  },
+  {
     toolName: "searchDocs",
     matches: (text) => PRACTICE_TOPIC.test(text),
     input: (text) => ({ query: text.slice(0, 200) }),
