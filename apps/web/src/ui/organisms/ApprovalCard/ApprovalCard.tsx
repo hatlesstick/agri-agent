@@ -3,12 +3,12 @@ import { Button } from "@/ui/atoms/Button";
 import { useT } from "@/ui/hooks/useT";
 import type { ApprovalCardProps } from "./ApprovalCard.types";
 
-export const ApprovalCard: React.FC<ApprovalCardProps> = ({ rows, status, onSave, onEdit, onCancel }) => {
+export const ApprovalCard: React.FC<ApprovalCardProps> = ({ title, rows, status, onConfirm, onReject }) => {
   const t = useT();
   return (
     <article className="flex flex-col overflow-hidden rounded-[20px] border border-rule bg-surface">
       <header className="bg-brand-wash px-4 py-3 font-semibold text-brand-ink">
-        {status === "awaiting" ? t("approval.title") : t("approval.confirmed")}
+        {status === "awaiting" ? title : t("approval.confirmed")}
       </header>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 px-4 py-3">
         {rows.map((row) => (
@@ -20,9 +20,8 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({ rows, status, onSave
       </dl>
       {status === "awaiting" && (
         <div className="flex flex-wrap gap-2 border-t border-rule px-4 py-3">
-          <Button onClick={onSave}>{t("approval.save")}</Button>
-          <Button variant="secondary" onClick={onEdit}>{t("approval.edit")}</Button>
-          <Button variant="quiet" onClick={onCancel}>{t("approval.cancel")}</Button>
+          <Button onClick={onConfirm}>{t("approval.confirm")}</Button>
+          <Button variant="quiet" onClick={onReject}>{t("approval.reject")}</Button>
         </div>
       )}
     </article>
