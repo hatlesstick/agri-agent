@@ -1,35 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AgriChatMessage } from "@agri/shared/contracts";
-import { buildForecast, FORECAST_STORAGE_KEY, parseStoredForecast, type StoredForecast } from "@/ui/helpers/forecast-memory";
-
-const subscribe = (onChange: () => void) => {
-  window.addEventListener("storage", onChange);
-  return () => window.removeEventListener("storage", onChange);
-};
-
-const readRaw = (): string | null => {
-  try {
-    return window.localStorage.getItem(FORECAST_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-};
+import { buildForecast, type StoredForecast } from "@/ui/helpers/forecast-memory";
+import { forecastKeys, readStoredForecast, writeStoredForecast } from "@/ui/queries/forecast-queries";
 
 export function useSaveForecast(messages: AgriChatMessage[]): void {
+  const queryClient = useQueryClient();
   useEffect(() => {
     const forecast = buildForecast(messages);
     if (!forecast) return;
-    try {
-      window.localStorage.setItem(FORECAST_STORAGE_KEY, JSON.stringify(forecast));
-    } catch {
-      return;
-    }
-  }, [messages]);
+    writeStoredForecast(forecast);
+    queryClient.setQueryData(forecastKeys.last, forecast);
+  }, [messages, queryClient]);
 }
 
 export function useStoredForecast(): StoredForecast | null {
-  const raw = useSyncExternalStore(subscribe, readRaw, () => null);
-  return useMemo(() => parseStoredForecast(raw), [raw]);
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const onStorage = () => void queryClient.invalidateQueries({ queryKey: forecastKeys.last });
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [queryClient]);
+  const { data } = useQuery({ queryKey: forecastKeys.last, queryFn: readStoredForecast, staleTime: Infinity });
+  return data ?? null;
 }
