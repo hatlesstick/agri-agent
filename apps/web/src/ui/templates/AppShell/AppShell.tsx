@@ -3,6 +3,7 @@
 import type React from "react";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 import { Icon } from "@/ui/atoms/Icon";
+import { QueryProvider } from "@/ui/organisms/QueryProvider";
 import { BrandMark } from "@/ui/molecules/BrandMark";
 import { NavLinks } from "@/ui/molecules/NavLinks";
 import { useChatOpen } from "@/ui/hooks/useChatOpen";
@@ -16,6 +17,7 @@ export const AppShell: React.FC<AppShellProps> = ({ main, chat, account }) => {
   const { open, toggle } = useChatOpen();
   const hasChat = chat !== null && chat !== undefined;
   return (
+    <QueryProvider>
     <div className="flex min-h-screen flex-col gap-6 p-4 md:p-6">
       <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
@@ -64,5 +66,6 @@ export const AppShell: React.FC<AppShellProps> = ({ main, chat, account }) => {
         <NavLinks variant="tabs" />
       </nav>
     </div>
+    </QueryProvider>
   );
 };
