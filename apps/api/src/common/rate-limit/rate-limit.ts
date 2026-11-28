@@ -58,7 +58,7 @@ export type RateLimiters = { global: RateLimiter; routes: Record<RateLimitedRout
 const WINDOW_MS = 60_000;
 
 export function createRateLimiters(
-  { perClientPerMinute, globalPerMinute }: { perClientPerMinute: number; globalPerMinute: number },
+  { perClientPerMinute, sessionPerClientPerMinute, globalPerMinute }: { perClientPerMinute: number; sessionPerClientPerMinute: number; globalPerMinute: number },
   create: (options: RateLimiterOptions) => RateLimiter = createRateLimiter,
 ): RateLimiters {
   return {
@@ -66,7 +66,7 @@ export function createRateLimiters(
     routes: {
       chat: create({ limit: perClientPerMinute, windowMs: WINDOW_MS }),
       sprayCheck: create({ limit: perClientPerMinute, windowMs: WINDOW_MS }),
-      session: create({ limit: perClientPerMinute, windowMs: WINDOW_MS }),
+      session: create({ limit: sessionPerClientPerMinute, windowMs: WINDOW_MS }),
     },
   };
 }
