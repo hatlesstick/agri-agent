@@ -456,6 +456,37 @@
         ]
       }
     },
+    "/fields": {
+      "get": {
+        "operationId": "FieldsController_list",
+        "parameters": [],
+        "responses": {
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "forbidden"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "rate_limited"
+          }
+        },
+        "tags": [
+          "fields"
+        ]
+      }
+    },
     "/forget": {
       "post": {
         "operationId": "PrivacyController_forget",
