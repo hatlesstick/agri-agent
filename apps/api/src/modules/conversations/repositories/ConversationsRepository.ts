@@ -1,9 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { DATABASE, type DatabaseHandle } from "@/database";
-import { conversations } from "@/database/schema";
+import { conversations, messages } from "@/database/schema";
 
 export type ConversationRecord = typeof conversations.$inferSelect;
+
+export type NewMessage = { role: "user" | "assistant"; parts: unknown[]; createdAt: Date };
 
 @Injectable()
 export class ConversationsRepository {
@@ -23,6 +25,19 @@ export class ConversationsRepository {
       .values({ userId, channel: "web", title, createdAt: now, updatedAt: now })
       .returning();
     return row;
+  }
+
+  async append(userId: string, id: string, input: { title: string | null; updatedAt: Date; messages: NewMessage[] }): Promise<boolean> {
+    return this.database.get().transaction(async (tx) => {
+      const owned = await tx
+        .update(conversations)
+        .set({ updatedAt: input.updatedAt, title: sql`coalesce(${conversations.title}, ${input.title})` })
+        .where(and(eq(conversations.id, id), eq(conversations.userId, userId)))
+        .returning({ id: conversations.id });
+      if (owned.length === 0) return false;
+      await tx.insert(messages).values(input.messages.map((message) => ({ conversationId: id, role: message.role, parts: message.parts, createdAt: message.createdAt })));
+      return true;
+    });
   }
 
   async find(userId: string, id: string): Promise<ConversationRecord | null> {

@@ -19,6 +19,7 @@ export const chatMessageSchema = z.discriminatedUnion("role", [userMessageSchema
 
 export const chatRequestSchema = z.looseObject({
   messages: z.array(chatMessageSchema).min(1).max(CHAT_LIMITS.maxMessages),
+  conversationId: z.uuid().optional(),
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

@@ -31,6 +31,6 @@ export class ChatController {
     const abortSignal = abortOnClose(req, res);
     const request = await parseChatRequest(body);
     if (!request.ok) throw problem(request.error, request.status);
-    await this.chat.streamReply({ userId, messages: request.messages, abortSignal }, res);
+    await this.chat.streamReply({ userId, messages: request.messages, conversationId: request.conversationId, abortSignal }, res);
   }
 }

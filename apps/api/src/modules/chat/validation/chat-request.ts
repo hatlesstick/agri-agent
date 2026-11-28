@@ -5,7 +5,7 @@ import { chatRequestSchema, type ErrorCode } from "@agri/shared/contracts";
 export type ChatRequestError = Extract<ErrorCode, "invalid_request" | "part_too_large" | "message_too_long" | "conversation_too_long">;
 
 export type ChatRequestResult =
-  | { ok: true; messages: UIMessage[] }
+  | { ok: true; messages: UIMessage[]; conversationId: string | null }
   | { ok: false; status: 400 | 413; error: ChatRequestError };
 
 export function withoutClientToolData(messages: UIMessage[]): UIMessage[] {
@@ -55,5 +55,9 @@ export async function parseChatRequest(body: unknown): Promise<ChatRequestResult
     return { ok: false, status: 413, error: "conversation_too_long" };
   }
 
-  return { ok: true, messages: withoutClientToolData(messages.slice(-CHAT_LIMITS.keepLastMessages)) };
+  return {
+    ok: true,
+    messages: withoutClientToolData(messages.slice(-CHAT_LIMITS.keepLastMessages)),
+    conversationId: shape.data.conversationId ?? null,
+  };
 }

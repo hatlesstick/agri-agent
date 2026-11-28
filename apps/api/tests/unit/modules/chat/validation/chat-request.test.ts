@@ -15,7 +15,7 @@ function conversation(count: number, text = "question") {
 describe("parseChatRequest", () => {
   it("accepts a valid body with extra useChat fields", async () => {
     const result = await parseChatRequest({ id: "chat-1", trigger: "submit-message", messages: conversation(1) });
-    expect(result).toEqual({ ok: true, messages: conversation(1) });
+    expect(result).toEqual({ ok: true, messages: conversation(1), conversationId: null });
   });
 
   it("rejects a non-object body", async () => {

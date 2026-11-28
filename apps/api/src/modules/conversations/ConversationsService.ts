@@ -1,5 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { ConversationsRepository, type ConversationRecord } from "@/modules/conversations/repositories/ConversationsRepository";
+import { problem } from "@/common/errors";
+import { ConversationsRepository, type ConversationRecord, type NewMessage } from "@/modules/conversations/repositories/ConversationsRepository";
+
+const TITLE_MAX_CHARS = 60;
 
 export const PAGE_SIZE = 20;
 
@@ -7,6 +10,19 @@ export type ConversationView = { id: string; title: string | null; createdAt: st
 
 function view(row: ConversationRecord): ConversationView {
   return { id: row.id, title: row.title, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
+}
+
+function message(role: NewMessage["role"], parts: unknown[], createdAt: Date): NewMessage {
+  return { role, parts, createdAt };
+}
+
+function titleFrom(parts: unknown[]): string | null {
+  const text = parts
+    .map((part) => (typeof part === "object" && part !== null && "type" in part && part.type === "text" && "text" in part && typeof part.text === "string" ? part.text : ""))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text ? text.slice(0, TITLE_MAX_CHARS) : null;
 }
 
 @Injectable()
@@ -22,6 +38,19 @@ export class ConversationsService {
 
   async create(userId: string, now: Date): Promise<ConversationView> {
     return view(await this.conversations.create(userId, null, now));
+  }
+
+  async assertOwned(userId: string, id: string): Promise<void> {
+    if (!(await this.conversations.find(userId, id))) throw problem("not_found", 404);
+  }
+
+  async recordUserMessage(userId: string, id: string, parts: unknown[], now: Date): Promise<void> {
+    const saved = await this.conversations.append(userId, id, { title: titleFrom(parts), updatedAt: now, messages: [message("user", parts, now)] });
+    if (!saved) throw problem("not_found", 404);
+  }
+
+  async recordAssistantMessage(userId: string, id: string, parts: unknown[], now: Date): Promise<void> {
+    await this.conversations.append(userId, id, { title: null, updatedAt: now, messages: [message("assistant", parts, now)] });
   }
 
   async find(userId: string, id: string): Promise<ConversationView | null> {
