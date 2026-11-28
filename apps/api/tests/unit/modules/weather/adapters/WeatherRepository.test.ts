@@ -170,6 +170,14 @@ describe("getForecast", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("two fields at the same coordinates each get their own name from the shared cache", async () => {
+    stubFetch();
+    const first = asForecast(await weatherRepository.getForecastAt({ name: "Alice's wheat", latitude: 45.76, longitude: 4.84 }));
+    const second = asForecast(await weatherRepository.getForecastAt({ name: "Bob's corn", latitude: 45.76, longitude: 4.84 }));
+    expect(first.city).toBe("Alice's wheat");
+    expect(second.city).toBe("Bob's corn");
+  });
+
   it("refetches after the cache entry expires", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     const fetchMock = stubFetch();
