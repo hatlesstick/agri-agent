@@ -19,15 +19,20 @@ export class PendingActionsRepository {
       .get()
       .insert(pendingActions)
       .values({ userId, channel: input.channel, type: input.type, payload: input.payload, expiresAt: input.expiresAt, idempotencyKey: input.idempotencyKey })
-      .onConflictDoNothing({ target: pendingActions.idempotencyKey })
+      .onConflictDoNothing({ target: [pendingActions.userId, pendingActions.idempotencyKey] })
       .returning();
     if (inserted) return toRecord(inserted);
-    const existing = await this.database
+
+    const [existing] = await this.database
       .get()
       .select()
       .from(pendingActions)
-      .where(and(eq(pendingActions.idempotencyKey, input.idempotencyKey), eq(pendingActions.userId, userId)));
-    return toRecord(existing[0]);
+      .where(and(eq(pendingActions.userId, userId), eq(pendingActions.idempotencyKey, input.idempotencyKey)));
+    if (!existing) throw new Error("idempotency key conflict: the existing action could not be read");
+    if (existing.type !== input.type || JSON.stringify(existing.payload) !== JSON.stringify(input.payload)) {
+      throw new Error("idempotency key reused for a different action");
+    }
+    return toRecord(existing);
   }
 
   async find(userId: string, actionId: string): Promise<PendingActionRecord | null> {

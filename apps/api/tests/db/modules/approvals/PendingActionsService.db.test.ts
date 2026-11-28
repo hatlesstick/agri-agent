@@ -52,6 +52,21 @@ describe("PendingActionsService", () => {
     expect(second.id).toBe(first.id);
   });
 
+  it("two users may use the same idempotency key without seeing each other's action", async () => {
+    const aliceAction = await proposeSave("shared-key");
+    const bobAction = await service.propose({ userId: bob, channel: "web", type: "field.save", payload: { name: "Corn" }, expiresAt: EXPIRES, idempotencyKey: "shared-key" });
+    expect(bobAction.id).not.toBe(aliceAction.id);
+    expect(bobAction.userId).toBe(bob);
+    expect(bobAction.payload).toEqual({ name: "Corn" });
+  });
+
+  it("the same user reusing a key for a different action gets a conflict, not the old action", async () => {
+    await proposeSave("reused");
+    await expect(
+      service.propose({ userId: alice, channel: "web", type: "field.delete", payload: { id: "x" }, expiresAt: EXPIRES, idempotencyKey: "reused" }),
+    ).rejects.toThrow(/idempotency/);
+  });
+
   it("confirms once: the executor runs and the status becomes executed", async () => {
     const action = await proposeSave();
     const result = await service.decide({ userId: alice, actionId: action.id, decision: "confirmed", now: NOW, executors: executors() });

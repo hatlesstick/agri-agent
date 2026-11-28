@@ -1,4 +1,4 @@
-import { index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { auditActorEnum, channelEnum, pendingActionStatusEnum } from "@/database/schema/enums";
 import { fields } from "@/database/schema/fields";
 import { users } from "@/database/schema/users";
@@ -19,7 +19,7 @@ export const pendingActions = pgTable(
     decidedAt: timestamp("decided_at", { withTimezone: true }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     runId: text("run_id"),
-    idempotencyKey: text("idempotency_key").notNull().unique("pending_actions_idempotency_key_unique"),
+    idempotencyKey: text("idempotency_key").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -27,6 +27,7 @@ export const pendingActions = pgTable(
     index("pending_actions_user_status_idx").on(table.userId, table.status),
     index("pending_actions_status_expires_idx").on(table.status, table.expiresAt),
     index("pending_actions_field_id_idx").on(table.fieldId),
+    uniqueIndex("pending_actions_user_idempotency_unique").on(table.userId, table.idempotencyKey),
   ],
 );
 
