@@ -442,6 +442,20 @@
         ]
       }
     },
+    "/conversations/{id}/messages": {
+      "get": {
+        "operationId": "ConversationsController_messages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "conversations"
+        ]
+      }
+    },
     "/forget": {
       "post": {
         "operationId": "PrivacyController_forget",

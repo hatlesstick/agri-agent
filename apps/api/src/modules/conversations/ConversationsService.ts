@@ -1,12 +1,19 @@
 import { Inject, Injectable } from "@nestjs/common";
+import type { ConversationMessage } from "@agri/shared/contracts";
 import { problem } from "@/common/errors";
-import { ConversationsRepository, type ConversationRecord, type NewMessage } from "@/modules/conversations/repositories/ConversationsRepository";
+import { ConversationsRepository, type ConversationRecord, type MessageRecord, type NewMessage } from "@/modules/conversations/repositories/ConversationsRepository";
 
 const TITLE_MAX_CHARS = 60;
 
 export const PAGE_SIZE = 20;
+export const MESSAGES_PAGE_SIZE = 50;
 
 export type ConversationView = { id: string; title: string | null; createdAt: string; updatedAt: string };
+export type MessageView = { id: string; role: "user" | "assistant"; parts: ConversationMessage["parts"]; createdAt: string };
+
+function messageView(row: MessageRecord): MessageView {
+  return { id: row.id, role: row.role, parts: row.parts as ConversationMessage["parts"], createdAt: row.createdAt.toISOString() };
+}
 
 function view(row: ConversationRecord): ConversationView {
   return { id: row.id, title: row.title, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
@@ -38,6 +45,15 @@ export class ConversationsService {
 
   async create(userId: string, now: Date): Promise<ConversationView> {
     return view(await this.conversations.create(userId, null, now));
+  }
+
+  async listMessages(userId: string, id: string, cursor: Date | null): Promise<{ messages: MessageView[]; nextCursor: string | null }> {
+    await this.assertOwned(userId, id);
+    const rows = await this.conversations.listMessages(userId, id, cursor, MESSAGES_PAGE_SIZE + 1);
+    const page = rows.slice(0, MESSAGES_PAGE_SIZE);
+    const oldest = page.at(-1);
+    const more = rows.length > MESSAGES_PAGE_SIZE && oldest !== undefined;
+    return { messages: page.reverse().map(messageView), nextCursor: more ? oldest.createdAt.toISOString() : null };
   }
 
   async assertOwned(userId: string, id: string): Promise<void> {

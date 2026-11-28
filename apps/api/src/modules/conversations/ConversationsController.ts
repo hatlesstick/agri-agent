@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { renameConversationSchema, type Conversation, type ConversationsPage } from "@agri/shared/contracts";
+import { renameConversationSchema, type Conversation, type ConversationMessagesPage, type ConversationsPage } from "@agri/shared/contracts";
 import { CLOCK, type Clock } from "@/common/clock";
 import { problem } from "@/common/errors";
 import { ProxyAuthGuard, RateLimited, RateLimitGuard } from "@/common/http";
@@ -43,6 +43,15 @@ export class ConversationsController {
     const found = await this.conversations.find(userId, id);
     if (!found) throw problem("not_found", 404);
     return found;
+  }
+
+  @Get(":id/messages")
+  @RateLimited("session")
+  async messages(@CurrentUserId() userId: string, @Param("id") id: string, @Query("cursor") cursor?: string): Promise<ConversationMessagesPage> {
+    requireId(id);
+    const before = cursor ? new Date(cursor) : null;
+    if (before && Number.isNaN(before.getTime())) throw problem("invalid_request", 400);
+    return this.conversations.listMessages(userId, id, before);
   }
 
   @Patch(":id")
