@@ -9,6 +9,7 @@ import { DatabaseModule } from "@/database";
 import { ChatModule } from "@/modules/chat";
 import { FieldsModule } from "@/modules/fields";
 import { ApprovalsModule } from "@/modules/approvals";
+import { PrivacyModule } from "@/modules/privacy";
 import { IdentityModule } from "@/modules/identity";
 import { SprayCheckModule } from "@/modules/spray-check";
 import { ObservabilityModule, pinoHttpOptions } from "@/observability";
@@ -18,7 +19,7 @@ export class AppModule {
   static register(env: ApiEnv): DynamicModule {
     return {
       module: AppModule,
-      imports: [ConfigModule.forRoot(env), LoggerModule.forRoot({ pinoHttp: pinoHttpOptions(env) }), DatabaseModule, ClockModule, RateLimitModule, HttpModule, CacheModule, ObservabilityModule, IdentityModule, FieldsModule, ApprovalsModule, ChatModule, SprayCheckModule],
+      imports: [ConfigModule.forRoot(env), LoggerModule.forRoot({ pinoHttp: pinoHttpOptions(env) }), DatabaseModule, ClockModule, RateLimitModule, HttpModule, CacheModule, ObservabilityModule, IdentityModule, FieldsModule, ApprovalsModule, PrivacyModule, ChatModule, SprayCheckModule],
     };
   }
 }
