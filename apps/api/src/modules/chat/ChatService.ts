@@ -31,7 +31,7 @@ export class ChatService {
     const stream = await createAgentUIStream({
       agent: createAgriAgent({ ports: this.ports }),
       uiMessages: dropBlockedHistory(messages, isBlocked),
-      options: { now: this.clock() },
+      options: { now: this.clock(), userId },
       abortSignal,
       timeout: AGENT_TIMEOUT_MS,
       onError: chatErrorMessage,

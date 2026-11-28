@@ -8,6 +8,7 @@ import { agentToolsContext, createAgentTools } from "@/modules/agent/tools";
 
 export const agentCallOptionsSchema = z.object({
   now: z.date(),
+  userId: z.string().uuid().optional(),
 });
 
 export type AgentCallOptions = z.infer<typeof agentCallOptionsSchema>;
@@ -28,7 +29,7 @@ export function createAgriAgent({ ports, model = chatModel(), maxRetries, teleme
     prepareCall: ({ options, ...settings }) => ({
       ...settings,
       instructions: buildInstructions(options.now),
-      toolsContext: agentToolsContext(options.now),
+      toolsContext: agentToolsContext(options.now, options.userId),
     }),
     stopWhen: isStepCount(MAX_AGENT_STEPS),
     maxOutputTokens: MAX_OUTPUT_TOKENS,

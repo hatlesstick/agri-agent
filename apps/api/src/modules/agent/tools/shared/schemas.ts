@@ -5,3 +5,10 @@ export const clockContextSchema = z.object({
 });
 
 export type ClockContext = z.infer<typeof clockContextSchema>;
+
+export const userContextSchema = z.object({
+  userId: z.string().uuid().optional(),
+  now: z.date(),
+});
+
+export type UserContext = z.infer<typeof userContextSchema>;
