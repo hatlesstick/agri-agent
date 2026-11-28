@@ -12,6 +12,7 @@ export const conversations = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     channel: channelEnum("channel").notNull(),
     externalChatId: text("external_chat_id"),
+    title: text("title"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

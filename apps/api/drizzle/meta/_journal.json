@@ -50,6 +50,13 @@
       "when": 1795865031357,
       "tag": "0006_pending_actions_user_idempotency",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795870051590,
+      "tag": "0007_conversation_title",
+      "breakpoints": true
     }
   ]
 }
