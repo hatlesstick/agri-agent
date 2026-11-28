@@ -62,7 +62,7 @@ describe("field tools", () => {
       expect.objectContaining({ userId: USER, type: "field.save", payload: { name: "Corn", lat: 50.7, lon: 25.3 }, idempotencyKey: "field.save:call-7" }),
     );
     const [input] = (approvals.propose as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(input.expiresAt.getTime() - NOW.getTime()).toBe(30 * 60_000);
+    expect(input.expiresAt.getTime() - NOW.getTime()).toBe(240 * 60_000);
   });
 
   it("proposeUpdateField proposes a change only for a field the user owns", async () => {
