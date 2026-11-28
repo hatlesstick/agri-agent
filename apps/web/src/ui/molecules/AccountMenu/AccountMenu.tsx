@@ -1,6 +1,7 @@
 import type React from "react";
 import { CircleUser, LogIn } from "lucide-react";
 import { Button } from "@/ui/atoms/Button";
+import { Skeleton } from "@/ui/atoms/Skeleton";
 import { Icon } from "@/ui/atoms/Icon";
 import { ProviderIcon } from "@/ui/atoms/ProviderIcon";
 import { SIGN_IN_KEY, signInHref, type SignInProvider } from "@/ui/helpers/account";
@@ -9,7 +10,7 @@ import type { AccountMenuProps } from "./AccountMenu.types";
 
 const PROVIDER_NAME: Record<SignInProvider, string> = { github: "GitHub", google: "Google" };
 
-export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnTo, authError, menuOpen, onToggle, onSignOut, settings }) => {
+export const AccountMenu: React.FC<AccountMenuProps> = ({ me, meLoading = false, providers, returnTo, authError, menuOpen, onToggle, onSignOut, settings }) => {
   const t = useT();
   const signedIn = me?.signedIn === true;
   const initials = me?.displayName?.trim().charAt(0).toUpperCase() ?? "";
@@ -28,7 +29,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ me, providers, returnT
         onClick={onToggle}
         className="grid size-11 place-items-center overflow-hidden rounded-full border border-rule bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
       >
-        {signedIn && me.avatarUrl ? (
+        {meLoading ? (
+          <Skeleton className="size-full rounded-full" />
+        ) : signedIn && me.avatarUrl ? (
           <img src={me.avatarUrl} alt="" width={44} height={44} className="size-full object-cover" />
         ) : signedIn && initials ? (
           <span className="font-display text-base font-bold">{initials}</span>
