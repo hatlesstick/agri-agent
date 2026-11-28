@@ -14,6 +14,9 @@
               "rate_limited",
               "forbidden",
               "not_found",
+              "action_not_awaiting",
+              "action_expired",
+              "action_failed",
               "blocked_input",
               "spray_window_not_called",
               "invalid_model_output",
@@ -71,6 +74,48 @@
         },
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/approvals": {
+      "get": {
+        "operationId": "ApprovalsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "approvals"
+        ]
+      }
+    },
+    "/approvals/{id}/confirm": {
+      "post": {
+        "operationId": "ApprovalsController_confirm",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "approvals"
+        ]
+      }
+    },
+    "/approvals/{id}/reject": {
+      "post": {
+        "operationId": "ApprovalsController_reject",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "approvals"
         ]
       }
     },

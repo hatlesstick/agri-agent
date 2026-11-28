@@ -35,6 +35,16 @@ export class PendingActionsRepository {
     return toRecord(existing);
   }
 
+  async listAwaiting(userId: string, now: Date): Promise<PendingActionRecord[]> {
+    const rows = await this.database
+      .get()
+      .select()
+      .from(pendingActions)
+      .where(and(eq(pendingActions.userId, userId), eq(pendingActions.status, "awaiting_confirmation"), gt(pendingActions.expiresAt, now)))
+      .orderBy(pendingActions.createdAt);
+    return rows.map(toRecord);
+  }
+
   async find(userId: string, actionId: string): Promise<PendingActionRecord | null> {
     const rows = await this.database.get().select().from(pendingActions).where(and(eq(pendingActions.id, actionId), eq(pendingActions.userId, userId)));
     return rows[0] ? toRecord(rows[0]) : null;

@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import type { DecideInput, DecideResult, PendingActionRecord, ProposeInput } from "@/modules/approvals/approvals.types";
 import { PendingActionsRepository } from "@/modules/approvals/repositories/PendingActionsRepository";
 
 @Injectable()
 export class PendingActionsService {
-  constructor(private readonly repository: PendingActionsRepository) {}
+  constructor(@Inject(PendingActionsRepository) private readonly repository: PendingActionsRepository) {}
 
   propose({ userId, ...input }: ProposeInput): Promise<PendingActionRecord> {
     return this.repository.propose(userId, input);
