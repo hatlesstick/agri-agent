@@ -9,8 +9,13 @@ import { refusalStream } from "@/modules/chat/streams/refusal-stream";
 import { EMPTY_ANSWER_FALLBACK, withEmptyAnswerFallback } from "@/modules/chat/streams/empty-answer-fallback";
 import { withToolOutputGuard } from "@/modules/chat/streams/tool-output-guard";
 import { UsageService, type TokenUsage } from "@/modules/usage";
+import { ConversationsService } from "@/modules/conversations";
 
 const isBlocked = (text: string) => screenInput(text).verdict === "block";
+
+function latestUserParts(messages: ChatReplyInput["messages"]): unknown[] {
+  return messages.findLast((message) => message.role === "user")?.parts ?? [];
+}
 
 @Injectable()
 export class ChatService {
@@ -20,9 +25,10 @@ export class ChatService {
     @Inject(AGENT_PORTS) private readonly ports: AgentPorts,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(UsageService) private readonly usage: UsageService,
+    @Inject(ConversationsService) private readonly conversations: ConversationsService,
   ) {}
 
-  async streamReply({ userId, messages, abortSignal }: ChatReplyInput, response: ServerResponse): Promise<void> {
+  async streamReply({ userId, messages, conversationId, abortSignal }: ChatReplyInput, response: ServerResponse): Promise<void> {
     const screen = screenInput(latestUserText(messages));
     if (screen.verdict === "block") {
       this.logger.warn({ reason: screen.reason, userId }, "guardrail: chat input blocked");
@@ -32,6 +38,10 @@ export class ChatService {
 
     const now = this.clock();
     await this.usage.assertWithinDailyLimit(userId, now);
+    if (conversationId) {
+      await this.conversations.assertOwned(userId, conversationId);
+      await this.conversations.recordUserMessage(userId, conversationId, latestUserParts(messages), now);
+    }
     const stream = await createAgentUIStream({
       agent: createAgriAgent({ ports: this.ports }),
       uiMessages: dropBlockedHistory(messages, isBlocked),
@@ -39,6 +49,14 @@ export class ChatService {
       abortSignal,
       timeout: AGENT_TIMEOUT_MS,
       onError: chatErrorMessage,
+      onEnd: ({ messages: finished }) => {
+        const reply = finished.at(-1);
+        if (conversationId && reply?.role === "assistant") {
+          this.conversations
+            .recordAssistantMessage(userId, conversationId, reply.parts, this.clock())
+            .catch((error: unknown) => this.logger.warn({ userId, error: String(error) }, "chat: reply not saved to conversation"));
+        }
+      },
       onStepEnd: ({ usage }) => {
         const step: TokenUsage = { inputTokens: usage.inputTokens ?? 0, outputTokens: usage.outputTokens ?? 0 };
         this.usage.record(userId, now, step).catch((error: unknown) => this.logger.warn({ userId, error: String(error) }, "usage: step not recorded"));

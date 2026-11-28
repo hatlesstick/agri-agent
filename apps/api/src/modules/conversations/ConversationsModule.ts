@@ -8,5 +8,6 @@ import { ConversationsRepository } from "@/modules/conversations/repositories/Co
   imports: [IdentityModule],
   controllers: [ConversationsController],
   providers: [ConversationsRepository, ConversationsService],
+  exports: [ConversationsService],
 })
 export class ConversationsModule {}
