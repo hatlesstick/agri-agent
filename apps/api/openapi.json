@@ -17,6 +17,7 @@
               "action_not_awaiting",
               "action_expired",
               "action_failed",
+              "daily_limit_reached",
               "blocked_input",
               "spray_window_not_called",
               "invalid_model_output",
@@ -369,6 +370,70 @@
         },
         "tags": [
           "chat"
+        ]
+      }
+    },
+    "/conversations": {
+      "get": {
+        "operationId": "ConversationsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "conversations"
+        ]
+      },
+      "post": {
+        "operationId": "ConversationsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "conversations"
+        ]
+      }
+    },
+    "/conversations/{id}": {
+      "delete": {
+        "operationId": "ConversationsController_remove",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "conversations"
+        ]
+      },
+      "get": {
+        "operationId": "ConversationsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "conversations"
+        ]
+      },
+      "patch": {
+        "operationId": "ConversationsController_rename",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "conversations"
         ]
       }
     },

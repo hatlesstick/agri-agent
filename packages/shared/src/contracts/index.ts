@@ -1,6 +1,7 @@
 export * from "@/contracts/approvals";
 export * from "@/contracts/auth";
 export * from "@/contracts/chat";
+export * from "@/contracts/conversations";
 export * from "@/contracts/chat-message";
 export * from "@/contracts/errors";
 export * from "@/contracts/me";
