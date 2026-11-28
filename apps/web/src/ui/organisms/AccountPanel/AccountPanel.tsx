@@ -2,6 +2,8 @@
 
 import type React from "react";
 import { useAccount } from "@/ui/hooks/useAccount";
+import { useForgetMyData } from "@/ui/hooks/useForgetMyData";
+import { ForgetMyData } from "@/ui/organisms/ForgetMyData";
 import { useT } from "@/ui/hooks/useT";
 import { AccountMenu } from "@/ui/molecules/AccountMenu";
 import { LocaleSwitch } from "@/ui/organisms/LocaleSwitch";
@@ -9,6 +11,7 @@ import { ThemeSwitch } from "@/ui/organisms/ThemeSwitch";
 
 export const AccountPanel: React.FC = () => {
   const account = useAccount();
+  const forget = useForgetMyData();
   const t = useT();
   return (
     <AccountMenu
@@ -29,6 +32,7 @@ export const AccountPanel: React.FC = () => {
             <span className="text-sm">{t("locale.label")}</span>
             <LocaleSwitch />
           </div>
+          <ForgetMyData pending={forget.pending} failed={forget.failed} result={forget.result} onConfirm={forget.run} />
         </div>
       }
     />
